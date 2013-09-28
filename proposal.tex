@@ -1,0 +1,110 @@
+% arara: pdflatex
+% arara: bibtex
+% arara: pdflatex
+% arara: pdflatex
+\documentclass{article}
+
+\usepackage{mathpazo}
+\usepackage{microtype}
+
+\usepackage[backend=bibtex,style=numeric-comp]{biblatex}
+\addbibresource{proposal.bib}
+
+\usepackage{logic}
+
+\begin{document}
+
+\title{Thesis Proposal Outline}
+\author{Henry DeYoung, \texttt{hdeyoung@cs.cmu.edu}}
+\date{\today}
+\maketitle
+
+\section{Introduction}\label{sec:introduction}
+
+\begin{itemize}
+\item Two paradigms for logic-based computation: proof search (logic programming) and proof reduction (functional programming).
+      Understand the relationship between them.
+\item Proof search allows very concise, expressive programs (e.g., [parallel] bubblesort in one line), but does not provide many (any?) guarantees.
+      Proof reduction provides strong guarantees (e.g., preservation, progress, and termination), but requires the programmer to supply many details (e.g., bubblesort).
+\end{itemize}
+
+\section{Background}\label{sec:background}
+
+\subsection{Linear logic}\label{sec:linear-logic}
+
+\begin{itemize}
+\item Should I give a brief introduction to linear logic here?  Or, is this overkill for committee members?
+\item Present ordered logic in its own right here, or present ordered logic only in the context of bottom-up logic programming?
+\end{itemize}
+
+\subsection{Proof search as computation: Bottom-up linear logic programming}\label{sec:linear-lp}
+
+\begin{itemize}
+\item Notion of transition obtained by reading sequent calculus left rules  (bipoles) bottom-up.
+\end{itemize}
+
+\subsubsection{Bottom-up ordered logic programming}\label{sec:ordered-lp}
+
+\begin{itemize}
+\item Example: binary counter with increment.
+\end{itemize}
+
+\subsection{Proof reduction as computation: Session-typed linear logic}\label{sec:async-sill}
+
+\begin{itemize}
+\item Present monadic language only?  Disadvantage is that proof reduction is not quite as clear or simple to see since it involves run-time typing.
+\end{itemize}
+
+\section{Choreographies}\label{sec:choreographies}
+
+\subsection{What counts as a choreography?}\label{sec:what-counts-choreo}
+
+\begin{itemize}
+\item Grammar of choreographies.
+\item Each choreography rule must be able to fire independently of the other processes (although it may depend on messages).
+\end{itemize}
+
+\subsection{Compiling choreographies}\label{sec:compile-choreo}
+
+\subsubsection{Correctness}\label{sec:correctness}
+
+\begin{itemize}
+\item Well-typed choreographies compile to well-typed processes.
+\item Executions of a choreography and its compiled form are bisimilar.
+\end{itemize}
+
+\section{Proposed work}\label{sec:extensions}
+
+Should be easy:
+\begin{itemize}
+\item First-order quantifiers in the ordered logic setting
+\item Adapt notion of choreography and compiler to linear logic
+\end{itemize}
+Somewhat harder:
+\begin{itemize}
+\item Modalities for sharing ($\bang$ and $\gnab$)
+\item Infer choreographies and their types
+\end{itemize}
+
+This proposed work seems more like engineering.
+In general, I am not sure what big picture understanding the compilation gives; it feels like all that we've done is to obfuscate the SSOS.
+
+Maybe an understanding of what functional programs are possible for a given logic program would be a better goal?
+This goal, however, doesn't need to rely on the compilation/functional aspect very much;
+we could equally well ask what styles of choreography are possible for a given logic program.
+
+
+\subsection{Schedule}\label{sec:schedule}
+
+\section{Related work}\label{sec:related-work}
+
+Functional logic languages, such as Curry\cite{Hanus:Ganzinger13}, view functional programs as logic programs.
+This proposal takes the opposite approach, compiling a class of logic programs to functional programs.
+
+\citeauthor{Simmons-Zerny:LICS13}'s correspondence between natural semantics (functional program) and abstract machines (logic program)\autocite{Simmons-Zerny:LICS13}.
+
+% \bibliographystyle{plain}
+% \bibliography{proposal}
+\printbibliography
+
+\end{document}
