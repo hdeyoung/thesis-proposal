@@ -4,18 +4,24 @@
 % arara: pdflatex
 \documentclass{article}
 
+\usepackage{fixltx2e}
+
+\usepackage[T1]{fontenc}
 \usepackage{mathpazo}
 \usepackage{microtype}
 
-\usepackage[backend=bibtex,style=numeric-comp]{biblatex}
+\usepackage[backend=bibtex,style=authoryear-comp,maxcitenames=2]{biblatex}
 \addbibresource{proposal.bib}
+
+\usepackage[single]{acro}
+\DeclareAcronym{JILL}{short = JILL, long = judgmental intuitionistic linear logic}
 
 \usepackage{logic}
 
 \begin{document}
 
 \title{Untitled Thesis Proposal}
-\author{Henry DeYoung, \texttt{hdeyoung@cs.cmu.edu}}
+\author{Henry DeYoung\\\texttt{hdeyoung@cs.cmu.edu}}
 \date{\today}
 \maketitle
 

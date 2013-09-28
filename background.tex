@@ -1,5 +1,64 @@
 \subsection{Linear logic}\label{sec:linear-logic}
 
+\begin{figure}
+  \begin{mathpar}
+    \infer[\lab{id}]{\uctx ; P \seq P}{
+      }
+    \and
+    \infer[\lab{copy}]{\uctx, A ; \lctx' \seq J}{
+      \uctx, A ; \lctx', A \seq J}
+    \\
+    \infer[\rlab{{\lolli}}]{\uctx ; \lctx \seq A \lolli B}{
+      \uctx ; \lctx, A \seq B}
+    \and
+    \infer[\llab{{\lolli}}]{\uctx ; \lctx'_1, \lctx'_2, A \lolli B \seq J}{
+      \uctx ; \lctx'_1 \seq A &
+      \uctx ; \lctx'_2, B \seq J}
+    \\
+    \infer[\rlab{{\with}}]{\uctx ; \lctx \seq A \with B}{
+      \uctx ; \lctx \seq A &
+      \uctx ; \lctx \seq B}
+    \and
+    \infer[{\llab{{\with}}[1]}]{\uctx ; \lctx', A \with B \seq J}{
+      \uctx ; \lctx', A \seq J}
+    \and
+    \infer[{\llab{{\with}}[2]}]{\uctx ; \lctx', A \with B \seq J}{
+      \uctx ; \lctx', B \seq J}
+    \\
+    \infer[\rlab{{\tensor}}]{\uctx ; \lctx_1, \lctx_2 \seq A \tensor B}{
+      \uctx ; \lctx_1 \seq A &
+      \uctx ; \lctx_2 \seq B}
+    \and
+    \infer[\llab{{\tensor}}]{\uctx ; \lctx', A \tensor B \seq J}{
+      \uctx ; \lctx', A, B \seq J}
+    \\
+    \infer[\rlab{\one}]{\uctx ; \lctxe \seq \one}{
+      }
+    \and
+    \infer[\llab{\one}]{\uctx ; \lctx', \one \seq J}{
+      \uctx ; \lctx' \seq J}
+    \\
+    \infer[\rlab{\bang}]{\uctx ; \lctxe \seq \bang A}{
+      \uctx ; \lctxe \seq A}
+    \and
+    \infer[\llab{\bang}]{\uctx ; \lctx', \bang A \seq J}{
+      \uctx, A ; \lctx' \seq J}
+  \end{mathpar}
+  \begin{mathpar}
+    \infer-[\lab{id$_A$}]{\uctx ; A \seq A}{
+      }
+    \and
+    \infer-[\lab{cut$_A$}]{\uctx ; \lctx, \lctx' \seq J}{
+      \uctx ; \lctx \seq A &
+      \uctx ; \lctx', A \seq J}
+    \and
+    \infer-[\lab{cut$^{\bang}_A$}]{\uctx ; \lctx' \seq J}{
+      \uctx ; \lctxe \seq A &
+      \uctx, A ; \lctx' \seq J}
+  \end{mathpar}
+  \caption{Sequent calculus rules for \acf{JILL}~\autocite{Chang+:CMU03}.}
+\end{figure}
+
 \begin{itemize}
 \item Should I give a brief introduction to linear logic here?  Or, is this overkill for committee members?
 \item Present ordered logic in its own right here, or present ordered logic only in the context of bottom-up logic programming?
