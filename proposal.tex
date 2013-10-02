@@ -1,22 +1,50 @@
-% arara: pdflatex
+% arara: pdflatex: { shell: yes }
 % arara: bibtex
-% arara: pdflatex
-% arara: pdflatex
+% arara: pdflatex: { shell: yes }
+% arara: pdflatex: { shell: yes }
 \documentclass{article}
 
 \usepackage{fixltx2e}
 
 \usepackage[T1]{fontenc}
-\usepackage{mathpazo}
+\usepackage[sc,osf]{mathpazo}
+\linespread{1.05}
+\usepackage[scaled]{inconsolata}
 \usepackage{microtype}
 
-\usepackage[backend=bibtex,style=authoryear-comp,maxcitenames=2]{biblatex}
+\usepackage{cleveref}
+
+\usepackage[
+  backend=bibtex,
+  style=authoryear-comp,maxcitenames=2%
+]{biblatex}
 \addbibresource{proposal.bib}
 
 \usepackage[single]{acro}
 \DeclareAcronym{JILL}{short = JILL, long = judgmental intuitionistic linear logic}
+\DeclareAcronym{SML}{short = SML, long = Standard ML}
 
 \usepackage{logic}
+\usepackage{predicates}
+
+\usepackage{minted}
+\usemintedstyle{vs}
+\newminted{sml}{gobble=2}
+% \newmint{sml}{}
+\usepackage{listings}
+\newlength{\mywidth}
+\settowidth{\mywidth}{\ttfamily A}
+\lstset{basicstyle=\ttfamily, basewidth=\mywidth}
+\NewDocumentCommand{\sml}{o}{%
+  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
+}
+
+\NewDocumentCommand{\vocab}{m}{\emph{#1}}
+\NewDocumentCommand{\wc}{m o}{%
+  #1\IfValueT{#2}{ [#2]}\textsuperscript{?}%
+}
+
+\NewDocumentCommand{\rulename}{m}{\text{\texttt{\textup{#1}}}}
 
 \begin{document}
 
@@ -24,6 +52,12 @@
 \author{Henry DeYoung\\\texttt{hdeyoung@cs.cmu.edu}}
 \date{\today}
 \maketitle
+
+\begin{abstract}
+  Despite both being rooted in proof theory, logic programming and functional programming each have distinct advantages and disadvantages.
+  Logic programs are remarkably concise and expressive, whereas well-typed functional programs provide guarantees about their behavior.
+  This thesis proposes to identify a class of (bottom-up) logic programs that do, in fact, enjoy the same kinds of behavioral guarantees as functional programs, thereby affording programmers the best of both worlds.
+\end{abstract}
 
 \section{Introduction}\label{sec:introduction}
 

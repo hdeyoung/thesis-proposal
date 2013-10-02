@@ -1,13 +1,65 @@
-Proof-relevant computation is divided into two classes: proof search as computation, which is the basis of logic programming languages such as Celf~\autocite{Schack-Nielsen+Schuermann:IJCAR08}, Elf, and, of course, Prolog; and proof reduction as computation, which is the basis of functional programming languages such as ML and Haskell.
+Proof-relevant computation can be divided into two notions: \vocab{proof-search-as-computation}, which is the foundation of logic programming~\autocite{Miller+:PAL91,Andreoli:JLC92}, and \vocab{proof-reduction-as-computation}, which is the basis of functional programming~\autocite{Howard:Curry80,Martin-Lof:LMPS80}.%
+\footnote{In fact, we will hereafter use the terms `logic programming' and `functional programming' synonymously with `proof-search-as-computation' and `proof-reduction-as-computation', respectively.}
+Despite both being rooted in proof theory, the two notions of computation are quite different, each having their own advantages and disadvantages.
 
-This thesis proposes to better understand the relationship between proof-search-as-computation and proof-reduction-as-computation in the context of concurrent, distributed programming.
+In the proof-search notion, computation arises as the act of searching, according to a fixed strategy, for a proof of a query formula; a program, then, is a collection of \wc{axioms} under which the search occurs.
+For example, a bubble-like sorting algorithm can be written in ordered logic as just a single, one-line axiom that swaps neighboring elements if they are out of order:
+\NewPredicate{\elem}{1}%
+\begin{equation*}
+  \rulename{swap} : \forall M.\forall N.\; \elem{M} \fuse \elem{N} \fuse \bang (M > N) \rimp \monad{\elem{N} \fuse \elem{M}} \,.
+\end{equation*}
+To compute the sorted form of the list $3,2,1$, we would then search for the natural numbers $S_0$, $S_1$, and $S_2$ for which there is a proof of the query formula
+\begin{equation*}
+  \elem{3} \fuse \elem{2} \fuse \elem{1} \rimp \monad{\elem{S_0} \fuse \elem{S_1} \fuse \elem{S_2}} \,.
+\end{equation*}
+(We will explain this in more detail in \cref{sec:linear-lp}; for now, only the basic idea is important.)
 
-\begin{itemize}
-\item Two paradigms for logic-based computation: proof search (logic programming) and proof reduction (functional programming).
-      Understand the relationship between them.
-\item Proof search allows very concise, expressive programs (e.g., [parallel] bubblesort in one line), but does not provide many (any?) guarantees.
-      Proof reduction provides strong guarantees (e.g., preservation, progress, and termination), but requires the programmer to supply many details (e.g., bubblesort).
-\end{itemize}
+On the other hand, in the proof-reduction notion of computation, the programs are the proofs themselves; computation arises
+% as a series of proof simplifications (i.e., reductions) that continue until an irreducible value is reached.
+by repeatedly simplifying (i.e., reducing) a proof.
+Also, the judgments that proofs witness serve as types that classify programs according to the kind of value they compute.
+For example, a bubble-like sorting algorithm written as a functional program is shown in \cref{fig:bubble-sml}.
+To compute the sorted form of list $3,2,1$, we would then reduce \sml/sort [3,2,1]/ until a value is reached.
+
+\begin{figure}
+  \begin{smlcode}
+  (* swap : int list -> int list option *)
+  (* Find the first pair of neighboring elements
+     in list l that are out of order and swap them.
+     Return SOME of the list after swapping;
+     return NONE if no such pair exists. *)
+  fun swap [] = NONE
+    | swap [x] = NONE
+    | swap (x::y::ys) =
+        if x > y
+        then
+          SOME (y::x::ys)
+        else
+          case swap (y::ys) of
+            SOME l => SOME (x::l)
+          | NONE => NONE
+
+  (* sort : int list -> int list *)
+  fun sort l =
+        case swap l of
+          SOME l' => sort l'
+        | NONE => l
+  \end{smlcode}
+  \caption{A bubble-like sorting algorithm written in \acl{SML}.\label{fig:bubble-sml}}
+\end{figure}
+
+As this example shows, \wc{logic programs} are very concise and expressive when compared to \wc{functional programs}.
+% The functional programmer must make explicit several details, such as iterating \sml/swap/ until there are no more inversions (using recursion and an \sml/option/ type), which the logic programmer gets for free from the language itself.
+Here the functional programmer had to make explicit several details, such as iterating \sml/swap/ until there are no more inversions (using recursion and an \sml/option/ type), which the logic programmer got for free from the logic programming framework itself.
+On the other hand, by leveraging types, functional programs provide some guarantees about their behavior, such as type preservation, progress, and, in certain cases, termination, which logic programs do not provide.
+As always, we wish that we could have the best of both worlds: the conciseness of logic programming and the behavioral guarantees of functional programming.
+
+% This thesis proposes to \wc{better understand}[explore] the relationship between proof-search-as-computation and proof-reduction-as-computation in the context of concurrent, distributed programming, and identify a class of logic programs that provide the guarantees of functional programs.
+This thesis therefore proposes to identify a class of (bottom-up) logic programs that do, in fact, enjoy the same kinds of behavioral guarantees as well-typed functional programs.
+We also hope that insights gained along the way will lead to a better fundamental understanding of the relationship between proof-search-as-computation and proof-reduction-as-computation.
+
+\subsection{Sketch of proposed solution}\label{sec:sketch-solution}
+
 
 %%% Local Variables:
 %%% TeX-master: "proposal"

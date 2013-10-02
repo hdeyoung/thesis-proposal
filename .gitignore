@@ -1,5 +1,6 @@
 *~
 \#*\#
+
 *.aux
 *.bbl
 *-blx.bib
@@ -7,3 +8,8 @@
 *.log
 *.pdf
 *.run.xml
+
+*.pyg
+*.pyg.lst
+*.pyg.sty
+*.pyg.vrb
