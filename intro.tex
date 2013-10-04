@@ -22,7 +22,7 @@ For example, a bubble-like sorting algorithm written as a functional program is 
 To compute the sorted form of list $3,2,1$, we would then reduce \sml/sort [3,2,1]/ until a value is reached.
 
 \begin{figure}
-  \begin{smlcode}
+  \begin{pyglist}[language=sml, gobble=2]
   (* swap : int list -> int list option *)
   (* Find the first pair of neighboring elements
      in list l that are out of order and swap them.
@@ -44,7 +44,7 @@ To compute the sorted form of list $3,2,1$, we would then reduce \sml/sort [3,2,
         case swap l of
           SOME l' => sort l'
         | NONE => l
-  \end{smlcode}
+  \end{pyglist}
   \caption{A bubble-like sorting algorithm written in \acl{SML}.\label{fig:bubble-sml}}
 \end{figure}
 

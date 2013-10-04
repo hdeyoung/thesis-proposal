@@ -1,5 +1,29 @@
 \subsection{What counts as a choreography?}\label{sec:what-counts-choreo}
 
+\begin{align*}
+  &\inc \lrimp \inc[<-] \\
+  &\eps \lrimp (\inc[<-] \rimp \eps \fuse \bit{1}) \\
+  &\bit{0} \lrimp (\inc[<-] \rimp \bit{1}) \\
+  &\bit{1} \lrimp (\inc[<-] \rimp \inc \fuse \bit{0})
+\end{align*}
+
+\begin{align*}
+  &\eps \lrimp \eps[->] \\
+  &\bit{0} \lrimp \bit{0}[->] \\
+  &\bit{1} \lrimp \bit{1}[->] \\
+  &\inc \lrimp \parens[auto, align=c@{\,}l]{
+                     & (\eps[->] \limp \eps \fuse \bit{1}) \\[2pt]
+               \with & (\bit{0}[->] \limp \bit{1}) \\[2pt]
+               \with & (\bit{1}[->] \limp \inc \fuse \bit{0})}
+\end{align*}
+
+\NewDocumentCommand{\fch}{o m}{\IfValueTF{#1}{\monad[#1]}{\monad}{#2}}
+
+\begin{align*}
+  &\elem{M} \lrimp \elem[->]{M} \\
+  &\elem{N} \lrimp (\elem[->]{M} \limp ((M > N) \uimp \fch{\elem{N} \fuse \elem{M}}))
+\end{align*}
+
 \begin{itemize}
 \item Grammar of choreographies.
 \item Each choreography rule must be able to fire independently of the other processes (although it may depend on messages).

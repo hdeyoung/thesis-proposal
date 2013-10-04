@@ -1,5 +1,6 @@
 \subsection{Linear logic}\label{sec:linear-logic}
 
+\NewDocumentCommand{\lfrm}{m}{\Theta\{#1\}}
 \begin{figure}
   \begin{mathpar}
     \infer[\lab{id}]{\uctx ; P \seq P}{
@@ -11,53 +12,112 @@
     \infer[\rlab{{\lolli}}]{\uctx ; \lctx \seq A \lolli B}{
       \uctx ; \lctx, A \seq B}
     \and
-    \infer[\llab{{\lolli}}]{\uctx ; \lctx'_1, \lctx'_2, A \lolli B \seq J}{
-      \uctx ; \lctx'_1 \seq A &
-      \uctx ; \lctx'_2, B \seq J}
+    \infer[\llab{{\lolli}}]{\uctx ; \lfrm{\lctx'_A, A \lolli B} \seq J}{
+      \uctx ; \lctx'_A \seq A &
+      \uctx ; \lfrm{B} \seq J}
     \\
     \infer[\rlab{{\with}}]{\uctx ; \lctx \seq A \with B}{
       \uctx ; \lctx \seq A &
       \uctx ; \lctx \seq B}
     \and
-    \infer[{\llab{{\with}}[1]}]{\uctx ; \lctx', A \with B \seq J}{
-      \uctx ; \lctx', A \seq J}
+    \infer[{\llab{{\with}}[1]}]{\uctx ; \lfrm{A \with B} \seq J}{
+      \uctx ; \lfrm{A} \seq J}
     \and
-    \infer[{\llab{{\with}}[2]}]{\uctx ; \lctx', A \with B \seq J}{
-      \uctx ; \lctx', B \seq J}
+    \infer[{\llab{{\with}}[2]}]{\uctx ; \lfrm{A \with B} \seq J}{
+      \uctx ; \lfrm{B} \seq J}
     \\
     \infer[\rlab{{\tensor}}]{\uctx ; \lctx_1, \lctx_2 \seq A \tensor B}{
       \uctx ; \lctx_1 \seq A &
       \uctx ; \lctx_2 \seq B}
     \and
-    \infer[\llab{{\tensor}}]{\uctx ; \lctx', A \tensor B \seq J}{
-      \uctx ; \lctx', A, B \seq J}
+    \infer[\llab{{\tensor}}]{\uctx ; \lfrm{A \tensor B} \seq J}{
+      \uctx ; \lfrm{A, B} \seq J}
     \\
     \infer[\rlab{\one}]{\uctx ; \lctxe \seq \one}{
       }
     \and
-    \infer[\llab{\one}]{\uctx ; \lctx', \one \seq J}{
-      \uctx ; \lctx' \seq J}
+    \infer[\llab{\one}]{\uctx ; \lfrm{\one} \seq J}{
+      \uctx ; \lfrm{\lctxe} \seq J}
     \\
     \infer[\rlab{\bang}]{\uctx ; \lctxe \seq \bang A}{
       \uctx ; \lctxe \seq A}
     \and
-    \infer[\llab{\bang}]{\uctx ; \lctx', \bang A \seq J}{
-      \uctx, A ; \lctx' \seq J}
+    \infer[\llab{\bang}]{\uctx ; \lfrm{\bang A} \seq J}{
+      \uctx, A ; \lfrm{\lctxe} \seq J}
   \end{mathpar}
   \begin{mathpar}
     \infer-[\lab{id$_A$}]{\uctx ; A \seq A}{
       }
     \and
-    \infer-[\lab{cut$_A$}]{\uctx ; \lctx, \lctx' \seq J}{
+    \infer-[\lab{cut$_A$}]{\uctx ; \lfrm{\lctx} \seq J}{
       \uctx ; \lctx \seq A &
-      \uctx ; \lctx', A \seq J}
+      \uctx ; \lfrm{A} \seq J}
     \and
     \infer-[\lab{cut$^{\bang}_A$}]{\uctx ; \lctx' \seq J}{
       \uctx ; \lctxe \seq A &
       \uctx, A ; \lctx' \seq J}
   \end{mathpar}
-  \caption{Sequent calculus rules for \acf{JILL}~\autocite{Chang+:CMU03}.}
+  \caption{Sequent calculus rules for a propositional fragment of \acf{JILL}~\autocite{Chang+:CMU03}.}
 \end{figure}
+
+\subsubsection{Ordered logic}\label{sec:ordered-logic}
+
+\NewDocumentCommand{\ofrm}{m}{\Theta\{#1\}}
+\begin{figure}
+  \begin{mathpar}
+    \infer[\lab{id}]{P \seq P}{
+      }
+    \\
+    \infer[\rlab{{\rimp}}]{\octx \seq A \rimp B}{
+      \octx, A \seq B}
+    \and
+    \infer[\llab{{\rimp}}]{\ofrm{A \rimp B, \octx'} \seq J}{
+      \octx' \seq A &
+      \ofrm{B} \seq J}
+    \\
+    \infer[\rlab{{\limp}}]{\octx \seq A \limp B}{
+      A, \octx \seq B}
+    \and
+    \infer[\llab{{\limp}}]{\ofrm{\octx', A \limp B} \seq J}{
+      \octx' \seq A &
+      \ofrm{B} \seq J}
+    \\
+    \infer[\rlab{{\with}}]{\octx \seq A \with B}{
+      \octx \seq A &
+      \octx \seq B}
+    \and
+    \infer[{\llab{{\with}}[1]}]{\ofrm{A \with B} \seq J}{
+      \ofrm{A} \seq J}
+    \and
+    \infer[{\llab{{\with}}[2]}]{\ofrm{A \with B} \seq J}{
+      \ofrm{B} \seq J}
+    \\
+    \infer[\rlab{{\fuse}}]{\octx_1, \octx_2 \seq A \fuse B}{
+      \octx_1 \seq A &
+      \octx_2 \seq B}
+    \and
+    \infer[\llab{{\fuse}}]{\ofrm{A \fuse B} \seq J}{
+      \ofrm{A, B} \seq J}
+    \\
+    \infer[\rlab{\one}]{\octxe \seq \one}{
+      }
+    \and
+    \infer[\llab{\one}]{\ofrm{\one} \seq J}{
+      \ofrm{\octxe} \seq J}
+  \end{mathpar}
+  \begin{mathpar}
+    \infer-[\lab{id$_A$}]{A \seq A}{
+      }
+    \and
+    \infer-[\lab{cut$_A$}]{\ofrm{\octx} \seq J}{
+      \octx \seq A &
+      \ofrm{A} \seq J}
+  \end{mathpar}
+  \caption{Sequent calculus rules for ordered logic~\autocite{Polakow+Pfenning:MFPS99,Simmons:CMU12}.}
+\end{figure}
+
+
+
 
 \begin{itemize}
 \item Should I give a brief introduction to linear logic here?  Or, is this overkill for committee members?
@@ -71,6 +131,27 @@
 \end{itemize}
 
 \subsubsection{Bottom-up ordered logic programming}\label{sec:ordered-lp}
+
+\NewPredicate{\eps}{0}
+\NewPredicate{\bitz}[bit_0]{0}
+\NewPredicate{\bito}[bit_1]{0}
+\ExplSyntaxOn
+\NewDocumentCommand{\bit}{m}{
+  \int_case:nnF {#1}
+    {
+      {0} {\bitz}
+      {1} {\bito}
+    }
+    { Error! }
+}
+\ExplSyntaxOff
+\NewPredicate{\inc}{0}
+
+\begin{align*}
+  &\eps \fuse \inc \lrimp \eps \fuse \bit{1} \\
+  &\bit{0} \fuse \inc \lrimp \bit{1} \\
+  &\bit{1} \fuse \inc \lrimp \inc \fuse \bit{0}
+\end{align*}
 
 \begin{itemize}
 \item Example: binary counter with increment.

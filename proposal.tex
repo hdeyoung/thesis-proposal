@@ -9,7 +9,6 @@
 \usepackage[T1]{fontenc}
 \usepackage[sc,osf]{mathpazo}
 \linespread{1.05}
-\usepackage[scaled]{inconsolata}
 \usepackage{microtype}
 
 \usepackage{cleveref}
@@ -27,10 +26,8 @@
 \usepackage{logic}
 \usepackage{predicates}
 
-\usepackage{minted}
-\usemintedstyle{vs}
-\newminted{sml}{gobble=2}
-% \newmint{sml}{}
+\usepackage{verbments}
+% \NewDocumentEnvironment{smlcode}{}{\begin{pyglist}[language=sml,gobble=2]}{\end{pyglist}}
 \usepackage{listings}
 \newlength{\mywidth}
 \settowidth{\mywidth}{\ttfamily A}
