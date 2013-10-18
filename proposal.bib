@@ -1,75 +1,94 @@
-% This file was created with JabRef 2.4.
+% This file was created with JabRef 2.9.2.
 % Encoding: Cp1252
 
-@STRING{LICS = {Logic in Computer Science}}
-
 @ARTICLE{Andreoli:JLC92,
-author = {Andreoli, Jean-Marc}, 
-title = {Logic Programming with Focusing Proofs in Linear Logic},
-volume = {2}, 
-number = {3}, 
-pages = {297--347}, 
-year = {1992}, 
-doi = {10.1093/logcom/2.3.297}, 
-abstract = {The deep symmetry of linear logic [18] makes it suitable
-                  for providing abstract models of computation, free
-                  from implementation details which are, by nature,
-                  oriented and non-symmetrical. I propose here one
-                  such model, in the area of logic programming, where
-                  the basic computational priciple isComputation =
-                  Proof searchProofs cinsidered here are those of the
-                  Gentzen style sequent calculus for linear
-                  logic. However, proofs in this system may be
-                  redundant, in that two proofs canbe syntactically
-                  different although identical up to some irrelevant
-                  reordering or simplification of the applications of
-                  the inferences rules. This leads to an untractable
-                  proof search where the search procedure is forced to
-                  make costly choices whch turn out to be
-                  irrelevant. To overcome this problem, a subclass of
-                  proofs, called the `focusing' proofs, which is both
-                  complete (any derivable formla in linear logic has a
-                  focusing proof) and tractable (many irrelevant
-                  choices in the search are eliminated when aimed at
-                  focusing proofs) is identified. The main constraint
-                  underlying the specificatuon of focusing proofs has
-                  been to preserve the symmetry of linear logic, which
-                  is its most salient feature. In particular, dual
-                  connectives have dual properties with respect to
-                  focusing proofsThen, a progrmming language, called
-                  LinLog, consisting of a fragment of linear logic, in
-                  which focussing proofs have a more compact form, is
-                  presented. Linlog deals with formulae which have a
-                  syntax similar to the of the definite clauses and
-                  goals of Horn logic, but the crucial difference here
-                  is that it allows clauses with multiple atoms in the
-                  head, connected by the `par' (multiplicative
-                  disjuction). It is then shown that the syntyactic
-                  restriction induced by LinLog is not performed at
-                  the cost of any expressive power: a mapping from
-                  full linear logic to LinLog, preserving focusing
-                  proofs, and analogous to the normalization to
-                  clausal form for classical logic, is presented.}, 
-URL = {http://logcom.oxfordjournals.org/content/2/3/297.abstract}, 
-eprint = {http://logcom.oxfordjournals.org/content/2/3/297.full.pdf+html}, 
-journal = {Journal of Logic and Computation} 
+  author = {Andreoli, Jean-Marc},
+  title = {Logic Programming with Focusing Proofs in Linear Logic},
+  editor = {Gabbay, Dov M.},
+  journaltitle = {Journal of Logic and Computation},
+  date = {1992},
+  volume = {2},
+  number = {3},
+  pages = {297--347},
+  issn = {0955-792X},
+  doi = {10.1093/logcom/2.3.297},
+  abstract = {The deep symmetry of linear logic makes it suitable for providing abstract models of computation, free from implementation details which are, by nature, oriented and non-symmetrical.  I propose here one such model, in the area of logic programming, where the basic computational principle is Computation = Proof search.  Proofs considered here are those of the Gentzen style sequent calculus for linear logic.  However, proofs in this system may be redundant, in that two proofs can be syntactically different although identical up to some irrelevant reordering or simplification of the applications of the inferences rules.  This leads to an intractable proof search where the search procedure is forced to make costly choices which turn out to be irrelevant.  To overcome this problem, a subclass of proofs, called the `focusing' proofs, which is both complete (any derivable formula in linear logic has a focusing proof) and tractable (many irrelevant choices in the search are eliminated when aimed at focusing proofs) is identified.  The main constraint underlying the specification of focusing proofs has been to preserve the symmetry of linear logic, which is its most salient feature.  In particular, dual connectives have dual properties with respect to focusing proofs.  Then, a programming language, called LinLog, consisting of a fragment of linear logic, in which focusing proofs have a more compact form, is presented.  LinLog deals with formulae which have a syntax similar to the of the definite clauses and goals of Horn logic, but the crucial difference here is that it allows clauses with multiple atoms in the head, connected by the `par' (multiplicative disjunction).  It is then shown that the syntactic restriction induced by LinLog is not performed at the cost of any expressive power: a mapping from full linear logic to LinLog, preserving focusing proofs, and analogous to the normalization to clausal form for classical logic, is presented.}
+}
+
+@TECHREPORT{Barber:ECS96,
+  author = {Barber, Andrew},
+  title = {Dual Intuitionistic Linear Logic},
+  institution = {Department of Computer Science, University of Edinburgh},
+  date = {1996-09},
+  number = {ECS-LFCS-96-347},
+  location = {Edinburgh},
+  abstract = {We present a new intuitionistic linear logic, Dual Intuitionistic Linear Logic, designed to reflect the motivation of exponentials as translations of intuitionistic types, and provide it with a term calculus, proving associated standard type-theoretic results.  We give a sound and complete categorical semantics for the type-system, and consider the relationship of the new type-theory to the more familiar presentation found for example in ``A term calculus for intuitionistic linear logic'' by Benton et al.}
 }
 
 @TECHREPORT{Chang+:CMU03,
   author = {Chang, Bor-Yuh Evan and Chaudhuri, Kaustuv and Pfenning, Frank},
   title = {A Judgmental Analysis of Linear Logic},
-  number = {CMU-CS-03-131R},
   institution = {Computer Science Department, Carnegie Mellon University},
-  month = apr,
-  year = 2003,
-  note = {Revised December 2003},
+  date = {2003-04},
+  number = {CMU-CS-03-131R},
+  location = {Pittsburgh},
+  note = {\autocap{r}evised December 2003},
+  abstract = {We reexamine the foundations of linear logic, developing a system of natural deduction following Martin-L{\"o}f's separation of judgments from propositions.  Our construction yields a clean and elegant formulation that accounts for a rich set of multiplicative, additive, and exponential connectives, extending dual intuitionistic linear logic but differing from both classical linear logic and Hyland and de Paiva's full intuitionistic linear logic.  We also provide a corresponding sequent calculus that admits a simple proof of the admissibility of cut by a single structural induction.  Finally, we show how to interpret classical linear logic (with or without the MIX rule) in our system, employing a form of double-negation translation.}
+}
+
+@TECHREPORT{Colmerauer+:73,
+  author = {Colmerauer, Alain and Kanoui, Henry and Roussel, Philippe and Pasero, Robert},
+  title = {Un Syst{\`e}me de Communication Homme-Machine en Fran\c{c}ais},
+  institution = {Groupe de recherche en Intelligence Artificielle},
+  location = {Marseille},
+  type = {\autocap{r}apport de recherche},
+  date = {1973},
+  hyphenation = {french}
+}
+
+@ARTICLE{Gentzen:MZ35,
+  author = {Gentzen, Gerhard},
+  title = {Untersuchungen {\"u}ber das logische {Schlie{\ss}en}},
+  journaltitle = {Mathematische Zeitschrift},
+  date = {1935},
+  volume = {39},
+  number = {1},
+  pages = {176--210, 405--431},
+  hyphenation = {german},
+  related = {Szabo:69},
+  relatedstring = {English translation in}
+}
+
+@BOOK{Szabo:69,
+  author = {Gentzen, Gerhard},
+  editor = {Szabo, Manfred E.},
+  title = {The Collected Papers of {Gerhard} {Gentzen}},
+  publisher = {North-Holland},
+  location = {Amsterdam},
+  date = {1969}
+}
+
+@ARTICLE{Girard:TCS87,
+  author = {Girard, Jean-Yves},
+  title = {Linear Logic},
+  editor = {Nivat, Maurice and Paterson, Matthew S.},
+  journaltitle = {Theoretical Computer Science},
+  date = {1987},
+  volume = {50},
+  number = {1},
+  pages = {1--102},
+  issn = {0304-3975},
+  doi = {10.1016/0304-3975(87)90045-4},
+  abstract = {The familiar connective of negation is broken into two operations: linear negation which is the purely negative part of negation and the modality ``of course'' which has the meaning of a reaffirmation.  Following this basic discovery, a completely new approach to the whole area between constructive logics and programmation is initiated.}
 }
 
 @INPROCEEDINGS{Hanus:Ganzinger13,
   author = {Hanus, Michael},
-  title = {Functional Logic Programming: From Theory to {Curry}},
-  booktitle = {Programming Logics -- Essays in Memory of Harald Ganzinger},
-  year = {2013},
+  title = {Functional Logic Programming},
+  subtitle = {From Theory to {Curry}},
+  booktitle = {Programming Logics},
+  booksubtitle = {Essays in Memory of {Harald} {Ganzinger}},
+  date = {2013},
   volume = {7797},
   series = {LNCS},
   pages = {123--168},
@@ -77,16 +96,64 @@ journal = {Journal of Logic and Computation}
   timestamp = {2013.09.24}
 }
 
+@ARTICLE{Hodas+Miller:IC94,
+  author = {Hodas, Joshua S. and Miller, Dale},
+  title = {Logic Programming in a Fragment of Intuitionistic Linear Logic},
+  editor = {Kahn, Gilles},
+  journaltitle = {Information and Computation},
+  date = {1994-05},
+  volume = {110},
+  number = {2},
+  issuetitle = {Special Conference Issue},
+  issuesubtitle = {1991 {IEEE} Symposium on Logic in Computer Science},
+  pages = {327--365},
+  doi = {10.1006/inco.1994.1036},
+  issn = {0890-5401}
+}
+
 @INBOOK{Howard:Curry80,
-  chapter = {The Formulae-as-Types Notion of Construction},
-  pages = {479--490},
-  title = {To {H.B.\ Curry}: {Essays} on Combinatory Logic, Lambda Calculus, and Formalism},
-  publisher = {Academic Press},
-  year = {1980},
-  editor = {Seldin, Jonathan P. and Hindley, J.\ Roger},
   author = {Howard, William A.},
-  address = {Boston},
-  timestamp = {2013.09.29}
+  title = {The Formulae-as-Types Notion of Construction},
+  pages = {479--490},
+  editor = {Seldin, Jonathan P. and Hindley, J. Roger},
+  booktitle = {To {H.B.\ Curry}},
+  booksubtitle = {Essays on Combinatory Logic, Lambda Calculus, and Formalism},
+  date = {1980},
+  publisher = {Academic Press},
+  location = {Boston}
+}
+
+@INPROCEEDINGS{Kowalski:IFIP74,
+  author = {Kowalski, Robert},
+  title = {Predicate Logic as Programming Language},
+  booktitle = {Proceedings of the IFIP Congress},
+  year = {1974},
+  pages = {569--574},
+  publisher = {North-Holland},
+  location = {Amsterdam}
+}
+
+
+@INPROCEEDINGS{Lopez+:PPDP05,
+  author = {L{\'o}pez, Pablo and Pfenning, Frank and Polakow, Jeff and Watkins, Kevin},
+  title = {Monadic Concurrent Linear Logic Programming},
+  editor = {Barahona, Pedro and Felty, Amy P.},
+  booktitle = {Principles and Practice of Declarative Programming},
+  booktitleaddon = {Proceedings of the 7th International ACM SIGPLAN Conference},
+  eventdate = {2005-07-11/2005-07-13},
+  venue = {Lisbon, Portugal},
+  date = {2005},
+  pages = {35--46},
+  publisher = {ACM Press},
+  location = {New York}
+}
+
+@BOOK{Martin-Lof:84,
+  title = {Intuitionistic Type Theory},
+  publisher = {Bibliopolis},
+  year = {1984},
+  author = {Martin-L{\"o}f, Per},
+  timestamp = {2013.10.04}
 }
 
 @INCOLLECTION{Martin-Lof:LMPS80,
@@ -94,74 +161,85 @@ journal = {Journal of Logic and Computation}
   title = {Constructive Mathematics and Computer Programming},
   booktitle = {Logic, Methodology and Philosophy of Science {VI}},
   publisher = {North-Holland},
+  location = {Amsterdam},
   year = {1980},
-  pages = {153--175},
+  pages = {153--175}
 }
 
 @ARTICLE{Miller+:PAL91,
   author = {Miller, Dale and Nadathur, Gopalan and Pfenning, Frank and Scedrov, Andre},
   title = {Uniform Proofs as a Foundation for Logic Programming},
-  journal = {Annals of Pure and Applied Logic},
-  year = {1991},
+  editor = {Kozen, Dexter},
+  journaltitle = {Annals of Pure and Applied Logic},
+  date = {1991},
   volume = {51},
-  pages = {125--157},
   number = {1--2},
-  abstract = {A proof-theoretic characterization of logical languages
-                  that form suitable bases for Prolog-like programming
-                  languages is provided.  This characterization is
-                  based on the principle that the declarative meaning
-                  of a logic program, provided by provability in a
-                  logical system, should coincide with its operational
-                  meaning, provided by interpreting logical
-                  connectives as simple and fixed search
-                  instructions. The operational semantics is
-                  formalized by the identification of a class of
-                  cut-free sequent proofs called uniform proofs. A
-                  uniform proof is one that can be found by a
-                  goal-directed search that respects the
-                  interpretation of the logical connectives as search
-                  instructions. The concept of a uniform proof is used
-                  to define the notion of an abstract logic
-                  programming language, and it is shown that
-                  first-order and higher-order Horn clauses with
-                  classical provability are examples of such a
-                  language. Horn clauses are then generalized to
-                  hereditary Harrop formulas and it is shown that
-                  first-order and higher-order versions of this new
-                  class of formulas are also abstract logic
-                  programming languages if the inference rules are
-                  those of either intuitionistic or minimal logic. The
-                  programming language significance of the various
-                  generalizations to first-order Horn clauses is
-                  briefly discussed. },
-  doi = {http://dx.doi.org/10.1016/0168-0072(91)90068-W},
+  issuetitle = {Selected papers from the Second Annual {IEEE} Symposium on Logic in Computer Science},
+  pages = {125--157},
+  doi = {10.1016/0168-0072(91)90068-W},
   issn = {0168-0072},
-  url = {http://www.sciencedirect.com/science/article/pii/016800729190068W}
+  abstract = {A proof-theoretic characterization of logical languages that form suitable bases for Prolog-like programming languages is provided.  This characterization is based on the principle that the declarative meaning of a logic program, provided by provability in a logical system, should coincide with its operational meaning, provided by interpreting logical connectives as simple and fixed search instructions.  The operational semantics is formalized by the identification of a class of cut-free sequent proofs called uniform proofs.  A uniform proof is one that can be found by a goal-directed search that respects the interpretation of the logical connectives as search instructions.  The concept of a uniform proof is used to define the notion of an abstract logic programming language, and it is shown that first-order and higher-order Horn clauses with classical provability are examples of such a language.  Horn clauses are then generalized to hereditary Harrop formulas and it is shown that first-order and higher-order versions of this new class of formulas are also abstract logic programming languages if the inference rules are those of either intuitionistic or minimal logic.  The programming language significance of the various generalizations to first-order Horn clauses is briefly discussed.}
 }
 
-@INPROCEEDINGS{Schack-Nielsen+Schuermann:IJCAR08,
-  author = {Schack-Nielsen, Anders and Sch{\"u}rmann, Carsten},
-  title = {{Celf} -- {A} Logical Framework for Deductive and Concurrent Systems (System Description)},
-  booktitle = {Proceedings of the International Joint Conference on Automated Reasoning (IJCAR'08)},
-  pages = {320--326},
-  year = {2008},
-  publisher = {Springer LNCS 5195},
+@BOOK{Prawitz:65,
+  author = {Prawitz, Dag},
+  title = {Natural Deduction},
+  subtitle = {A Proof-Theoretical Study},
+  date = {1965},
+  publisher = {Almqvist \& Wiksell},
+  location = {Stockholm}
 }
 
 @PHDTHESIS{Schack-Nielsen:ITU11,
   author = {Schack-Nielsen, Anders},
   title = {Implementing Substructural Logical Frameworks},
   school = {IT University of Copenhagen},
-  year = {2011},
+  year = {2011}
+}
+
+@INPROCEEDINGS{Schack-Nielsen+Schuermann:IJCAR08,
+  author = {Schack-Nielsen, Anders and Sch{\"u}rmann, Carsten},
+  title = {{Celf}},
+  subtitle = {A Logical Framework for Deductive and Concurrent Systems (System Description)},
+  booktitle = {Proceedings of the International Joint Conference on Automated Reasoning (IJCAR'08)},
+  date = {2008},
+  pages = {320--326},
+  publisher = {Springer LNCS 5195}
 }
 
 @INPROCEEDINGS{Simmons+Zerny:LICS13,
   author = {Simmons, Robert J. and Zerny, Ian},
   title = {A Logical Correspondence between Natural Semantics and Abstract Machines},
-  booktitle = {Proceedings of the 28th Annual {ACM}/{IEEE} Symposium on Logic in
-	Computer Science},
-  year = 2013,
-  timestamp = {2013.09.23}
+  editor = {Kupferman, Orna},
+  booktitle = {Logic in Computer Science},
+  booktitleaddon = {Proceedings of the 28th Annual {ACM}/{IEEE} Symposium},
+  date = {2013},
+  venue = {New Orleans, LA},
+  eventdate = {2013-06-25/2013-06-28}
+}
+
+@TECHREPORT{Watkins+:CMU02,
+  author = {Watkins, Kevin and Cervesato, Iliano and Pfenning, Frank and Walker, David},
+  title = {A Concurrent Logical Framework {I}},
+  subtitle = {Judgments and Properties},
+  institution = {Department of Computer Science, Carnegie Mellon University},
+  date = {2002-03},
+  number = {CMU-CS-2002-101},
+  location = {Pittsburgh},
+  note = {\autocap{r}evised May 2003}
+}
+
+@ARTICLE{Wright+Felleisen:IC94,
+  author = {Wright, Andrew K. and Felleisen, Matthias},
+  title = {A Syntactic Approach to Type Soundness},
+  journaltitle = {Information and Computation},
+  date = {1994},
+  volume = {115},
+  number = {1},
+  pages = {38--94},
+  doi = {10.1006/inco.1994.1093},
+  issn = {0890-5401},
+  abstract = {We present a new approach to proving type soundness for Hindley/Milner-style polymorphic type systems.  The keys to our approach are (1) an adaptation of subject reduction theorems from combinatory logic to programming languages, and (2) the use of rewriting techniques for the specification of the language semantics.  The approach easily extends from polymorphic functional languages to imperative languages that provide references, exceptions, continuations, and similar features.  We illustrate the technique with a type soundness theorem for the core of Standard ML, which includes the first type soundness proof for polymorphic exceptions and continuations.}
 }
 
 @comment{jabref-meta: selector_publisher:}
