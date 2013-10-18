@@ -1,0 +1,139 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {logic}{2013/09/01}{0.01}{Logic macros}
+
+
+\RequirePackage{xparse}
+
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{amsthm}
+\RequirePackage[heavycircles]{stmaryrd}
+
+\RequirePackage{mathtools}
+
+\RequirePackage{proof-dashed}
+\RequirePackage{mathpartir}
+
+
+\NewDocumentCommand{\imp}{}{\mathbin{\supset}}
+\NewDocumentCommand{\pmi}{}{\mathbin{\subset}}
+\NewDocumentCommand{\eq}{}{\mathbin{\doteq}}
+\let\defeq\triangleq
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem*{claim}{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+
+\let\lolli\multimap
+\let\tensor\otimes
+\NewDocumentCommand{\one}{}{\mathbf{1}}
+\NewDocumentCommand{\with}{}{\mathbin{\binampersand}}
+\let\llor\oplus
+\NewDocumentCommand{\bang}{}{\mathord{!}}
+\let\uimp\imp
+\let\pmiu\pmi
+
+\let\rimp\twoheadrightarrow
+\let\limp\rightarrowtail
+\let\lrimp\rightarrowtriangle
+\let\fuse\bullet
+\let\esuf\circ
+\NewDocumentCommand{\gnab}{}{\mathord{\text{!`}}}
+\let\octx\Omega
+\let\octxe\cdot
+
+
+\keys_define:nn { logic / delimited_array } { 
+  delimiter~size .tl_set:N = \l_logic_delimsize_tl ,
+  delimiter~size .value_required:                  ,
+  %
+  split .bool_set:N      = \l_delimarray_split_bool ,
+  split .default:n       = true                     ,
+  split .initial:n       = true                     ,
+  % 
+  align .tl_set:N        = \l_delimarray_align_tl ,
+  align .value_required:                          ,
+  align .initial:n       = l                      ,
+  % 
+  defaults .meta:n = { align = l , split , delimiter~size = {} } ,
+  %
+  auto .meta:n = { delimiter~size = * , split = false } ,
+  big  .meta:n = { delimiter~size = [\big] } ,
+  Big  .meta:n = { delimiter~size = [\Big] } ,
+  bigg .meta:n = { delimiter~size = [\bigg] } ,
+  Bigg .meta:n = { delimiter~size = [\Bigg] }
+}
+
+% \clist_map_inline:nn { big , Big , bigg , Bigg } {
+%   \keys_define:nn { logic / delimited_array } {
+%     #1 .meta:n = { delimiter~size = { \exp_last_unbraced:No [ { \use:c {#1} } ] } }
+%   }
+% }
+
+
+\cs_new:Npn \__exp_swap_unbraced:nn #1#2 {
+  #2#1
+}
+
+\cs_new:Npn \exp_last_unbraced:nV #1#2 {
+  \exp_args:NV \__exp_swap_unbraced:nn #2 {#1}
+}
+
+\cs_new_protected:Npn \logic_delimarray:Nnn #1#2#3 {
+  \group_begin:
+    \keys_set:nn { logic / delimited_array } { defaults, #2 }
+    
+    \bool_if:NTF \l_delimarray_split_bool {
+      \tl_set:Nn \l_tmpa_tl {
+        { \begin{array} [t] { @{} \tl_use:N \l_delimarray_align_tl @{} }
+            #3 }
+        \end{array}
+      }
+    } {
+      \tl_set:Nn \l_tmpa_tl {
+        { \begin{array} [c] { @{} \tl_use:N \l_delimarray_align_tl @{} }
+            #3
+          \end{array} }
+      }
+    }
+
+    \exp_last_unbraced:nV
+      { \exp_last_unbraced:NV #1 \l_logic_delimsize_tl }
+      \l_tmpa_tl
+
+  \group_end:
+}
+
+\DeclarePairedDelimiter{\__logic_monad_delims}{\lbrace}{\rbrace}
+\NewDocumentCommand{\monad}{O{} m}{\logic_delimarray:Nnn \__logic_monad_delims {#1} {#2}}
+
+\DeclarePairedDelimiter{\__logic_parens_delims}{\lparen}{\rparen}
+\NewDocumentCommand{\parens}{O{} m}{\logic_delimarray:Nnn \__logic_parens_delims {#1} {#2}}
+
+
+
+\let\lctx\Delta
+\let\lctxe\cdot
+\let\uctx\Gamma
+
+\let\seq\vdash
+
+\NewDocumentCommand{\judgmentfont}{m}{{\normalfont\sffamily #1}}
+\NewDocumentCommand{\postfixjudgment}{m}{%
+  \relax\ifnum\lastnodetype>0\mskip\medmuskip\fi
+  \text{\judgmentfont{#1}}%
+}
+\NewDocumentCommand{\infixjudgment}{m}{%
+  \mathrel{\text{\judgmentfont{#1}}}%
+}
+
+\NewDocumentCommand{\true}{}{\postfixjudgment{true}}
+\NewDocumentCommand{\valid}{}{\postfixjudgment{valid}}
+\NewDocumentCommand{\poss}{}{\postfixjudgment{poss}}
+
+\NewDocumentCommand{\lab}{m}{\text{\normalfont\scshape #1}}
+\NewDocumentCommand{\rlab}{m O{}}{#1\text{\normalfont\scshape r\textsubscript{#2}}}
+\NewDocumentCommand{\llab}{m O{}}{#1\text{\normalfont\scshape l\textsubscript{#2}}}
