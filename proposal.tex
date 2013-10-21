@@ -51,10 +51,10 @@
 }
 
 \usepackage{fixme}
-\fxsetup{inlineface={}, nomargin, inline, status=draft}
+\fxsetup{inlineface=\color{blue}, nomargin, inline, status=draft}
 \makeatletter
 \renewcommand*\FXLayoutInline[3]{%
-  {\@fxuseface{inline}\space[#2]}}
+  {\@fxuseface{inline}#2}}
 \makeatother
 
 
@@ -63,14 +63,17 @@
 \NewDocumentCommand{\eg}{}{\latin{e.g.}}
 \NewDocumentCommand{\vocab}{m}{\emph{#1}}
 \NewDocumentCommand{\wc}{m o}{%
-  #1\IfValueT{#2}{\fxnote{#2}}\textsuperscript{?}%
+  #1%
+  \IfValueTF{#2}%
+    {\fxnote{\ #2\textsuperscript{?}}}%
+    {\fxnote{\textsuperscript{?}}}%
 }
 
-\NewDocumentCommand{\rulename}{m}{\text{\texttt{\textup{#1}}}}
+\NewDocumentCommand{\rulename}{m}{\text{\normalfont\ttfamily #1}}
 
 \begin{document}
 
-\title{Untitled Thesis Proposal}
+\title{Session-Typed Concurrent\\Logic Programming}
 \author{Henry DeYoung\\\texttt{hdeyoung@cs.cmu.edu}}
 \date{\today}
 \maketitle

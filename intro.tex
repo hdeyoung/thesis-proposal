@@ -3,39 +3,39 @@ The key tenet of intuitionism
 is that mathematics is fundamentally an activity of construction.
 To establish the existence of some mathematical object, one must construct the object; otherwise how can one be sure that it exists?
 % show how to construct that object.
-A proof of the truth of some proposition $A$ is thus a construction of\fxnote{an object of \wc{type}} $A$.
+A proof of the truth of some proposition~$A$ is thus a construction of\fxnote{\ an object of \wc{type}}~$A$.
 % describes a \wc{procedure}[blueprint] for constructing an object of \wc{type} $A$.
-\fxnote{Proofs as constructions themselves, or proofs as procedures for construction?}
+\fxnote{Proofs as constructions themselves, or proofs as procedures for construction?\ }%
 % Stated more succinctly, proofs are constructions.
-\fxnote{Brouwer's mental constructions vs.\@ formal proof objects?}
+\fxnote{Brouwer's mental constructions vs.\@ formal proof objects?\ }%
 % For Brouwer, these constructions exist only within the mind of the mathematician
-For instance, in the \acf{BHK} interpretation of the intuitionistic logical connectives, a proof of the implication $A \imp B$ is a construction that is capable of transforming proofs of $A$ into proofs of $B$---that is, a function.
+For instance, in the \acf{BHK} interpretation of the intuitionistic logical connectives, a proof of the implication~$A \imp B$ is a construction that is capable of transforming proofs of~$A$ into proofs of~$B$---that is, a function.
 
 % This \ac{BHK} interpretation describes an ideal function from proofs of $A$ to proofs of $B$.
 % The terms `constuction' and `transforming' both have strong operational connotations.
 Since computability theory gives a clear connection between functions and computation,
 % It's therefore
-it's natural to ask if there is also a connection between \emph{proofs} and computation\fxnote{from the intuitionistic proofs-as-constructions viewpoint}.
-Two answers (at least) are possible: \vocab{proof-reduction-as-computation} and \vocab{proof-search-as-computation}.
+it's natural to ask if there is also a connection between \emph{proofs} and computation\fxnote{\ from the intuitionistic proofs-as-constructions viewpoint}.
+Two answers (at least) are possible: \vocab{proof-reduction-as-computation}\fxnote{, which is the basis for functional programming,} and \vocab{proof-search-as-computation}\fxnote{, which is the basis for logic programming}.
 
 % Taking this proofs-as-constructions viewpoint, it is natural to ask if there is a connection between \wc{proofs}[constructions] and computation.
 % Two proof-relevant notions of computation are possible: \vocab{proof-reduction-as-computation} and \vocab{proof-search-as-computation}.
 
 \paragraph*{Proof reduction as computation.}
 A typical exercise in polynomial functions from elementary algebra is ``Given $f(x) = x^2 + x - 1$, find the value of $f(2)$.''
-Just as a student repeatedly simplifies the expression $f(2)$ to compute the value $5$, so can we repeatedly simplify, or \vocab{reduce}, a proof of $A$ to compute a simplest, most direct construction of $A$---proof reduction as computation.  
+Just as a student repeatedly simplifies the expression~$f(2)$ to compute the value~$5$, so can we repeatedly \vocab{reduce} a proof of~$A$ to compute a simplest, most direct construction of~$A$---proof reduction as computation.  
 
 Proof reductions were first described by \textcites{Gentzen:MZ35}{Prawitz:65}.
-As an example of a reduction, suppose that by using the rule of \latin{modus ponens} we have a proof of $A$ from proofs of $B \imp A$ and $B$.
+As an example of a reduction, suppose that by using the rule of \latin{modus ponens} we have a proof of~$A$ from proofs of~$B \imp A$ and~$B$.
 % the rule of \latin{modus ponens} allows one to prove $B$ by proving both the implication $A \imp B$ and its antecedent, $A$.
-According to the \ac{BHK} interpretation, our proof of $B \imp A$ is a \wc{transformation}[function] from proofs of $B$ to proofs of $A$; therefore,
+According to the \ac{BHK} interpretation, our proof of~$B \imp A$ is a \wc{transformation}[function] from proofs of~$B$ to proofs of~$A$; therefore,
 %, a proof reduction is possible:
 % we can reduce our proof of $B$:
-we just apply the transformation to our proof of $B$ to eliminate the \latin{modus ponens} detour and obtain a simpler, more direct proof of $A$.
-By reducing the resulting proof as much as possible, we can compute a simplest construction of $A$.
+we just apply the transformation to our proof of~$B$ and thereby eliminate the \latin{modus ponens} detour and obtain a simpler, more direct proof of~$A$.
+By continuing to reduce the resulting proof as much as possible, we can compute a simplest construction of~$A$.
 
-When applied to formal proof objects, this notion of proof-reduction-as-computation is the basis for functional programming and is known as the Curry-Howard correspondence~\autocites{Howard:Curry80}{Martin-Lof:LMPS80}:
-A formal proof of proposition $A$ is a program for computing a result value of type $A$, and proof reductions correspond to steps in the program's evaluation---proofs are programs and propositions are types.
+When applied to formal proof objects, this notion of proof-reduction-as-computation is the basis for functional programming and is known as the Curry-Howard isomorphism~\autocites{Howard:Curry80}{Martin-Lof:LMPS80}:
+A formal proof of proposition~$A$ is a program for computing a result value of type~$A$, and proof reductions correspond to steps in the program's evaluation---more succinctly, proofs are programs and propositions are types.
 
 \begin{listing}[!t]
   \begin{pyglist}[language=sml, gobble=4, texcl=true]
@@ -52,22 +52,23 @@ Because they are proofs at heart, well-typed functional programs offer several g
 Most important is type safety, which is broken down into the following.
 \begin{description}
 \item[Type preservation.]
-  After each step of evaluation a program of type $A$ continues to have type~$A$~\autocite{Wright+Felleisen:IC94}, just as a proof of $A$ remains a proof of $A$ after each reduction.
-  As a slogan, ``Well-typed programs can't go wrong.''
+  After each step of evaluation a program of type~$A$ continues to have type~$A$, just as a proof of~$A$ remains a proof of~$A$ after each reduction.
 %
 \item[Progress.]
-  A well-typed program is either a value itself or it can make one more step toward computing a value\fxnote{Citation for progress?}; as a slogan, ``Well-typed programs don't get stuck.''
+  A well-typed program is either a value itself or it can make another step toward computing a value; in other words, ``Well-typed programs don't get stuck.''
   Analogously, a proof is either as direct as possible, having no detours, or it can be reduced.
 %
 % \item[Termination.]
 %   For inductive proofs, the progress property implies termination: reduction eventualy yields a simplest, most direct proof.
 %   Similarly, 
 \end{description}
-To illustrate these behavioral guarantees, a well-typed functional program for addition of unary natural numbers is shown in \cref{lst:smlplus}.
-To compute the sum of two natural numbers \sml`m` and \sml`n`, we would evaluate \sml`plus m n`; the expression \sml`plus m n` has type \sml`nat` just as the sum of natural numbers is itself a natural number.
-After each step of evaluation, the program still computes a \sml`nat` (type preservation).
-Moreover, because \sml`plus m n` is well-typed, evaluation will continue until the sum is computed (progress).
-In this case, because \sml`plus` is inductively defined, we also know that evaluation of \sml`plus m n` will \emph{eventually} compute the sum (termination).
+
+To illustrate these concepts, a well-typed functional program for addition of unary natural numbers is shown in \cref{lst:smlplus}.
+The program \sml`plus` is a function that takes two natural numbers and computes another natural number, their sum; accordingly, \sml`plus` has type $\text{\sml`nat`} \imp \text{\sml`nat`} \imp \text{\sml`nat`}$.
+To compute the sum $1 + 1$, we evaluate \sml`plus (S Z) (S Z)`, which has type \sml`nat`.
+After each step of evaluation, the residual program still computes a \sml`nat` (type preservation).
+Moreover, because \sml`plus (S Z) (S Z)` is well-typed, evaluation will continue until the sum is computed (progress).
+% In this case, because \sml`plus` is inductively defined, we also know that evaluation of \sml`plus m n` will \emph{eventually} compute the sum (termination).
 
 % \paragraph*{}
 % Proofs are not always given in the simplest, most direct way.
@@ -89,28 +90,52 @@ Rather than assigning computational meaning to the proofs-as-constructions thems
 % view the mathematician's \emph{search} for a construction as a computational process.
 emphasize the mathematician's \emph{search} for a construction.
 This is the idea underlying logic programming~\autocites{Colmerauer+:73}{Kowalski:IFIP74}---%
-computation is the act of searching, according to a fixed strategy, for a proof of a query formula.
+computation is the act of searching, according to a fixed strategy, for a proof of a query, or goal, formula.
 Differently than functional programming, a logic program is not a proof but a collection of \wc{axioms}[logical hypotheses] (\ie, propositions) under which the search occurs.
 
+Having a fixed search strategy allows for reasoning about the operational semantics.
+One common strategy is \vocab{goal-directed search}: it consists of
+% the search proceeds by
+looking for axioms that could be the final step in a proof of the goal and then
+% continues recursively on the premises of these axioms.
+continuing recursively on the premises of these axioms.
+(This strategy is also known as backward-chaining or bottom-up search.)
+
+\NewPredicate{\nat}{0}
 \NewPredicate{\zero}[z]{0}
 \RenewPredicate{\succ}[s]{1}
+\NewPredicate{\prop}{0}
 \NewPredicate{\plus}{3}
-
 \begin{figure}[!tbp]
-  \begin{alignat*}{2}
-    &\text{$\plus{}$-$\zero$}   &&: \plus{\zero,N,N} \:. \\
-    &\text{$\plus{}$-$\succ{}$} &&: \!\begin{aligned}[t]
-                                        \MoveEqLeft[0.5]
-                                        \plus{(\succ{M'}),N,(\succ{O'})} \\[-\jot]
-                                          &\pmi \plus{M',N,O'} \:.
-                                      \end{aligned}
-  \end{alignat*}
-  \caption{The addition relation on unary natural numbers given as a backward-chaining logic program.\label{fig:plus-lp}}
+  \begin{align*}
+    &\begin{alignedat}{2}
+       &\zero &&: \nat \:. \\
+       &\succ{} &&: \nat \to \nat \:.
+     \end{alignedat}
+    \\
+    &\begin{alignedat}{2}
+       &\plus{} &&: \nat \to \nat \to \nat \to \prop \:. \\
+       &\rulename{plus-z} &&: \plus{\zero,N,N} \:. \\
+       &\rulename{plus-s} &&: \!\begin{aligned}[t]
+                                  \MoveEqLeft[0.5]
+                                  \plus{(\succ{M'}),N,(\succ{O'})} \\[-\jot]
+                                    &\pmi \plus{M',N,O'} \:.
+                                \end{aligned}
+     \end{alignedat}
+  \end{align*}
+  \caption{The addition relation on unary natural numbers given as a \wc{goal-directed}[backward-chaining] logic program.  By convention, uppercase variables are universally quantified and $A \pmi B$ is notation for the implication $B \imp A$.\label{fig:plus-lp}}
 \end{figure}
-For example, the addition relation on unary natural numbers is defined by the two axioms shown in \cref{fig:plus-lp}.
-(By logic programming conventions, uppercase variables are universally quantified and $A \pmi B$ is notation for the implication $B \imp A$.)
-To compute the sum of two natural numbers $m$ and $n$, we would search for the natural number $O$ for which there is a proof of $\plus{m,n,O}$.
-From this point of view, $\plus{}$ is a ternary predicate with mode $(+,+,-)$---it takes the natural numbers $m$ and $n$ as inputs and produces $O$ as output.
+For example, the addition relation on unary natural numbers is defined by the two clauses shown in \cref{fig:plus-lp}; that is, $m + n = o$ if and only if $\plus{m,n,o}$ is provable.
+To compute the sum $1 + 1$, we search for the natural number~$O$ for which there is a proof of the goal $\plus{(\succ{\zero}),(\succ{\zero}),O}$.
+% Because this is a goal-directed proof search, we begin by looking for an axiom that could be the last step in a proof of the goal.
+The $\rulename{plus-s}$ clause could be the final step in such a proof, so long as there is a proof of the premise $\plus{\zero,(\succ{\zero}),O'}$ with $O = \succ{O'}$.
+The $\rulename{plus-z}$ clause can derive this subgoal with $O' = \succ{\zero}$.
+Putting these together, we have a proof of the original goal, $\plus{(\succ{\zero}),(\succ{\zero}),O}$, with $O = \succ{(\succ{\zero})}$: that is, $1 + 1 = 2$.
+
+
+From this point of view, $\plus{}$ specifies a function: it takes its first two arguments as inputs and produces the third argument as a unique output.
+% is a ternary predicate with mode $(+,+,-)$
+It's also possible to view $\plus{}$
 
 
 Proof search might fail (\eg, there is no $N$ for which $\plus{(\succ{\zero}),N,\zero}$ is provable), making logic programming strictly weaker than functional programming in terms of the behavioral guarantees that it provides.
@@ -127,35 +152,38 @@ Proof search might fail (\eg, there is no $N$ for which $\plus{(\succ{\zero}),N,
 %     proofs as programs & {?} \\ \bottomrule
 %   \end{tabular}
 % \end{table}
-% \begin{equation*}
-%   \plus{\z,N,N}.
-%   \plus{
-% \end{equation*}
-
 
 \paragraph{From logic programs to functional programs.}
-Some algorithms are more naturally and concisely expressed as logic programs than as functional programs.%
-\fxnote{No example?}
+Some algorithms are more naturally and concisely expressed as logic programs than as functional programs.
+\fxnote{No example?\ }%
 However, if behavioral guarantees are required, the programmer is generally forced to give up on the logic program and write a functional program instead.
 
 Generally, but not always.
-If the logic program is deterministic and computes a function rather than a relation, it can be compiled to a well-typed functional program.
-\fxnote{No references yet.}
-This way, the resulting functional program shares its behavioral guarantees with the source logic program, giving the programmer the best of both worlds.
-Compilation also makes the program more efficient by eliminating the interpretive overhead of the logic programming engine.
+If the logic program is deterministic and defines a function rather than a relation, one can imagine compiling it to a well-typed functional program.
+\fxnote{No references yet.\ }%
+This way, the resulting functional program shares its behavioral guarantees with the source logic program, affording the programmer the best of both worlds.
+Compilation would also make the program more efficient by eliminating the interpretive overhead of the logic programming engine.
+As an example, one could imagine compiling the $\plus{}$ logic program from~\cref{fig:plus-lp} into the \sml`plus` function of~\cref{lst:smlplus} (or perhaps the A-normal form~\autocite{Sabry+Felleisen:LASC93} of \sml`plus`).
+
 
 \textcite{Debray+Warren:TOPLAS89}
 \textcites{Felleisen:IU86}{Haynes:JLP86} have identified classes of logic programs that may be compiled to well-typed functional programs.
 
+
+\paragraph*{Linear Logic.}
+In the discussion thus far, the functional and logic programing languages have been based on intuitionistic first-order logic
+
+\paragraph*{Linear Logic Programming.}
+
+
+\paragraph*{Concurrent Functional Programming.}
+
+
+\paragraph*{From Linear Logic Programs to Concurrent Functional Programs?}
+
+
 \clearpage
 
-% Sometimes, because of the conciseness and expressivity of the logic programming paradigm, the programmer would like to express his computation as a logic program
-
-
-% Proof search yields another perspective on computation that arises from the proofs-as-constructions viewpoint.
-% % Another perspective on compuation that arises from a proofs-as-construction viewpoint is notion of 
-
-% Computation is the act of searching, according to some fixed strategy, for a construction that realizes a given \wc{proposition}[judgment].
 
 
 
