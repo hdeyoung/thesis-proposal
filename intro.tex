@@ -22,7 +22,7 @@ Two answers (at least) are possible: \vocab{proof-reduction-as-computation}\fxno
 % Two proof-relevant notions of computation are possible: \vocab{proof-reduction-as-computation} and \vocab{proof-search-as-computation}.
 
 \paragraph*{Proof reduction as computation.}
-A typical exercise in polynomial functions from elementary algebra is ``Given $f(x) = x^2 + x - 1$, find the value of $f(2)$.''
+A typical exercise in polynomial functions from elementary algebra is \enquote{Given $f(x) = x^2 + x - 1$, find the value of $f(2)$.}
 Just as a student repeatedly simplifies the expression~$f(2)$ to compute the value~$5$, so can we repeatedly \vocab{reduce} a proof of~$A$ to compute a simplest, most direct construction of~$A$---proof reduction as computation.  
 
 Proof reductions were first described by \textcites{Gentzen:MZ35}{Prawitz:65}.
@@ -50,12 +50,12 @@ A formal proof of proposition~$A$ is a program for computing a result value of t
 
 Because they are proofs at heart, well-typed functional programs offer several guarantees about their behavior.
 Most important is type safety, which is broken down into the following.
-\begin{description}
+\begin{description}[font=\normalfont\itshape]
 \item[Type preservation.]
   After each step of evaluation a program of type~$A$ continues to have type~$A$, just as a proof of~$A$ remains a proof of~$A$ after each reduction.
 %
 \item[Progress.]
-  A well-typed program is either a value itself or it can make another step toward computing a value; in other words, ``Well-typed programs don't get stuck.''
+  A well-typed program is either a value itself or it can make another step toward computing a value; in other words, \enquote{Well-typed programs don't get stuck.}
   Analogously, a proof is either as direct as possible, having no detours, or it can be reduced.
 %
 % \item[Termination.]
@@ -90,16 +90,18 @@ Rather than assigning computational meaning to the proofs-as-constructions thems
 % view the mathematician's \emph{search} for a construction as a computational process.
 emphasize the mathematician's \emph{search} for a construction.
 This is the idea underlying logic programming~\autocites{Colmerauer+:73}{Kowalski:IFIP74}---%
-computation is the act of searching, according to a fixed strategy, for a proof of a query, or goal, formula.
+computation is the act of searching, according to a fixed strategy, for a proof of a \vocab{goal formula}, or query.
 Differently than functional programming, a logic program is not a proof but a collection of \wc{axioms}[logical hypotheses] (\ie, propositions) under which the search occurs.
 
-Having a fixed search strategy allows for reasoning about the operational semantics.
+% Having a fixed search strategy allows the programmer to reason about the operational semantics of his programs.
+Having a \emph{fixed} search strategy is what allows proof search to be used as a programming language; without a fixed strategy, there would be far too much nondeterminism in search for the programmer to reason about the operational semantics of his programs.
+% 
 One common strategy is \vocab{goal-directed search}: it consists of
 % the search proceeds by
-looking for axioms that could be the final step in a proof of the goal and then
+looking for an axiom that could be the final step in a proof of the goal and then
 % continues recursively on the premises of these axioms.
-continuing recursively on the premises of these axioms.
-(This strategy is also known as backward-chaining or bottom-up search.)
+continuing recursively to search for proofs of the premises of this axiom.
+(This strategy is also known as backward-chaining or top-down search.)
 
 \NewPredicate{\nat}{0}
 \NewPredicate{\zero}[z]{0}
@@ -126,19 +128,26 @@ continuing recursively on the premises of these axioms.
   \caption{The addition relation on unary natural numbers given as a \wc{goal-directed}[backward-chaining] logic program.  By convention, uppercase variables are universally quantified and $A \pmi B$ is notation for the implication $B \imp A$.\label{fig:plus-lp}}
 \end{figure}
 For example, the addition relation on unary natural numbers is defined by the two clauses shown in \cref{fig:plus-lp}; that is, $m + n = o$ if and only if $\plus{m,n,o}$ is provable.
-To compute the sum $1 + 1$, we search for the natural number~$O$ for which there is a proof of the goal $\plus{(\succ{\zero}),(\succ{\zero}),O}$.
+To compute the sum $1 + 1$, we
+% use a goal-directed strategy to 
+will search for the natural number~$O$ for which there is a proof of the goal $\plus{(\succ{\zero}),(\succ{\zero}),O}$.
 % Because this is a goal-directed proof search, we begin by looking for an axiom that could be the last step in a proof of the goal.
-The $\rulename{plus-s}$ clause could be the final step in such a proof, so long as there is a proof of the premise $\plus{\zero,(\succ{\zero}),O'}$ with $O = \succ{O'}$.
-The $\rulename{plus-z}$ clause can derive this subgoal with $O' = \succ{\zero}$.
-Putting these together, we have a proof of the original goal, $\plus{(\succ{\zero}),(\succ{\zero}),O}$, with $O = \succ{(\succ{\zero})}$: that is, $1 + 1 = 2$.
-
-
+We first notice that the $\rulename{plus-s}$ clause could be the final step in such a proof, so long as there is a proof of the premise $\plus{\zero,(\succ{\zero}),O'}$ with $O = \succ{O'}$.
+Then, we can derive this subgoal, with $O' = \succ{\zero}$, by using the $\rulename{plus-z}$ clause.
+Putting these together, our search succeeds with a proof of the original goal, $\plus{(\succ{\zero}),(\succ{\zero}),O}$, with $O = \succ{(\succ{\zero})}$: that is, $1 + 1 = 2$.
 From this point of view, $\plus{}$ specifies a function: it takes its first two arguments as inputs and produces the third argument as a unique output.
+In logic programming terminology, $\plus{}$ is said to have mode $(+,+,-)$.%
 % is a ternary predicate with mode $(+,+,-)$
-It's also possible to view $\plus{}$
+\fxnote{\ Notation for \emph{unique} output?}
 
+Of course, not all goals are provable and so proof search must sometimes fail.
+Unlike well-typed functional programs, logic programs therefore can't guarantee that a computation will always be able to make progress.
+For example, just as there is no natural number solution to $1 + N = 0$, any search for a proof of $\plus{(\succ{\zero}),N,\zero}$ will get stuck.
+% on natural numbers, the difference $0 - 1$ is undefined.
+In this way, logic programming is strictly weaker than functional programming in terms of the behavioral guarantees that it provides.
 
-Proof search might fail (\eg, there is no $N$ for which $\plus{(\succ{\zero}),N,\zero}$ is provable), making logic programming strictly weaker than functional programming in terms of the behavioral guarantees that it provides.
+% It's also possible to view $\plus{}$ as specifying the partial function for subtraction of natural numbers.
+% Searching for the natural number $N$ for which $\plus{m,N,o}$ 
 
 
 % Unlike \wc{proof-reduction-as-computation}[functional programming] in which the existence of a construction is guaranteed by programmer provides the construction, logic programming does not guarantee existence of a construction, proof search may fail to find a construction.
@@ -171,7 +180,13 @@ As an example, one could imagine compiling the $\plus{}$ logic program from~\cre
 
 
 \paragraph*{Linear Logic.}
-In the discussion thus far, the functional and logic programing languages have been based on intuitionistic first-order logic
+The logic and functional programming languages that we've discussed thus far have been based on \citeauthor{Gentzen:MZ35}-style intuitionistic first-order logic.
+Much research has also considered richer logics on which to base logic and functional programming languages.
+
+One such logic is \citeauthor{Girard:TCS87}'s linear logic~\autocite*{Girard:TCS87}, which is suitable for modeling stateful systems.
+Unlike in first-order logic, assumptions in linear logic must be used exactly once.
+By using a linear assumption and then replacing it with a new assumption, 
+
 
 \paragraph*{Linear Logic Programming.}
 
