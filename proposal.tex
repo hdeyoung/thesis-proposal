@@ -24,19 +24,6 @@
   backend=bibtex,
   style=authoryear-comp,maxcitenames=2%
 ]{biblatex}
-\NewDocumentCommand{\mytextcite}{O{} o o m}{%
-  \citeauthor{#4}#1~\parentext{%
-    \IfValueTF{#2}{%
-      \IfValueTF{#3}{%
-        \citeyear[#2][#3]{#4}%
-      }{%
-        \citeyear[#2]{#4}%
-      }%
-    }{%
-      \citeyear{#4}%
-    }%
-  }%
-}
 \renewcommand*{\subtitlepunct}{:\ }
 \addbibresource{proposal.bib}
 

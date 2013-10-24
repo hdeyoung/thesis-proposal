@@ -37,7 +37,7 @@ By continuing to reduce the resulting proof as much as possible, we can compute 
 When applied to formal proof objects, this notion of proof-reduction-as-computation is the basis for functional programming and is known as the Curry-Howard isomorphism~\autocites{Howard:Curry80}{Martin-Lof:LMPS80}:
 A formal proof of proposition~$A$ is a program for computing a result value of type~$A$, and proof reductions correspond to steps in the program's evaluation---more succinctly, proofs are programs and propositions are types.
 
-\begin{listing}[!t]
+\begin{figure}[!t]
   \begin{pyglist}[language=sml, gobble=4, texcl=true]
     datatype nat = Z | S of nat
   
@@ -46,7 +46,7 @@ A formal proof of proposition~$A$ is a program for computing a result value of t
       | plus (S m') n = S (plus m' n)
   \end{pyglist}
   \caption{\ac{SML} implementation of addition for unary natural numbers.\label{lst:smlplus}}
-\end{listing}
+\end{figure}
 
 Because they are proofs at heart, well-typed functional programs offer several guarantees about their behavior.
 Most important is type safety, which is broken down into the following.
@@ -141,10 +141,11 @@ In logic programming terminology, $\plus{}$ is said to have mode $(+,+,-)$.%
 \fxnote{\ Notation for \emph{unique} output?}
 
 Of course, not all goals are provable and so proof search must sometimes fail.
-Unlike well-typed functional programs, logic programs therefore can't guarantee that a computation will always be able to make progress.
+Therefore, unlike well-typed functional programs, logic programs can't guarantee that a computation will always be able to make progress.
 For example, just as there is no natural number solution to $1 + N = 0$, any search for a proof of $\plus{(\succ{\zero}),N,\zero}$ will get stuck.
 % on natural numbers, the difference $0 - 1$ is undefined.
-In this way, logic programming is strictly weaker than functional programming in terms of the behavioral guarantees that it provides.
+
+
 
 % It's also possible to view $\plus{}$ as specifying the partial function for subtraction of natural numbers.
 % Searching for the natural number $N$ for which $\plus{m,N,o}$ 
@@ -162,39 +163,47 @@ In this way, logic programming is strictly weaker than functional programming in
 %   \end{tabular}
 % \end{table}
 
-\paragraph{From logic programs to functional programs.}
-Some algorithms are more naturally and concisely expressed as logic programs than as functional programs.
+\paragraph*{From logic programs to functional programs.}
+In this way, logic programming is strictly weaker than functional programming in terms of the behavioral guarantees that it provides.
+Some algorithms are more naturally and concisely expressed as logic programs than as functional programs, however.
+% Some algorithms are more naturally and concisely expressed as logic programs than as functional programs.
 \fxnote{No example?\ }%
-However, if behavioral guarantees are required, the programmer is generally forced to give up on the logic program and write a functional program instead.
+% However, if behavioral guarantees are required, the programmer is generally forced to give up on the logic program and write a functional program instead.
+In these instances, the programmer seems to be forced to choose between behavioral guarantees and \wc{conciseness}.
+% If, as sometimes is the case, the algorithm is more naturally and concisely expressed as a logic program than as a functional program, then the programmer is generally forced to choose between
 
-Generally, but not always.
-If the logic program is deterministic and defines a function rather than a relation, one can imagine compiling it to a well-typed functional program.
+% Generally, but not always.
+Sometimes the programmer can have the best of both worlds.
+If the logic program defines a function rather than a relation, one can imagine compiling it to a well-typed functional program.
 \fxnote{No references yet.\ }%
-This way, the resulting functional program shares its behavioral guarantees with the source logic program, affording the programmer the best of both worlds.
+The resulting functional program would thus share its behavioral guarantees with the source logic program.
 Compilation would also make the program more efficient by eliminating the interpretive overhead of the logic programming engine.
-As an example, one could imagine compiling the $\plus{}$ logic program from~\cref{fig:plus-lp} into the \sml`plus` function of~\cref{lst:smlplus} (or perhaps the A-normal form~\autocite{Sabry+Felleisen:LASC93} of \sml`plus`).
+As an example, one could imagine compiling the $\plus{}$ predicate from~\cref{fig:plus-lp} into the \sml`plus` function of~\cref{lst:smlplus} (or perhaps the A-normal form~\autocite{Sabry+Felleisen:LASC93} of \sml`plus`).
 
+To the best of the author's knowledge, little work has been done on compiling logic programs to functional programs.
+\Textcite{Debray+Warren:TOPLAS89} give a static analysis for inferring the functionality of Prolog programs and suggest optimizations that are then possible, but do not consider compiling to typed functional programs.
+\Textcites{Felleisen:IU86}{Haynes:JLP86} show how to embed arbitrary Prolog programs within the Scheme (untyped) functional language, accounting for backtracking, unification, and the possibility of explicit failure; even in a typed setting, allowing for failure renders any guarantee of progress nearly meaningless.
+\Textcite{Murphy+Reed:06}
 
-\textcite{Debray+Warren:TOPLAS89}
-\textcites{Felleisen:IU86}{Haynes:JLP86} have identified classes of logic programs that may be compiled to well-typed functional programs.
-
-
-\paragraph*{Linear Logic.}
+\paragraph*{Linear logic.}
 The logic and functional programming languages that we've discussed thus far have been based on \citeauthor{Gentzen:MZ35}-style intuitionistic first-order logic.
-Much research has also considered richer logics on which to base logic and functional programming languages.
+Much research has also been devoted to developing languages based on richer, more expressive logics.
 
-One such logic is \citeauthor{Girard:TCS87}'s linear logic~\autocite*{Girard:TCS87}, which is suitable for modeling stateful systems.
-Unlike in first-order logic, assumptions in linear logic must be used exactly once.
-By using a linear assumption and then replacing it with a new assumption, 
+One such logic is \citeauthor{Girard:TCS87}'s linear logic~\autocite*{Girard:TCS87}, a logic of resources that is particularly well-suited to modeling stateful systems.
+Unlike in first-order logic, assumptions in linear logic must be used exactly once because they are viewed as ephemeral resources.
+Accordingly, linear logic introduces new, resource-aware propositions: among them, the linear implication $A \lolli B$, which means \enquote{consuming $A$ once yields $B$}; and the multiplicative conjunction $A \tensor B$, which means \enquote{one copy each of $A$ and $B$}.
+% Thus, by using a linear assumption and then replacing it with a new, modified assumption, we can model changes of state.%
+\fxnote{\ Linear logic biased away from linear $\lambda$-calculus?}
+
+\paragraph*{Linear logic programming.}
+Logic programming languages based on linear logic rely on resource {??}.
+Linear logic programming with a goal-directed strategy is certainly possible~\autocite[for example]{Hodas+Miller:IC94}, but 
+% {Andreoli:JLC92}
+
+\paragraph*{Concurrent functional programming.}
 
 
-\paragraph*{Linear Logic Programming.}
-
-
-\paragraph*{Concurrent Functional Programming.}
-
-
-\paragraph*{From Linear Logic Programs to Concurrent Functional Programs?}
+\paragraph*{From linear logic programs to concurrent functional programs?}
 
 
 \clearpage
