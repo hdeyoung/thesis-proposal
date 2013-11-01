@@ -1,6 +1,131 @@
+\section{Background}\label{sec:background}
+
 \subsection{Linear logic}\label{sec:linear-logic}
 
-\NewDocumentCommand{\lfrm}{m}{\Theta\{#1\}}
+Traditional intuitionistic logic is concerned with the \emph{truth} of propositions.
+% , such as \enquote{$n + 0 = n$ for every natural number $n$}.
+% truth are concerned with 
+% the object of study is truth.
+Truths are forever;
+having proved a proposition true, there is no \wc{harm}[cost] in reusing or even forgetting the proof.
+Traditional intuitionistic logic therefore validates several structural principles: \vocab{contraction}, that hypotheses may be duplicated; \vocab{weakening}, that irrelevant hypotheses may be ignored; and \vocab{exchange}, that the order of hypotheses is unimportant.
+
+Linear logic~\autocite{Girard:TCS87}, on the other hand, treats proofs as precious resources.
+Accordingly, linear logic cannot validate the contraction and weakening principles: resources should neither be freely duplicated (as\fxnote{\ \st{they would be}} with contraction), nor be freely discarded (as\fxnote{\ \st{they would be}} with weakening).
+The order of resources remains unimportant, however, so linear logic does validate the exchange principle.
+
+We will use a sequent calculus presentation of intuitionistic linear logic based on the judgmental reconstruction by~\textcite{Chang+:CMU03}.
+The main judgment is a \wc{sequent}[hypothetical judgment] which states that by using resources~$A_1, \dotsc, A_n$ we can obtain resource~$A$:%
+\fxwarning{\ Resource judgment labels, \eg\ $\mathsf{use}$ and $\mathsf{obt}$?}
+\begin{equation*}
+  \underbrace{A_1, \dotsc, A_n}_{\textstyle \lctx} \seq A \:.
+\end{equation*}
+Because resources may neither be duplicated nor discarded, the context of resources~$A_1, \dotsc, A_n$ is treated as a multiset.
+\fxnote{\st{To formally distinguish the resources~$A_i$, they are labeled with unique variables~$x_i$; we often omit the variables, however, to reduce notational clutter.}\ }%
+Following tradition, we use the metavariable~$\lctx$ to stand for an arbitrary context of resources.
+
+\NewDocumentCommand{\lmatch}{O{} m}{\lctx#1, #2}%
+\ExplSyntaxOn
+\NewDocumentCommand{\lfill}{O{} m}{
+  \lctx#1\tl_if_empty:nF{#2}{, #2}
+}
+\ExplSyntaxOff
+%
+What are the rules for obtaining and using resources?
+One way to obtain a resource $A$ is to use it directly.
+Dually, if we can use some of our resources to obtain an $A$, then we are justified in later using that $A$ (along with the remaining resources).
+These judgmental principles are expressed by the identity and cut rules, respectively:
+\begin{mathpar}
+  \infer-[\lab{id$_A$}]{A \seq A}{
+    }
+  \and
+  \infer-[\lab{cut$_A$}]{\lmatch[']{\lctx} \seq C}{
+    \lctx \seq A &
+    \lfill[']{A} \seq C} \:.
+\end{mathpar}
+Notice that the identity rule uses only an $A$; allowing any other resources on the left would cause them to be incorrectly disposed here.
+The identity and cut rules can be shown by simple inductions to be admissible~\autocite{Chang+:CMU03}, provided that identity for atomic propositions is a rule (hence the dotted inference rule notation).
+
+In addition to the judgmental rules of identity and cut, the sequent calculus contains right and left rules that give meaning to each propositional connective.
+% A proof of $A \lolli B$ is a plan for using resource $A$ to achieve goal $B$.
+For instance, the \wc{linear implication} $A \lolli B$ (pronounced \enquote{$A$ linearly implies $B$} or \enquote{$A$ lolli $B$}) internalizes the linear hypothetical judgment as a proposition:\fxnote{\ the proposition/a proof of} $A \lolli B$ is a plan for using resource $A$ to obtain resource $B$.
+% To make our plan, we presume to have resource $A$ and show how to acheive $B$.
+To obtain such a plan, we can presume to have resource $A$\fxnote{\ available for use} and show how to obtain $B$:
+\begin{equation*}
+  \infer[\rlab{{\lolli}}]{\lctx \seq A \lolli B}{
+    \lctx, A \seq B}
+  \:.
+\end{equation*}
+% Conversely, we can use our plan to produce $B$ if we can obtain an $A$.
+Conversely, if we can obtain an $A$, then we can carry out, \ie\ use, our plan to make a $B$ available for use:
+% To use our plan, we must first obtain $A$
+\begin{equation*}
+  \infer[\llab{{\lolli}}]{\lmatch[']{\lctx'_A, A \lolli B} \seq C}{
+    \lctx'_A \seq A &
+    \lfill[']{B} \seq C}
+  \:.
+\end{equation*}
+Thus, the right and left rules explain how to obtain and use, respectively, the resource $A \lolli B$.
+
+The resource $A \tensor B$ (pronounced \enquote{$A$ tensor $B$}) is a pair of the resources $A$ and $B$.
+Once again, the right and left rules give meaning to $A \tensor B$:
+\begin{mathpar}
+  \infer[\rlab{{\tensor}}]{\lctx_1, \lctx_2 \seq A \tensor B}{
+    \lctx_1 \seq A &
+    \lctx_2 \seq B}
+  \and
+  \infer[\llab{{\tensor}}]{\lmatch[']{A \tensor B} \seq C}{
+    \lfill[']{A, B} \seq C}
+\end{mathpar}
+To obtain an $A \tensor B$, we must use some of our resources to obtain an $A$ and the rest to obtain a $B$.
+To use an $A \tensor B$, we must use \emph{both} an $A$ and a $B$: using only one would cause the resources that went into obtaining the other to be incorrectly disposed.
+%These \wc{properties} are expressed in the right and left rules, respectively:
+Thus, $A \tensor B$ is a conjunction in which both $A$ and $B$ must be used.
+
+The resource $A \with B$ (pronounced \enquote{$A$ with $B$}) is a different form of conjunction:
+\begin{mathpar}
+  \infer[\rlab{{\with}}]{\lctx \seq A \with B}{
+    \lctx \seq A &
+    \lctx \seq B}
+  \and
+  \infer[{\llab{{\with}}[1]}]{\lmatch[']{A \with B} \seq C}{
+    \lfill[']{A} \seq C}
+  \and
+  \infer[{\llab{{\with}}[2]}]{\lmatch[']{A \with B} \seq C}{
+    \lfill[']{B} \seq C}
+\end{mathpar}
+To obtain an $A \with B$, we must obtain both $A$ and $B$ using \emph{all} of our resources, $\lctx$, in each case.
+To use an $A \with B$, we must then choose exactly one of $A$ and $B$ to use; using both would be an underhanded duplication of the resources $\lctx$.
+
+The rules for the disjunction $A \llor B$ are dual to the rules for $A \with B$:
+\begin{mathpar}
+  \infer[{\rlab{{\llor}}[1]}]{\lctx \seq A \llor B}{
+    \lctx \seq A}
+  \and
+  \infer[{\rlab{{\llor}}[2]}]{\lctx \seq A \llor B}{
+    \lctx \seq B}
+  \and
+  \infer[\llab{{\llor}}]{\lmatch[']{A \llor B} \seq C}{
+    \lfill[']{A} \seq C &
+    \lfill[']{B} \seq C}
+\end{mathpar}
+A resource $A \llor B$ is thus either an $A$ or a $B$.
+When using a $A \llor B$, we must therefore be prepared to use what we get in either case.
+% This time, instead of choosing one of $A$ and $B$ when using $A \llor B$, the environment has made that choice for us; we must be prepared for either case.
+
+\NewDocumentCommand{\univq}{u: u.}{\forall #1{:}#2.\,}
+\NewDocumentCommand{\existq}{u: u.}{\exists #1{:}#2.\,}
+The universal and existential quantifiers, $\univq x:\tau.A$ and $\existq x:\tau.A$, 
+
+For convenience, these rules, along with rules for the first-order universal and existential quantifiers, are summarized in \cref{fig:seq-jill}.%
+\fxerror{\ [Decide whether to present $\bang A$ and $\monad{A}$ here.]}
+
+% In this section, we briefly review a judgmental intuitionistic formulation of \citeauthor{Girard:TCS87}'s linear logic~\autocite*{Girard:TCS87}, a substructural logic of resources that is especially suited to modeling stateful systems.
+
+
+\NewDocumentCommand{\tctx}{}{\Psi}
+\NewDocumentCommand{\subst}{m m}{[#1]#2}
+
 \begin{figure}
   \begin{mathpar}
     \infer[\lab{id}]{\uctx ; P \seq P}{
@@ -12,55 +137,126 @@
     \infer[\rlab{{\lolli}}]{\uctx ; \lctx \seq A \lolli B}{
       \uctx ; \lctx, A \seq B}
     \and
-    \infer[\llab{{\lolli}}]{\uctx ; \lfrm{\lctx'_A, A \lolli B} \seq J}{
+    \infer[\llab{{\lolli}}]{\uctx ; \lmatch[']{\lctx'_A, A \lolli B} \seq J}{
       \uctx ; \lctx'_A \seq A &
-      \uctx ; \lfrm{B} \seq J}
+      \uctx ; \lfill[']{B} \seq J}
     \\
     \infer[\rlab{{\with}}]{\uctx ; \lctx \seq A \with B}{
       \uctx ; \lctx \seq A &
       \uctx ; \lctx \seq B}
     \and
-    \infer[{\llab{{\with}}[1]}]{\uctx ; \lfrm{A \with B} \seq J}{
-      \uctx ; \lfrm{A} \seq J}
+    \infer[{\llab{{\with}}[1]}]{\uctx ; \lmatch[']{A \with B} \seq J}{
+      \uctx ; \lfill[']{A} \seq J}
     \and
-    \infer[{\llab{{\with}}[2]}]{\uctx ; \lfrm{A \with B} \seq J}{
-      \uctx ; \lfrm{B} \seq J}
+    \infer[{\llab{{\with}}[2]}]{\uctx ; \lmatch[']{A \with B} \seq J}{
+      \uctx ; \lfill[']{B} \seq J}
     \\
     \infer[\rlab{{\tensor}}]{\uctx ; \lctx_1, \lctx_2 \seq A \tensor B}{
       \uctx ; \lctx_1 \seq A &
       \uctx ; \lctx_2 \seq B}
     \and
-    \infer[\llab{{\tensor}}]{\uctx ; \lfrm{A \tensor B} \seq J}{
-      \uctx ; \lfrm{A, B} \seq J}
+    \infer[\llab{{\tensor}}]{\uctx ; \lmatch[']{A \tensor B} \seq J}{
+      \uctx ; \lfill[']{A, B} \seq J}
     \\
     \infer[\rlab{\one}]{\uctx ; \lctxe \seq \one}{
       }
     \and
-    \infer[\llab{\one}]{\uctx ; \lfrm{\one} \seq J}{
-      \uctx ; \lfrm{\lctxe} \seq J}
+    \infer[\llab{\one}]{\uctx ; \lmatch[']{\one} \seq J}{
+      \uctx ; \lfill[']{} \seq J}
+    \\
+    \infer[\rlab{\forall}]{\tctx ; \uctx ; \lctx \seq \univq x:\tau. A}{
+      \tctx, x{:}\tau ; \uctx ; \lctx \seq A}
+    \and
+    \infer[\llab{\forall}]{\tctx ; \uctx ; \lmatch[']{\univq x:\tau. A} \seq J}{
+      \tctx \seq t : A &
+      \tctx ; \uctx ; \lfill[']{\subst{t/x}{A}} \seq J}
+    \\
+    \infer[\rlab{\exists}]{\tctx ; \uctx ; \lctx \seq \existq x:\tau. A}{
+      \tctx \seq t : A &
+      \tctx ; \uctx ; \lctx \seq \subst{t/x}{A}}
+    \and
+    \infer[\llab{\exists}]{\tctx ; \uctx ; \lmatch[']{\existq x:\tau. A} \seq J}{
+      \tctx, x{:}\tau ; \uctx ; \lfill[']{A} \seq J}
     \\
     \infer[\rlab{\bang}]{\uctx ; \lctxe \seq \bang A}{
       \uctx ; \lctxe \seq A}
     \and
-    \infer[\llab{\bang}]{\uctx ; \lfrm{\bang A} \seq J}{
-      \uctx, A ; \lfrm{\lctxe} \seq J}
+    \infer[\llab{\bang}]{\uctx ; \lmatch[']{\bang A} \seq J}{
+      \uctx, A ; \lfill[']{} \seq J}
   \end{mathpar}
   \begin{mathpar}
     \infer-[\lab{id$_A$}]{\uctx ; A \seq A}{
       }
     \and
-    \infer-[\lab{cut$_A$}]{\uctx ; \lfrm{\lctx} \seq J}{
+    \infer-[\lab{cut$_A$}]{\uctx ; \lmatch[']{\lctx} \seq J}{
       \uctx ; \lctx \seq A &
-      \uctx ; \lfrm{A} \seq J}
+      \uctx ; \lfill[']{A} \seq J}
     \and
     \infer-[\lab{cut$^{\bang}_A$}]{\uctx ; \lctx' \seq J}{
       \uctx ; \lctxe \seq A &
       \uctx, A ; \lctx' \seq J}
   \end{mathpar}
-  \caption{Sequent calculus rules for a propositional fragment of \acf{JILL}~\autocite{Chang+:CMU03}.}
+  \caption{Sequent calculus rules for a propositional fragment of \acf{JILL}~\autocite{Chang+:CMU03}.\label{fig:seq-jill}}
 \end{figure}
 
-\subsubsection{Ordered logic}\label{sec:ordered-logic}
+\subsection{Proof search as computation: Bottom-up linear logic programming}\label{sec:linear-lp}
+
+\begin{itemize}
+\item Notion of transition obtained by reading sequent calculus left rules  (bipoles) bottom-up.
+\end{itemize}
+
+\subsection{Proof reduction as computation: Session-typed linear logic}\label{sec:async-sill}
+
+Having seen a proof-reduction-as-computation correspondence between intuitionistic logic and functional computation, it's natural to ask if there is a computational interpretation of the intuitionistic linear sequent calculus.
+
+
+% as session-type discipline for concurrent processes:
+Giving session-typed concurrency a logical footing, \textcite{Caires+Pfenning:CONCUR10} along with Toninho~\autocite*{Caires+:TLDI12} have developed a Curry-Howard interpretation of the intuitionistic linear sequent calculus in which: proofs are processes, propositions are session types, and proof reduction is interprocess communication.
+
+\ExplSyntaxOn
+\NewDocumentCommand{\minput}{>{\SplitArgument{1}{;}}m}{
+  \minput_:nn #1
+}
+\NewDocumentCommand{\minput_:nn}{>{\SplitArgument{1}{<-}}m m}{
+  \use_i:nn #1 \leftarrow \mathtt{input}\: \use_ii:nn #1
+  \mathtt{;}\: #2
+}
+\NewDocumentCommand{\moutput}{m >{\SplitArgument{1}{<-}}m m}{
+  \mathtt{output}\:#1\:(\use_i:nn #2 \leftarrow \use_ii:nn #2)\mathtt{;}\:#3
+}
+\ExplSyntaxOff
+Recall the sequent calculus right rule for linear implication:
+\begin{equation*}
+  \infer[\rlab{{\lolli}}]{\lctx \seq A \lolli B}{
+    \lctx, A \seq B} \:.
+\end{equation*}
+It says that to obtain $A \lolli B$ we can obtain $B$ while presuming to have $A$.
+Correspondingly, a process that offers service $A \lolli B$ should first input a channel offering service $A$ and then continue the session by using that service to offer service $B$.
+Based on this intuition, we assign an input process to the $\rlab{{\lolli}}$:
+\begin{equation*}
+  \infer[\rlab{{\lolli}}]{\lctx \seq \minput{y <- x; P_y} :: x{:}A \lolli B}{
+    \lctx, y{:}A \seq P_y :: x{:}B} \:.
+\end{equation*}
+The syntax $\minput{y <- x; P_y}$ means \enquote{Input channel $y$ along channel $x$ and then continue as process $P_y$}.
+
+The left rule for linear implication uses the service offerred by the right rule, so it should be a matching output:
+\begin{equation*}
+  \infer[\llab{{\lolli}}]{\lmatch[']{\lctx'_A, x{:}A \lolli B} \seq \moutput{x}{y <- Q}{R} :: z{:}C}{
+    \lctx'_A \seq Q :: y{:}A &
+    \lfill[']{x{:}B} \seq R :: z{:}C}
+\end{equation*}
+
+
+
+\begin{itemize}
+\item Present monadic language only?  Disadvantage is that proof reduction is not quite as clear or simple to see since it involves run-time typing.
+\end{itemize}
+
+
+
+
+
+\subsection{Ordered logic}\label{sec:ordered-logic}
 
 \NewDocumentCommand{\ofrm}{m}{\Theta\{#1\}}
 \begin{figure}
@@ -124,13 +320,7 @@
 \item Present ordered logic in its own right here, or present ordered logic only in the context of bottom-up logic programming?
 \end{itemize}
 
-\subsection{Proof search as computation: Bottom-up linear logic programming}\label{sec:linear-lp}
-
-\begin{itemize}
-\item Notion of transition obtained by reading sequent calculus left rules  (bipoles) bottom-up.
-\end{itemize}
-
-\subsubsection{Bottom-up ordered logic programming}\label{sec:ordered-lp}
+\subsection{Bottom-up ordered logic programming}\label{sec:ordered-lp}
 
 \NewPredicate{\eps}{0}
 \NewPredicate{\bitz}[bit_0]{0}
@@ -157,11 +347,6 @@
 \item Example: binary counter with increment.
 \end{itemize}
 
-\subsection{Proof reduction as computation: Session-typed linear logic}\label{sec:async-sill}
-
-\begin{itemize}
-\item Present monadic language only?  Disadvantage is that proof reduction is not quite as clear or simple to see since it involves run-time typing.
-\end{itemize}
 
 %%% Local Variables:
 %%% TeX-master: "proposal"

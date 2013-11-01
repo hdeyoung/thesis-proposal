@@ -25,10 +25,67 @@
   abstract = {We present a new intuitionistic linear logic, Dual Intuitionistic Linear Logic, designed to reflect the motivation of exponentials as translations of intuitionistic types, and provide it with a term calculus, proving associated standard type-theoretic results.  We give a sound and complete categorical semantics for the type-system, and consider the relationship of the new type-theory to the more familiar presentation found for example in ``A term calculus for intuitionistic linear logic'' by Benton et al.}
 }
 
+@INPROCEEDINGS{Toninho+:PPDP11,
+  author = {Toninho, Bernardo and Caires, Lu{\'i}s and Pfenning, Frank},
+  title = {Dependent Session Types via Intuitionistic Linear Type Theory},
+  crossref = {PPDP11},
+  pages = {161--172},
+  doi = {10.1145/2003476.2003499}
+}
+
+@XDATA{ACM,
+  publisher = {ACM Press},
+  location = {New York}
+}
+
+@PROCEEDINGS{PPDP11,
+  editor = {Schneider-Kamp, Peter and Hanus, Michael},
+  title = {Proceedings of the 13th International ACM SIGPLAN Conference
+               on Principles and Practice of Declarative Programming},
+  date = {2011},
+  venue = {Odense, Denmark},
+  eventdate = {2011-07-20/2011-07-22},
+  xdata = {ACM},
+  isbn = {978-1-4503-0776-5}
+}
+
+@INPROCEEDINGS{Caires+Pfenning:CONCUR10,
+  crossref = {CONCUR10},
+  author = {Caires, Lu{\'i}s and Pfenning, Frank},
+  title = {Session Types as Intuitionistic Linear Propositions},
+%  date = {2010},
+  pages = {222--236},
+  doi = {10.1007/978-3-642-15375-4_16},
+%  venue = {Paris},
+%  eventdate = {2010-08-31/2010-09-03}
+}
+
+@XDATA{Springer,
+  publisher = {Springer},
+  location = {Heidelberg and Berlin}
+}
+
+@XDATA{LNCS,
+  series = {Lecture Notes in Computer Science},
+  xdata = {Springer}
+}
+
+@PROCEEDINGS{CONCUR10,
+  editor = {Gastin, Paul and Laroussinie, Fran\c{c}ois},
+  title = {CONCUR 2010 - Concurrency Theory, 21th International Conference, Proceedings},
+  date = {2010},
+  venue = {Paris},
+  eventdate = {2010-08-31/2010-09-03},
+  xdata = {LNCS},
+  volume = {6269},
+  isbn = {978-3-642-15374-7},
+  doi = {10.1007/978-3-642-15375-4}
+}
+
 @TECHREPORT{Chang+:CMU03,
   author = {Chang, Bor-Yuh Evan and Chaudhuri, Kaustuv and Pfenning, Frank},
   title = {A Judgmental Analysis of Linear Logic},
-  institution = {Computer Science Department, Carnegie Mellon University},
+  institution = {Carnegie Mellon University, Computer Science Department},
   date = {2003-04},
   number = {CMU-CS-03-131R},
   location = {Pittsburgh},
@@ -190,6 +247,82 @@
   doi = {10.1016/0168-0072(91)90068-W},
   issn = {0168-0072},
   abstract = {A proof-theoretic characterization of logical languages that form suitable bases for Prolog-like programming languages is provided.  This characterization is based on the principle that the declarative meaning of a logic program, provided by provability in a logical system, should coincide with its operational meaning, provided by interpreting logical connectives as simple and fixed search instructions.  The operational semantics is formalized by the identification of a class of cut-free sequent proofs called uniform proofs.  A uniform proof is one that can be found by a goal-directed search that respects the interpretation of the logical connectives as search instructions.  The concept of a uniform proof is used to define the notion of an abstract logic programming language, and it is shown that first-order and higher-order Horn clauses with classical provability are examples of such a language.  Horn clauses are then generalized to hereditary Harrop formulas and it is shown that first-order and higher-order versions of this new class of formulas are also abstract logic programming languages if the inference rules are those of either intuitionistic or minimal logic.  The programming language significance of the various generalizations to first-order Horn clauses is briefly discussed.}
+}
+
+@PROCEEDINGS{TLDI12,
+  editor = {Pierce, Benjamin C.},
+  title = {Proceedings of TLDI 2012: The Seventh ACM SIGPLAN Workshop on Types in Languages Design and Implementation},
+  date = {2012},
+  venue = {Philadelphia},
+  eventdate = {2012-01-28},
+  publisher = {ACM Press},
+  isbn = {978-1-4503-1120-5}
+}
+
+@INPROCEEDINGS{Caires+:TLDI12,
+  crossref = {TLDI12},
+  author = {Caires, Lu{\'i}s and Pfenning, Frank and Toninho, Bernardo},
+  title = {Towards Concurrent Type Theory},
+  pages = {1--12},
+  doi = {10.1145/2103786.2103788}
+}
+
+@INPROCEEDINGS{Caires+:ESOP13,
+  author = {Caires, Lu{\'i}s and P{\'e}rez, Jorge A. and Pfenning, Frank and Toninho, Bernardo},
+  title = {Behavioral Polymorphism and Parametricity in Session-Based Communication},
+  crossref = {ESOP13},
+  pages = {330--349},
+  doi = {10.1007/978-3-642-37036-6_19}
+}
+
+@INPROCEEDINGS{Toninho+:ESOP13,
+  author = {Toninho, Bernardo and Caires, Lu{\'i}s and Pfenning, Frank},
+  title = {Higher-Order Processes, Functions, and Sessions},
+  subtitle = {A Monadic Integration},
+  crossref = {ESOP13},
+  pages = {350--369},
+  doi = {10.1007/978-3-642-37036-6_20}
+}
+
+@PROCEEDINGS{ESOP13,
+  editor = {Felleisen, Matthias and Gardner, Philippa},
+  title = {Programming Languages and Systems - 22nd European Symposium
+               on Programming, ESOP 2013, Held as Part of the European
+               Joint Conferences on Theory and Practice of Software, ETAPS
+               2013. Proceedings.},
+  date = {2013},
+  venue = {Rome},
+  eventdate = {2013-03-16/2013-03-24},
+  xdata = {LNCS},
+  volume = {7792},
+  isbn = {978-3-642-37035-9},
+  doi = {10.1007/978-3-642-37036-6}
+}
+
+@INPROCEEDINGS{DeYoung+:CSL12,
+  author = {DeYoung, Henry and Caires, Lu{\'i}s and Pfenning, Frank and Toninho, Bernardo},
+  title = {Cut Reduction in Linear Logic as Asynchronous Session-Typed Communication},
+  crossref = {CSL12},
+  pages = {228--242},
+  doi = {10.4230/LIPIcs.CSL.2012.228}
+}
+
+@XDATA{LIPIcs,
+  publisher = {Schloss Dagstuhl - Leibniz-Zentrum f{\"u}r Informatik},
+  series    = {LIPIcs}
+}
+
+@PROCEEDINGS{CSL12,
+  editor = {C{\'e}gielski, Patrick and Durand, Arnaud},
+  title = {Computer Science Logic (CSL'12) - 26th International Workshop/21st
+               Annual Conference of the EACSL},
+  date = {2012},
+  eventdate = {2012-09-03/2012-09-06},
+  venue = {Fontainebleau, France},
+  xdata = {LIPIcs},
+  volume = {16},
+  isbn = {978-3-939897-42-2},
+  issn = {1868-8969}
 }
 
 @BOOK{Prawitz:65,

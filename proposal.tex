@@ -1,5 +1,5 @@
 % arara: pdflatex: { shell: yes }
-% arara: bibtex
+% arara: biber
 % arara: pdflatex: { shell: yes }
 % arara: pdflatex: { shell: yes }
 \documentclass{article}
@@ -21,8 +21,9 @@
 \usepackage{xparse}
 
 \usepackage[
-  backend=bibtex,
-  style=authoryear-comp,maxcitenames=2%
+  backend=biber,
+  style=authoryear-comp,
+  maxcitenames=2, uniquelist=false
 ]{biblatex}
 \renewcommand*{\subtitlepunct}{:\ }
 \addbibresource{proposal.bib}
@@ -58,11 +59,12 @@
 }
 
 \usepackage{fixme}
-\fxsetup{inlineface=\color{blue}, nomargin, inline, status=final}
+\fxsetup{inlineface=\color{blue}, nomargin, inline, status=draft}
 \makeatletter
 \renewcommand*\FXLayoutInline[3]{%
   {\@fxuseface{inline}#2}}
 \makeatother
+\usepackage{soul}
 
 
 \NewDocumentCommand{\latin}{m}{\textit{#1}}
@@ -78,6 +80,10 @@
 
 \NewDocumentCommand{\rulename}{m}{\text{\normalfont\ttfamily #1}}
 
+
+
+% \includeonly{background}
+
 \begin{document}
 
 \title{Session-Typed Concurrent\\Logic Programming}
@@ -91,29 +97,17 @@
   % This thesis proposes to identify a class of (bottom-up) logic programs that do, in fact, enjoy the same kinds of behavioral guarantees as functional programs, thereby affording programmers the best of both worlds.
 \end{abstract}
 
-\section{Introduction}\label{sec:introduction}
+\include{intro}
 
-\input{intro.tex}
+\include{background}
 
-\section{Background}\label{sec:background}
+\include{choreographies}
 
-\input{background.tex}
+\include{compiling}
 
-\section{Choreographies}\label{sec:choreographies}
+\include{proposed-work}
 
-\input{choreographies.tex}
-
-\section{Compiling choreographies}\label{sec:compile-choreo}
-
-\input{compiling.tex}
-
-\section{Proposed work}\label{sec:extensions}
-
-\input{proposed-work.tex}
-
-\section{Related work}\label{sec:related-work}
-
-\input{related-work.tex}
+\include{related-work}
 
 %\nocite{*}
 
