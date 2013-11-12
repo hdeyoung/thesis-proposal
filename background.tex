@@ -1,27 +1,29 @@
 \section{Background}\label{sec:background}
 
+The reader who is familiar with a two-context sequent calculus presentation of intuitionistic linear logic may skip \cref{sec:linear-logic}.
+
 \subsection{Linear logic}\label{sec:linear-logic}
 
-Traditional intuitionistic logic is concerned with the \emph{truth} of propositions.
-% , such as \enquote{$n + 0 = n$ for every natural number $n$}.
-% truth are concerned with 
-% the object of study is truth.
-Truths are forever;
-having proved a proposition true, there is no \wc{harm}[cost] in reusing or even forgetting the proof.
+Like a good witness, traditional intuitionistic logic is concerned only with facts.
+Facts are \vocab{persistent};
+% Traditional intuitionistic logic is concerned with the \emph{truth} of propositions.
+% Truths are \wc{forever};
+having proved a proposition true, there is no \wc{harm}[\st{cost}] in reusing or even forgetting the proof.
 Traditional intuitionistic logic therefore validates several structural principles: \vocab{contraction}, that hypotheses may be duplicated; \vocab{weakening}, that irrelevant hypotheses may be ignored; and \vocab{exchange}, that the order of hypotheses is unimportant.
+% Such hypotheses are said to be \vocab{persistent}.
 
-Linear logic~\autocite{Girard:TCS87}, on the other hand, treats proofs as precious resources.
-Accordingly, linear logic cannot validate the contraction and weakening principles: resources should neither be freely duplicated (as\fxnote{\ \st{they would be}} with contraction), nor be freely discarded (as\fxnote{\ \st{they would be}} with weakening).
+Linear logic~\autocite{Girard:TCS87}, on the other hand, treats proofs as precious\fxnote{, nonrenewable} resources.
+Accordingly, linear logic cannot validate the contraction and weakening principles: resources should be neither freely duplicated (as\fxnote{\ \st{they would be}} with contraction) nor freely discarded (as\fxnote{\ \st{they would be}} with weakening).
 The order of resources remains unimportant, however, so linear logic does validate the exchange principle.
+Such resources are said to be \vocab{ephemeral}.
 
-We will use a sequent calculus presentation of intuitionistic linear logic based on the judgmental reconstruction by~\textcite{Chang+:CMU03}.
-The main judgment is a \wc{sequent}[hypothetical judgment] which states that by using resources~$A_1, \dotsc, A_n$ we can obtain resource~$A$:%
-\fxwarning{\ Resource judgment labels, \eg\ $\mathsf{use}$ and $\mathsf{obt}$?}
+We will now review a sequent calculus for intuitionistic linear logic from the judgmental reconstruction by~\textcite{Chang+:CMU03}; our presentation is also heavily indebted to lectures by \textcite{Pfenning:816}.
+
+The main judgment is a linear hypothetical judgment, or \vocab{sequent}, which states that by using resources~$A_1, \dotsc, A_n$ we can obtain resource~$A$:%
 \begin{equation*}
   \underbrace{A_1, \dotsc, A_n}_{\textstyle \lctx} \seq A \:.
 \end{equation*}
-Because resources may neither be duplicated nor discarded, the context of resources~$A_1, \dotsc, A_n$ is treated as a multiset.
-\fxnote{\st{To formally distinguish the resources~$A_i$, they are labeled with unique variables~$x_i$; we often omit the variables, however, to reduce notational clutter.}\ }%
+Because resources may be permuted but neither duplicated nor discarded, the context of resources~$A_1, \dotsc, A_n$ is treated as a multiset.
 Following tradition, we use the metavariable~$\lctx$ to stand for an arbitrary context of resources.
 
 \NewDocumentCommand{\lmatch}{O{} m}{\lctx#1, #2}%
@@ -31,26 +33,30 @@ Following tradition, we use the metavariable~$\lctx$ to stand for an arbitrary c
 }
 \ExplSyntaxOff
 %
+
+\subsubsection{Judgmental rules}\label{sec:judgmental-rules}
+
 What are the rules for obtaining and using resources?
 One way to obtain a resource $A$ is to use it directly.
-Dually, if we can use some of our resources to obtain an $A$, then we are justified in later using that $A$ (along with the remaining resources).
-These judgmental principles are expressed by the identity and cut rules, respectively:
+Dually, if we can use some of our resources to obtain an $A$, then we are justified in later using that $A$\fxnote{\ \st{along with the remaining resources}}.
+These judgmental principles are expressed by the identity and cut rules\footnote{The identity and cut rules can in fact be shown to be admissible~\autocites{Chang+:CMU03}{Pfenning:816Identity}, but we postpone discussion of this to \cref{sec:linear-lp}.}, respectively:
 \begin{mathpar}
-  \infer-[\lab{id$_A$}]{A \seq A}{
+  \infer[\lab{id$_A$}]{A \seq A}{
     }
   \and
-  \infer-[\lab{cut$_A$}]{\lmatch[']{\lctx} \seq C}{
+  \infer[\lab{cut$_A$}]{\lmatch[']{\lctx} \seq C}{
     \lctx \seq A &
     \lfill[']{A} \seq C} \:.
 \end{mathpar}
-Notice that the identity rule uses only an $A$; allowing any other resources on the left would cause them to be incorrectly disposed here.
-The identity and cut rules can be shown by simple inductions to be admissible~\autocite{Chang+:CMU03}, provided that identity for atomic propositions is a rule (hence the dotted inference rule notation).
+Notice that the identity rule uses only an $A$; allowing any other resources on the sequent's left would cause them to be incorrectly disposed here.
+
+\subsubsection{Propositional connectives}\label{sec:prop-conn}
 
 In addition to the judgmental rules of identity and cut, the sequent calculus contains right and left rules that give meaning to each propositional connective.
 % A proof of $A \lolli B$ is a plan for using resource $A$ to achieve goal $B$.
-For instance, the \wc{linear implication} $A \lolli B$ (pronounced \enquote{$A$ linearly implies $B$} or \enquote{$A$ lolli $B$}) internalizes the linear hypothetical judgment as a proposition:\fxnote{\ the proposition/a proof of} $A \lolli B$ is a plan for using resource $A$ to obtain resource $B$.
+For instance, the \wc{linear implication} $A \lolli B$ (pronounced \enquote{$A$ linearly implies $B$} or \enquote{$A$ lolli $B$}) internalizes the linear hypothetical judgment as a proposition: a proof of $A \lolli B$ is a plan for using resource $A$ to obtain resource $B$.
 % To make our plan, we presume to have resource $A$ and show how to acheive $B$.
-To obtain such a plan, we can presume to have resource $A$\fxnote{\ available for use} and show how to obtain $B$:
+To obtain such a plan, we can presume to have an $A$ available for use and show how to obtain a $B$:
 \begin{equation*}
   \infer[\rlab{{\lolli}}]{\lctx \seq A \lolli B}{
     \lctx, A \seq B}
@@ -80,9 +86,9 @@ Once again, the right and left rules give meaning to $A \tensor B$:
 To obtain an $A \tensor B$, we must use some of our resources to obtain an $A$ and the rest to obtain a $B$.
 To use an $A \tensor B$, we must use \emph{both} an $A$ and a $B$: using only one would cause the resources that went into obtaining the other to be incorrectly disposed.
 %These \wc{properties} are expressed in the right and left rules, respectively:
-Thus, $A \tensor B$ is a conjunction in which both $A$ and $B$ must be used.
+Thus, $A \tensor B$ is a multiplicative conjunction in which both $A$ and $B$ must be used.
 
-The resource $A \with B$ (pronounced \enquote{$A$ with $B$}) is a different form of conjunction:
+A different, additive form of conjunction is given by $A \with B$ (pronounced~\enquote{$A$ with~$B$}):
 \begin{mathpar}
   \infer[\rlab{{\with}}]{\lctx \seq A \with B}{
     \lctx \seq A &
@@ -94,10 +100,10 @@ The resource $A \with B$ (pronounced \enquote{$A$ with $B$}) is a different form
   \infer[{\llab{{\with}}[2]}]{\lmatch[']{A \with B} \seq C}{
     \lfill[']{B} \seq C}
 \end{mathpar}
-To obtain an $A \with B$, we must obtain both $A$ and $B$ using \emph{all} of our resources, $\lctx$, in each case.
+To obtain an $A \with B$, we must obtain an $A$ and a $B$ using \emph{all} of our resources, $\lctx$, in each case.
 To use an $A \with B$, we must then choose exactly one of $A$ and $B$ to use; using both would be an underhanded duplication of the resources $\lctx$.
 
-The rules for the disjunction $A \llor B$ are dual to the rules for $A \with B$:
+The rules for the additive disjunction $A \llor B$ are dual to those for $A \with B$:
 \begin{mathpar}
   \infer[{\rlab{{\llor}}[1]}]{\lctx \seq A \llor B}{
     \lctx \seq A}
@@ -110,59 +116,161 @@ The rules for the disjunction $A \llor B$ are dual to the rules for $A \with B$:
     \lfill[']{B} \seq C}
 \end{mathpar}
 A resource $A \llor B$ is thus either an $A$ or a $B$.
-When using a $A \llor B$, we must therefore be prepared to use what we get in either case.
+When using a $A \llor B$, we must therefore be prepared to use whichever one it may be.
 % This time, instead of choosing one of $A$ and $B$ when using $A \llor B$, the environment has made that choice for us; we must be prepared for either case.
 
-\NewDocumentCommand{\univq}{u: u.}{\forall #1{:}#2.\,}
-\NewDocumentCommand{\existq}{u: u.}{\exists #1{:}#2.\,}
-The universal and existential quantifiers, $\univq x:\tau.A$ and $\existq x:\tau.A$, 
+\subsubsection{First-order quantifiers}\label{sec:first-order-quant}
 
-For convenience, these rules, along with rules for the first-order universal and existential quantifiers, are summarized in \cref{fig:seq-jill}.%
+\NewDocumentCommand{\univq}{u: u.}{\forall #1{:}#2.\,}
+\ExplSyntaxOn
+\NewDocumentCommand{\existq}{u.}{\existq_:n {#1}}
+\NewDocumentCommand{\existq_:n}{>{\SplitArgument{1}{:}}m}{
+  \exists \use_i:nn #1
+  \exp_args:No \IfValueT { \use_ii:nn #1 }
+    { \mathord{\colon} \use_ii:nn #1 }
+  .\,
+}
+\ExplSyntaxOff
+\NewDocumentCommand{\tctx}{}{\Psi}
+\NewDocumentCommand{\subst}{m m}{[#1]#2}
+% We can also include first-order universal and existential quantifiers, $\univq x:\tau.A$ and $\existq x:\tau.A$.
+Linear logic also has first-order universal and existential quantifiers, $\univq x:\tau.A$ and $\existq x:\tau.A$.
+% The sequent is extended with a context, $\tctx$, of parameters $x_i{:}\tau_i$ so that it becomes $\tctx ; \lctx \seq A$.
+The sequent is extended with a context of parameter typings, $x_i{:}\tau_i$:
+\begin{equation*}
+  \underbrace{x_1{:}\tau_1, \dotsc, x_n{:}\tau_n}_{\displaystyle \tctx} \;;\, \lctx \seq A \:.
+\end{equation*}
+To match the new form of sequent, all previously presented rules are uniformly modified to include a parameter context $\tctx$ in their premises and conclusion.
+
+Only the rules for the quantifiers directly affect the parameter context.
+They are the same as for traditional intuitionistic logic except that the quantifiers are ephemeral:
+% The inference rules for quantifiers are then the same as for intuitionistic logic, except that the quantifiers are \wc{ephemeral}[\st{consumed upon use}]:
+\begin{mathpar}
+  \infer[\rlab{\forall}]{\tctx ; \lctx \seq \univq x:\tau. A}{
+    \tctx, x{:}\tau ; \lctx \seq A}
+  \and
+  \infer[\llab{\forall}]{\tctx ; \lmatch[']{\univq x:\tau. A} \seq J}{
+    \tctx \seq t : A &
+    \tctx ; \lfill[']{\subst{t/x}{A}} \seq J}
+  \\
+  \infer[\rlab{\exists}]{\tctx ; \lctx \seq \existq x:\tau. A}{
+    \tctx \seq t : A &
+    \tctx ; \lctx \seq \subst{t/x}{A}}
+  \and
+  \infer[\llab{\exists}]{\tctx ; \lmatch[']{\existq x:\tau. A} \seq J}{
+    \tctx, x{:}\tau ; \lfill[']{A} \seq J}
+\end{mathpar}
+
+\subsubsection{Persistence}\label{sec:persistence}
+
+Even in resource-centric linear logic, we sometimes want to express persistent facts.
+% Finally, even in linear logic we sometimes want to allow a controlled degree of persistence.
+% % certain kinds of hypotheses to be duplicated or ignored in a controlled way.
+To do so, we introduce a new judgment, $A \pers$, for proofs that may not depend on ephemeral resources.
+% These hypotheses are called \vocab{valid} because they may not depend on linear resources.
+% To do so, we introduce a new judgment, $B \valid$, for these persistent hypotheses.
+The sequent is extended with a context of $\pers$ antecedents:
+% that admits the contraction and weakening principles:
+\begin{equation*}
+  % \underbrace{x_1{:}\tau_1, \dotsc, x_\ell{:}\tau_\ell}_{\displaystyle \tctx} \,; \underbrace{B_1, \dotsc, B_m}_{\displaystyle \uctx} \,; \underbrace{A_1, \dotsc, A_n}_{\displaystyle \lctx} \seq A \:.
+  \tctx \,;\, \underbrace{A_1, \dotsc, A_n}_{\displaystyle \uctx} \;;\, \lctx \seq A \:.
+\end{equation*}
+Because they may not depend on ephemeral resources, there is no harm in duplicating or discarding $\pers$ antecedents.
+The persistent context~$\uctx$ therefore admits contraction and weakening (as well as exchange).
+
+Consequently, we can
+% Because persistent facts may be reused indefinitely, we may
+copy a fact and use it as an ephemeral resource.
+On the other hand, if we can obtain an~$A$ without relying on any ephemeral resources, then we are justified in having~$A$ as a persistent fact.
+These two judgmental principles are expressed by the $\lab{copy}$ and $\lab{cut$^{\bang}_A$}$ rules:
+\begin{mathpar}
+  \infer[\lab{copy}]{\tctx ; \uctx, A ; \lctx' \seq C}{
+    \tctx ; \uctx, A ; \lctx', A \seq C}
+  \and
+  \infer[\lab{cut$^{\bang}_A$}]{\tctx ; \uctx ; \lctx' \seq C}{
+    \tctx ; \uctx ; \lctxe \seq A &
+    \tctx ; \uctx, A ; \lctx' \seq C}
+  \:.
+\end{mathpar}
+
+Finally, 
+% Therefore, 
+to match the new form of sequent,
+% all previously presented rules are modified to uniformly include a context $\uctx$ in their premises and conclusion.
+the other rules of linear logic are uniformly modified to include a context $\uctx$ in their premises and conclusion.
+% There is no harm in duplicating or discarding persistent facts because they may not depend on ephemeral resources, %:
+% % we would not be violating the linearity of resources.
+% so the context $\uctx$ admits contraction and weakening (as well as exchange).
+% % Therefore, the context $\uctx$ of persistent facts is treated as a set that also admits weakening.%
+% % \footnote{Technically speaking, $\uctx$ is actually a multiset, with contraction being admissible as well.}
+% Therefore, to match the new form of sequent, all previously presented rules are once again modified to include a \wc{validity}[\st{persistent}] context $\uctx$ in their premises and conclusion.
+% % Once again, to match the new form of sequent, all previously presented rules are uniformly modified to include a \wc{validity}[persistent] context $\uctx$ in the premises and conclusion.
+For instance, the left rule for $A \lolli B$ is now
+\begin{equation*}
+  \infer[\llab{{\lolli}}]{\tctx ; \uctx ; \lmatch[']{\lctx'_A, A \lolli B} \seq C}{
+    \tctx ; \uctx ; \lctx'_A \seq A &
+    \tctx ; \uctx ; \lfill[']{B} \seq C}
+  \:.
+\end{equation*}
+
+
+\subsubsection{Summary}\label{sec:summary-linear-logic}
+
+For convenience, the rules described above are summarized in their complete form in \cref{fig:seq-jill}.%
 \fxerror{\ [Decide whether to present $\bang A$ and $\monad{A}$ here.]}
 
 % In this section, we briefly review a judgmental intuitionistic formulation of \citeauthor{Girard:TCS87}'s linear logic~\autocite*{Girard:TCS87}, a substructural logic of resources that is especially suited to modeling stateful systems.
 
 
-\NewDocumentCommand{\tctx}{}{\Psi}
-\NewDocumentCommand{\subst}{m m}{[#1]#2}
 
 \begin{figure}
   \begin{mathpar}
-    \infer[\lab{id}]{\uctx ; P \seq P}{
+    \infer[\lab{id$_A$}]{\tctx ; \uctx ; A \seq A}{
       }
     \and
-    \infer[\lab{copy}]{\uctx, A ; \lctx' \seq J}{
-      \uctx, A ; \lctx', A \seq J}
+    \infer[\lab{cut$_A$}]{\tctx ; \uctx ; \lmatch[']{\lctx} \seq J}{
+      \tctx ; \uctx ; \lctx \seq A &
+      \tctx ; \uctx ; \lfill[']{A} \seq J}
     \\
-    \infer[\rlab{{\lolli}}]{\uctx ; \lctx \seq A \lolli B}{
-      \uctx ; \lctx, A \seq B}
+    \infer[\rlab{{\lolli}}]{\tctx ; \uctx ; \lctx \seq A \lolli B}{
+      \tctx ; \uctx ; \lctx, A \seq B}
     \and
-    \infer[\llab{{\lolli}}]{\uctx ; \lmatch[']{\lctx'_A, A \lolli B} \seq J}{
-      \uctx ; \lctx'_A \seq A &
-      \uctx ; \lfill[']{B} \seq J}
+    \infer[\llab{{\lolli}}]{\tctx ; \uctx ; \lmatch[']{\lctx'_A, A \lolli B} \seq J}{
+      \tctx ; \uctx ; \lctx'_A \seq A &
+      \tctx ; \uctx ; \lfill[']{B} \seq J}
     \\
-    \infer[\rlab{{\with}}]{\uctx ; \lctx \seq A \with B}{
-      \uctx ; \lctx \seq A &
-      \uctx ; \lctx \seq B}
+    \infer[\rlab{{\tensor}}]{\tctx ; \uctx ; \lctx_1, \lctx_2 \seq A \tensor B}{
+      \tctx ; \uctx ; \lctx_1 \seq A &
+      \tctx ; \uctx ; \lctx_2 \seq B}
     \and
-    \infer[{\llab{{\with}}[1]}]{\uctx ; \lmatch[']{A \with B} \seq J}{
-      \uctx ; \lfill[']{A} \seq J}
-    \and
-    \infer[{\llab{{\with}}[2]}]{\uctx ; \lmatch[']{A \with B} \seq J}{
-      \uctx ; \lfill[']{B} \seq J}
+    \infer[\llab{{\tensor}}]{\tctx ; \uctx ; \lmatch[']{A \tensor B} \seq J}{
+      \tctx ; \uctx ; \lfill[']{A, B} \seq J}
     \\
-    \infer[\rlab{{\tensor}}]{\uctx ; \lctx_1, \lctx_2 \seq A \tensor B}{
-      \uctx ; \lctx_1 \seq A &
-      \uctx ; \lctx_2 \seq B}
-    \and
-    \infer[\llab{{\tensor}}]{\uctx ; \lmatch[']{A \tensor B} \seq J}{
-      \uctx ; \lfill[']{A, B} \seq J}
-    \\
-    \infer[\rlab{\one}]{\uctx ; \lctxe \seq \one}{
+    \infer[\rlab{\one}]{\tctx ; \uctx ; \lctxe \seq \one}{
       }
     \and
-    \infer[\llab{\one}]{\uctx ; \lmatch[']{\one} \seq J}{
-      \uctx ; \lfill[']{} \seq J}
+    \infer[\llab{\one}]{\tctx ; \uctx ; \lmatch[']{\one} \seq J}{
+      \tctx ; \uctx ; \lfill[']{} \seq J}
+    \\
+    \infer[\rlab{{\with}}]{\tctx ; \uctx ; \lctx \seq A \with B}{
+      \tctx ; \uctx ; \lctx \seq A &
+      \tctx ; \uctx ; \lctx \seq B}
+    \\
+    \infer[{\llab{{\with}}[1]}]{\tctx ; \uctx ; \lmatch[']{A \with B} \seq J}{
+      \tctx ; \uctx ; \lfill[']{A} \seq J}
+    \and
+    \infer[{\llab{{\with}}[2]}]{\tctx ; \uctx ; \lmatch[']{A \with B} \seq J}{
+      \tctx ; \uctx ; \lfill[']{B} \seq J}
+    \\
+    \infer[{\rlab{{\llor}}[1]}]{\tctx ; \uctx ; \lctx \seq A \llor B}{
+      \tctx ; \uctx ; \lctx \seq A}
+    \and
+    \infer[{\rlab{{\llor}}[2]}]{\tctx ; \uctx ; \lctx \seq A \llor B}{
+      \tctx ; \uctx ; \lctx \seq B}
+    \and
+    \infer[\llab{{\llor}}]{\tctx ; \uctx ; \lmatch[']{A \llor B} \seq J}{
+      \tctx ; \uctx ; \lfill[']{A} \seq J &
+      \tctx ; \uctx ; \lfill[']{B} \seq J}
     \\
     \infer[\rlab{\forall}]{\tctx ; \uctx ; \lctx \seq \univq x:\tau. A}{
       \tctx, x{:}\tau ; \uctx ; \lctx \seq A}
@@ -177,26 +285,21 @@ For convenience, these rules, along with rules for the first-order universal and
     \and
     \infer[\llab{\exists}]{\tctx ; \uctx ; \lmatch[']{\existq x:\tau. A} \seq J}{
       \tctx, x{:}\tau ; \uctx ; \lfill[']{A} \seq J}
+    % \\
+    % \infer[\rlab{\bang}]{\tctx ; \uctx ; \lctxe \seq \bang A}{
+    %   \tctx ; \uctx ; \lctxe \seq A}
+    % \and
+    % \infer[\llab{\bang}]{\tctx ; \uctx ; \lmatch[']{\bang A} \seq J}{
+    %   \tctx ; \uctx, A ; \lfill[']{} \seq J}
     \\
-    \infer[\rlab{\bang}]{\uctx ; \lctxe \seq \bang A}{
-      \uctx ; \lctxe \seq A}
+    \infer[\lab{copy}]{\tctx ; \uctx, A ; \lctx' \seq J}{
+      \tctx ; \uctx, A ; \lctx', A \seq J}
     \and
-    \infer[\llab{\bang}]{\uctx ; \lmatch[']{\bang A} \seq J}{
-      \uctx, A ; \lfill[']{} \seq J}
+    \infer[\lab{cut$^{\bang}_A$}]{\tctx ; \uctx ; \lctx' \seq J}{
+      \tctx ; \uctx ; \lctxe \seq A &
+      \tctx ; \uctx, A ; \lctx' \seq J}
   \end{mathpar}
-  \begin{mathpar}
-    \infer-[\lab{id$_A$}]{\uctx ; A \seq A}{
-      }
-    \and
-    \infer-[\lab{cut$_A$}]{\uctx ; \lmatch[']{\lctx} \seq J}{
-      \uctx ; \lctx \seq A &
-      \uctx ; \lfill[']{A} \seq J}
-    \and
-    \infer-[\lab{cut$^{\bang}_A$}]{\uctx ; \lctx' \seq J}{
-      \uctx ; \lctxe \seq A &
-      \uctx, A ; \lctx' \seq J}
-  \end{mathpar}
-  \caption{Sequent calculus rules for a propositional fragment of \acf{JILL}~\autocite{Chang+:CMU03}.\label{fig:seq-jill}}
+  \caption{Sequent calculus rules for a fragment of \acl{JILL}~\autocite{Chang+:CMU03}.\label{fig:seq-jill}}
 \end{figure}
 
 \subsection{Proof search as computation: Bottom-up linear logic programming}\label{sec:linear-lp}
@@ -207,44 +310,400 @@ For convenience, these rules, along with rules for the first-order universal and
 
 \subsection{Proof reduction as computation: Session-typed linear logic}\label{sec:async-sill}
 
-Having seen a proof-reduction-as-computation correspondence between intuitionistic logic and functional computation, it's natural to ask if there is a computational interpretation of the intuitionistic linear sequent calculus.
-
-
+Having seen a proof-reduction-as-computation correspondence between intuitionistic logic and functional computation (\cref{sec:proof-rec-as-comp}), it's natural to ask if there is a similar computational interpretation of the intuitionistic linear sequent calculus.
 % as session-type discipline for concurrent processes:
-Giving session-typed concurrency a logical footing, \textcite{Caires+Pfenning:CONCUR10} along with Toninho~\autocite*{Caires+:TLDI12} have developed a Curry-Howard interpretation of the intuitionistic linear sequent calculus in which: proofs are processes, propositions are session types, and proof reduction is interprocess communication.
+% Giving session-typed concurrency a logical footing,
+\Textcite{Caires+Pfenning:CONCUR10} along with Toninho~\autocite*{Caires+:TLDI12} have developed
+% a Curry-Howard
+an interpretation
+% of the intuitionistic linear sequent calculus
+in which proofs are processes, propositions are session types, and proof reduction is synchronous interprocess communication.
 
-\ExplSyntaxOn
-\NewDocumentCommand{\minput}{>{\SplitArgument{1}{;}}m}{
-  \minput_:nn #1
-}
-\NewDocumentCommand{\minput_:nn}{>{\SplitArgument{1}{<-}}m m}{
-  \use_i:nn #1 \leftarrow \mathtt{input}\: \use_ii:nn #1
-  \mathtt{;}\: #2
-}
-\NewDocumentCommand{\moutput}{m >{\SplitArgument{1}{<-}}m m}{
-  \mathtt{output}\:#1\:(\use_i:nn #2 \leftarrow \use_ii:nn #2)\mathtt{;}\:#3
-}
-\ExplSyntaxOff
+\Textcite{Toninho+:ESOP13} later extended this interpretation with recursive session types and integrated it into a functional language.
+Here we review that integration, with one modification:
+Instead of interpreting proof reductions as synchronous communication, we give an asynchronous operational semantics that is better suited to the proposed thesis, as we will see in \cref{sec:compile}, while still remaining faithful to the proof reductions~\autocite{DeYoung+:CSL12}.
+
+\subsubsection{Session-typing judgment}\label{sec:sess-typing-judgm}
+
+In a session-based model of concurrency, pairs of processes interact in well-defined sessions, with one process offering a service that its session partner uses.
+Session types, pioneered by \textcite{Honda:CONCUR93}, describe the interaction protocol to which\fxnote{\ \st{a process adheres when offering its service}} the processes in that session must adhere.
+% When processes interact according to the protocol, their states change
+When processes interact, the session type changes: one process now offers, and the other uses, the continuation of the initial service.
+The logical reading of session-based concurrency is linear logic exactly because it can express this change of state.
+% \Citeauthor{Caires+:TLDI12}'s logical reading of session-based concurrency is as linear logic exactly because it can express this change of state.
+% % It's for this reason that session-based concurrency is a computational interpretation of linear logic.
+
+Because a process offers its service along a distinguished channel, the basic session-typing judgment is $P :: c{:}A$, meaning \enquote{process $P$ offers service of type $A$ along channel $c$}.
+However, $P$ itself may rely on services offered by yet other processes, and so our session-typing judgment is, more generally, a linear sequent annotated as
+\begin{equation*}
+  \underbrace{c_1{:}A_1, \dotsc, c_n{:}A_n}_{\displaystyle \lctx} \seq P :: c{:}A \:,
+\end{equation*}
+meaning \enquote{Using services $A_i$ offered along channels $c_i$, the process $P$ offers service $A$ along channel $c$.}
+The channels $c_i$ and $c$ must all be distinct and are binding occurences with scope over the process $P$.
+
+\subsubsection{Judgmental principles: Identity as forwarding and cut as composition}\label{sec:judgm-princ}
+
+\begin{equation*}
+  \infer{\lctx, \lctx' \seq {x \leftarrow P}; Q_x :: z{:}C}{
+    \lctx \seq P :: x{:}A &
+    \lctx', x{:}A \seq Q_x :: z{:}C}
+\end{equation*}
+
+% P :: &{inc: uX.... , halt:1}
+% fold P :: uX. &{inc:X , halt:1}
+
+\begin{equation*}
+  \infer[\lab{cut$_A$}]{\tctx ; \lmatch[']{\vec{d_i{:}B_i}} \seq \mbind{c <- M <- \vec{d_i}; Q} :: e{:}C}{
+    \tctx \seq M : \ctxmonad{c{:}A <- \vec{d_i{:}B_i}} &
+    \tctx ; \lfill[']{c{:}A} \seq Q :: e{:}C}
+\end{equation*}
+
+\begin{equation*}
+  \infer[\lab{id$_A$}]{d{:}A \seq \mfwd{c <- d} :: c{:}A}{
+    }
+\end{equation*}
+
+So far we have only discussed judgmental principles, not specific services.
+
+
+\subsubsection{Additive conjunction as branching}\label{sec:addit-conj-as-branching}
+
+\NewDocumentCommand{\inj}{m}{\mathtt{in}#1}
+\NewDocumentCommand{\inl}{}{\inj{\mathtt{l}}}
+\NewDocumentCommand{\inr}{}{\inj{\mathtt{r}}}
+
+Recall from \cref{sec:prop-conn} that the resource $A \with B$ gives a choice of resources $A$ or $B$.
+The right rule for $A \with B$ was
+\begin{equation*}
+  \infer[\rlab{{\with}}]{\lctx \seq A \with B}{
+    \lctx \seq A &
+    \lctx \seq B}
+  \:.
+\end{equation*}
+It says that to prove $A \with B$ we must prove both $A$ and $B$\fxnote{\ \st{(using the same resources $\lctx$)}} so that we are prepared for whichever of the two resources is eventually chosen.
+%
+Correspondingly, a process that offers service $A \with B$ gives its client a choice of services $A$ and $B$; the process must then be prepared to offer whichever service the client chooses.
+Based on this intuition, we assign a binary guarded choice process to the $\rlab{{\with}}$ rule:
+\begin{equation*}
+  \infer[\rlab{{\with}}]{\lctx \seq \mcase{c}{\inl => P_1}{\inr => P_2} :: c{:}A \with B}{
+    \lctx \seq P_1 :: c{:}A &
+    \lctx \seq P_2 :: c{:}B}
+  \:,
+\end{equation*}
+where the syntax $\mcase{c}{\inl => P_1}{\inr => P_2}$ means \enquote{{??}.}
+
+Conversely, the client that uses service $A \with B$ must behave in a complementary way:
+it should select either service $A$ or service $B$ and then, having notified the offering process of its choice, continue the session by using that service.
+The annotated left rules for $A \with B$ are thus
+\begin{mathpar}
+  \infer[{\llab{{\with}}[1]}]{\lmatch[']{c{:}A \with B} \seq \moutputl{c.\inl; Q} :: e{:}C}{
+    \lfill[']{c{:}A} \seq Q :: e{:}C}
+  \and
+  \infer[{\llab{{\with}}[2]}]{\lmatch[']{c{:}A \with B} \seq \moutputl{c.\inr; Q} :: e{:}C}{
+    \lfill[']{c{:}B} \seq Q :: e{:}C}
+  \:,
+\end{mathpar}
+where the syntax $\moutputl{c.\inj{\mathtt{l/r}}; Q}$ means \enquote{Send label $\inj{\mathtt{l/r}}$ along channel $c$ and then continue as process $Q$.}
+
+The above intuition for the behavior of the guarded choice constructs is made precise by their operational semantics:
+\NewPredicate{\proc}{1}
+\NewPredicate{\msgc}[msg_c]{3}
+\NewPredicate{\msgl}[msg_l]{3}
+\begin{align*}
+  &\proc{(\moutputl{c.\inl; Q})}
+     \lolli \monad{\existq c'. \msgl{c,\inl,c'} \tensor \proc{(\subst{c'/c}{Q})}} \\
+  %
+  &\proc{(\mcase{c}{\inl => P_1}{\inr => P_2})} \tensor \msgl{c,\inl,c'}
+     \lolli \monad{\proc{(\subst{c'/c}{P_1})}} \\
+  %
+  &\proc{(\moutputl{c.\inr; Q})}
+     \lolli \monad{\existq c'. \msgl{c,\inr,c'} \tensor \proc{(\subst{c'/c}{Q})}} \\
+  %
+  &\proc{(\mcase{c}{\inl => P_1}{\inr => P_2})} \tensor \msgl{c,\inr,c'}
+     \lolli \monad{\proc{(\subst{c'/c}{P_2})}}
+\end{align*}
+
+To make the language more palatable for the programmer, we diverge slightly from a pure propositions-as-types interpretation of linear logic by including $n$-ary \emph{labeled} additive conjunctions $\nwith[_i]{{\ell_i}{A_i}}$ as a primitive.
+The typing rules are thus:
+\begin{mathpar}
+  \infer[\rlab{{\with}}]{\lctx \seq \mcase{c}{\ell_i => P_i} :: c{:}\nwith[_i]{{\ell_i}{A_i}}}{
+    \forall i\mathpunct{:}\;\;  \lctx \seq P_i :: c{:}A_i}
+  \and
+  \infer[\llab{{\with}}]{\lmatch[']{c : \nwith[_i]{{\ell_i}{A_i}}} \seq \moutputl{c.\ell_k; Q} :: e{:}C}{
+    \lfill[']{c{:}A_k} \seq Q :: e{:}C} \:.
+\end{mathpar}
+Another possibility would be to simply treat $n$-ary labeled conjunctions as syntactic sugar for nested binary conjunctions, but this would turn out to introduce a communication overhead because we would separately send several $\inl$/$\inr$s rather than a single label.
+
+
+\subsubsection{Example: Binary counter}\label{sec:exampl-binary-count}
+
+\begin{pyglist}[language=text]
+stype Counter = &{ inc: Counter }
+
+eps : {c:Counter}
+c <- eps =
+{ case c of
+    inc => e <- eps;
+           d <- bit1 <- e;
+           c <- d }
+
+bit0 : {c:Counter <- d:Counter}
+c <- bit0 <- d =
+{ case c of
+    inc => e <- bit1 <- d;
+           c <- e }
+
+bit1 : {c:Counter <- d:Counter}
+c <- bit1 <- d =
+{ case c of
+    inc => d.inc;
+           e <- bit0 <- d;
+           c <- e }
+\end{pyglist}
+
+
+\subsubsection{Additive disjunction as choice}\label{sec:addit-disj-as-choice}
+
+In the intuitionistic linear sequent calculus, additive disjunction, $A \llor B$, is dual to additive conjunction, $A \with B$.
+We should expect this duality to also appear in the process assignment.
+% Because the additive disjunction $A \llor B$ and additive conjunction $A \with B$ are dual, their process assignments are also dual:
+Whereas a process of type $A \with B$ offers its client a choice of services $A$ and $B$, a process of type $A \llor B$ chooses between offering service $A$ or service $B$ to its client.
+The client waits to be notified of the offering process's choice and then uses that service.
+\begin{mathpar}
+  \infer[{\rlab{{\llor}}[1]}]{\lctx \seq \moutputl{c.\inl; P} :: c{:}A \llor B}{
+    \lctx \seq P :: c{:}A}
+  \and
+  \infer[{\rlab{{\llor}}[2]}]{\lctx \seq \moutputl{c.\inr; P} :: c{:}A \llor B}{
+    \lctx \seq P :: c{:}B}
+  \and
+  \infer[\llab{{\llor}}]{\lmatch[']{c{:}A \llor B} \seq \mcase{c}{\inl => Q_1}{\inr => Q_2} :: e{:}C}{
+    \lmatch[']{c{:}A} \seq Q_1 :: e{:}C &
+    \lmatch[']{c{:}B} \seq Q_2 :: e{:}C}
+\end{mathpar}
+
+Once again, to make the language more convenient for the programmer, we include $n$-ary labeled additive disjunctions $\nllor[_i]{{\ell_i}{A_i}}$.
+The typing rules are thus more generally
+\begin{mathpar}
+  \infer[\rlab{{\llor}}]{\lctx \seq \moutputl{c.\ell_k; P} :: c : \nllor[_i]{{\ell_i}{A_i}}}{
+    \lctx \seq P :: c{:}A_k}
+  \and
+  \infer[\llab{{\llor}}]{\lmatch[']{c : \nllor[_i]{{\ell_i}{A_i}}} \seq \mcase{c}{\ell_i => Q_i} :: e{:}C}{
+    \forall i\mathpunct{:}\;\;  \lmatch[']{c{:}A_i} \seq Q_i :: e{:}C}
+  \mathrlap{\:.}
+\end{mathpar}
+The operational semantics for these guarded choice constructs was already given in \cref{sec:addit-conj-as-branching}.
+
+\subsubsection{Linear implication as input}\label{sec:linear-implication-as-input}
+
 Recall the sequent calculus right rule for linear implication:
 \begin{equation*}
   \infer[\rlab{{\lolli}}]{\lctx \seq A \lolli B}{
     \lctx, A \seq B} \:.
 \end{equation*}
-It says that to obtain $A \lolli B$ we can obtain $B$ while presuming to have $A$.
+% It says that to obtain ${A \lolli B}$ we can obtain $B$ while presuming to have $A$.
+It says that to prove $A \lolli B$ we should presume to have an $A$ and then show how to use it to obtain $B$.
 Correspondingly, a process that offers service $A \lolli B$ should first input a channel offering service $A$ and then continue the session by using that service to offer service $B$.
-Based on this intuition, we assign an input process to the $\rlab{{\lolli}}$:
+Based on this intuition, we assign an input process to the $\rlab{{\lolli}}$ rule:
 \begin{equation*}
-  \infer[\rlab{{\lolli}}]{\lctx \seq \minput{y <- x; P_y} :: x{:}A \lolli B}{
-    \lctx, y{:}A \seq P_y :: x{:}B} \:.
+  \infer[\rlab{{\lolli}}]{\lctx \seq \minput{d <- c; P_d} :: c{:}A \lolli B}{
+    \lctx, d{:}A \seq P_d :: c{:}B} \:,
 \end{equation*}
-The syntax $\minput{y <- x; P_y}$ means \enquote{Input channel $y$ along channel $x$ and then continue as process $P_y$}.
+where the syntax $\minput{d <- c; P_d}$ means \enquote{Input channel $d$ along channel $c$ and then continue as process $P_d$.}
 
-The left rule for linear implication uses the service offerred by the right rule, so it should be a matching output:
+The left rule for linear implication uses the service offered by the right rule, so it should be a matching output:
 \begin{equation*}
-  \infer[\llab{{\lolli}}]{\lmatch[']{\lctx'_A, x{:}A \lolli B} \seq \moutput{x}{y <- Q}{R} :: z{:}C}{
-    \lctx'_A \seq Q :: y{:}A &
-    \lfill[']{x{:}B} \seq R :: z{:}C}
+  \infer[\llab{{\lolli}}]{\lmatch[']{\lctx'_A, c{:}A \lolli B} \seq \moutputc{c}{d <- Q_d}{R} :: e{:}C}{
+    \lctx'_A \seq Q_d :: d{:}A &
+    \lfill[']{c{:}B} \seq R :: e{:}C} \:,
 \end{equation*}
+where the syntax $\moutputc{c}{d <- Q_d}{R}$ means \enquote{Output a fresh channel $d$ along channel $c$, spawn process $Q_d$ that interacts along $d$, and then continue as process $R$.}
+
+\subsubsection{Multiplicative conjunction as output}\label{sec:mult-conj-as-output}
+
+Once again, because there is a flavor of duality between multiplicative conjunction and linear implication, their prociss assignments are also dual:
+% In the sequent calculus for intuitionistic linear logic, multiplicative conjunction, $A \tensor B$, is dual to linear implication.
+% We should expect this duality to also appear in the process assignment.
+Whereas a process of type $A \lolli B$ offers an input of an $A$ and then continues as $B$, a process of type $A \tensor B$ offers an output of an $A$ and then continues as $B$:
+\begin{mathpar}
+  \infer[\rlab{{\tensor}}]{\lctx_1, \lctx_2 \seq \moutputc{c}{d <- P_d}{Q} :: c{:}A \tensor B}{
+    \lctx_1 \seq P_d :: d{:}A &
+    \lctx_2 \seq Q :: c{:}B}
+  \and
+  \infer[\llab{{\tensor}}]{\lmatch[']{c{:}A \tensor B} \seq \minput{d <- c; R} :: e{:}C}{
+    \lfill[']{d{:}A, c{:}B} \seq R :: e{:}C} \:.
+\end{mathpar}
+
+Because the operational semantics is asynchronous
+
+\begin{align*}
+  &\proc{(\moutputc{c}{d <- Q_d}{R})}
+     \lolli \monad{\existq d,c'. \msgc{c,d,c'} \tensor \proc{Q_d} \tensor \proc{(\subst{c'/c}{R})}} \\
+  %
+  &\proc{(\minput{d <- c; P_d})} \tensor \msgc{c,d,c'}
+     \lolli \monad{\proc{(\subst{c'/c}{P_d})}}
+\end{align*}
+
+
+
+\subsubsection{}\label{sec:x}
+
+Recall from \cref{sec:prop-conn} that the additive conjunction $A \with B$ gives a choice of resources $A$ or $B$; the left rules for $A \with B$ were:
+\begin{mathpar}
+  \:.
+\end{mathpar}
+They say that to use $A \with B$ we must choose either resource $A$ or resource $B$ and then use that resource.
+Correspondingly, a client that uses service $A \with B$ should first select either service $A$ or service $B$ and then, having indicated its choice to the offering process, continue the session by using that service.
+Based on this intuition, we assign selection processes to the $\llab{{\with}}$ rules:
+\begin{mathpar}
+  \:,
+\end{mathpar}
+where the syntax $\moutputl{c.\inj{i}; Q}$ means \enquote{Send label $\inj{i}$ along channel $c$ and then continue as process $Q$.}
+
+Conversely, the process that offers service $A \with B$ must behave in a complementary way:
+after learning the client's selection, the process should then offer the corresponding service.
+\begin{equation*}
+  x
+\end{equation*}
+
+
+
+It says that to prove $A \with B$ we must prove both $A$ and $B$\fxnote{\ \st{using the same resources $\lctx$}} so that we are prepared for whichever of the two resources is chosen.u
+Correspondingly, a process that offers service $A \with B$ 
+
+
+Recall from \cref{sec:prop-conn} the sequent calculus left rules for additive conjunction:
+\begin{equation*}
+  \:.
+\end{equation*}
+They say that to use $A \with B$ we must choose either resource $A$ or resource $B$ and then use that resource.
+Correspondingly, a process that uses service $A \with B$ should first select either service $A$ or service $B$ and then, having indicated its choice, continue the session by using 
+
+Just as the sequent calculus rules explain how to obtain and use resource $A \with B$, the process typing rules explain how to offer and use service $A \with B$.
+
+
+
+\subsubsection{Additive disjunction as choice}\label{sec:addit-disj-as-choice}
+
+Recall from \cref{sec:prop-conn} the sequent calculus right rules for additive disjunction:
+\begin{mathpar}
+  \infer[{\rlab{{\llor}}[1]}]{\lctx \seq A \llor B}{
+    \lctx \seq A}
+  \and
+  \infer[{\rlab{{\llor}}[2]}]{\lctx \seq A \llor B}{
+    \lctx \seq B}
+\end{mathpar}
+These rules say that to prove $A \llor B$ we should choose either $A$ or $B$ and then prove it.
+Correspondingly, a process that offers service $A \llor B$ should first select either $A$ or $B$ and then, having indicated its choice, continue the session by offering that service.
+Based on this intuition, we assign label output processes to the $\rlab{{\llor}}$ rules:
+\begin{mathpar}
+  \infer[{\rlab{{\llor}}[1]}]{\lctx \seq \moutputl{c.\inl; P} :: c{:}A \llor B}{
+    \lctx \seq P :: c{:}A}
+  \and
+  \infer[{\rlab{{\llor}}[2]}]{\lctx \seq \moutputl{c.\inr; P} :: c{:}A \llor B}{
+    \lctx \seq P :: c{:}B}
+  \:,
+\end{mathpar}
+where the syntax $\moutputl{c.\inj{i}; P}$ means \enquote{Send label $\inj{i}$ along channel $c$ and then continue as process $P$.}
+
+Conversely, the client that uses service $A \llor B$ must behave in a complementary way:
+it should receive the offerer of 
+
+The left rule for additive disjunction uses the service offered by the right rules, so it must be prepared to use 
+
+Recall from \cref{sec:prop-conn} that
+% when using the additive conjunction $A \with B$ we have a choice between using $A$ or $B$.
+the resource~$A \with B$ is a choice between resource~$A$ or resource~$B$.
+Similarly, a process of type $A \with B$ offers its client the choice between services~$A$ or~$B$; the client selects one and then continues the session by using the selected service.
+Therefore, we can annotate the right and left rules for~$A \with B$ as follows:
+\begin{mathpar}
+  \infer[\rlab{{\with}}]{\lctx \seq \mcase{c}{\inl => P_1}{\inr => Q_2} :: c{:}A \with B}{
+    \lctx \seq P_1 :: c{:}A &
+    \lctx \seq P_2 :: c{:}B}
+  \and
+  \infer[{\llab{{\with}}[1]}]{\lmatch[']{c{:}A \with B} \seq \moutputl{c.\inl; Q} :: e{:}C}{
+    \lfill[']{c{:}A} \seq Q :: e{:}C}
+  \and
+  \infer[{\llab{{\with}}[2]}]{\lmatch[']{c{:}A \with B} \seq \moutputl{c.\inr; Q} :: e{:}C}{
+    \lfill[']{c{:}B} \seq Q :: e{:}C}
+\end{mathpar}
+In the left rules, the client asynchronously sends his selection, encoded as either $\inl$ or $\inr$, along the session channel $c$ and then continues with process $Q$.
+In the right rule, the server is prepared for either choice; after receiving the client's selection, it offers the corresponding service.
+This intuition is made precise by the operational semantics:
+\begin{align*}
+  &\proc{(\moutputl{c.\inl; Q})}
+     \lolli \monad{\existq c'. \msgl{c,\inl,c'} \tensor \proc{(\subst{c'/c}{Q})}} \\
+  %
+  &\proc{(\moutputl{c.\inr; Q})}
+     \lolli \monad{\existq c'. \msgl{c,\inr,c'} \tensor \proc{(\subst{c'/c}{Q})}} \\
+  %
+  &\proc{(\mcase{c}{\inl => P_1}{\inr => P_2})} \tensor \msgl{c,\inl,c'}
+     \lolli \monad{\proc{(\subst{c'/c}{P_1})}} \\
+  %
+  &\proc{(\mcase{c}{\inl => P_1}{\inr => P_2})} \tensor \msgl{c,\inr,c'}
+     \lolli \monad{\proc{(\subst{c'/c}{P_2})}}
+\end{align*}
+
+To make the language more palatable for the programmer, we diverge slightly from a pure propositions-as-types interpretation of linear logic by including $n$-ary \emph{labeled} additive conjunctions $\nwith[_i]{{\ell_i}{A_i}}$ as a primitive.
+The typing rules are thus:
+\begin{mathpar}
+  \infer[\rlab{{\with}}]{\lctx \seq \mcase{c}{\ell_i => P_i} :: c{:}\nwith[_i]{{\ell_i}{A_i}}}{
+    \forall i\mathpunct{:}\;\;  \lctx \seq P_i :: c{:}A_i}
+  \and
+  \infer[\llab{{\with}}]{\lmatch[']{c : \nwith[_i]{{\ell_i}{A_i}}} \seq \moutputl{c.\ell_k; Q} :: e{:}C}{
+    \lfill[']{c{:}A_k} \seq Q :: e{:}C} \:.
+\end{mathpar}
+Another possibility would be to simply treat $n$-ary labeled conjunctions as syntactic sugar for nested binary conjunctions, but this would turn out to introduce a communication overhead because we would separately send several $\inl$/$\inr$s rather than a single label.
+
+
+
+
+
+
+\subsubsection{Additive conjunction as branching}\label{sec:addit-conj-as-branch}
+
+Recall from \cref{sec:prop-conn} that
+% when using the additive conjunction $A \with B$ we have a choice between using $A$ or $B$.
+the resource~$A \with B$ is a choice between resource~$A$ or resource~$B$.
+Similarly, a process of type $A \with B$ offers its client the choice between services~$A$ or~$B$; the client selects one and then continues the session by using the selected service.
+Therefore, we can annotate the right and left rules for~$A \with B$ as follows:
+\begin{mathpar}
+  \infer[\rlab{{\with}}]{\lctx \seq \mcase{c}{\inl => P_1}{\inr => Q_2} :: c{:}A \with B}{
+    \lctx \seq P_1 :: c{:}A &
+    \lctx \seq P_2 :: c{:}B}
+  \and
+  \infer[{\llab{{\with}}[1]}]{\lmatch[']{c{:}A \with B} \seq \moutputl{c.\inl; Q} :: e{:}C}{
+    \lfill[']{c{:}A} \seq Q :: e{:}C}
+  \and
+  \infer[{\llab{{\with}}[2]}]{\lmatch[']{c{:}A \with B} \seq \moutputl{c.\inr; Q} :: e{:}C}{
+    \lfill[']{c{:}B} \seq Q :: e{:}C}
+\end{mathpar}
+In the left rules, the client asynchronously sends his selection, encoded as either $\inl$ or $\inr$, along the session channel $c$ and then continues with process $Q$.
+In the right rule, the server is prepared for either choice; after receiving the client's selection, it offers the corresponding service.
+This intuition is made precise by the operational semantics:
+\begin{align*}
+  &\proc{(\moutputl{c.\inl; Q})}
+     \lolli \monad{\existq c'. \msgl{c,\inl,c'} \tensor \proc{(\subst{c'/c}{Q})}} \\
+  %
+  &\proc{(\moutputl{c.\inr; Q})}
+     \lolli \monad{\existq c'. \msgl{c,\inr,c'} \tensor \proc{(\subst{c'/c}{Q})}} \\
+  %
+  &\proc{(\mcase{c}{\inl => P_1}{\inr => P_2})} \tensor \msgl{c,\inl,c'}
+     \lolli \monad{\proc{(\subst{c'/c}{P_1})}} \\
+  %
+  &\proc{(\mcase{c}{\inl => P_1}{\inr => P_2})} \tensor \msgl{c,\inr,c'}
+     \lolli \monad{\proc{(\subst{c'/c}{P_2})}}
+\end{align*}
+
+To make the language more palatable for the programmer, we diverge slightly from a pure propositions-as-types interpretation of linear logic by including $n$-ary \emph{labeled} additive conjunctions $\nwith[_i]{{\ell_i}{A_i}}$ as a primitive.
+The typing rules are thus:
+\begin{mathpar}
+  \infer[\rlab{{\with}}]{\lctx \seq \mcase{c}{\ell_i => P_i} :: c{:}\nwith[_i]{{\ell_i}{A_i}}}{
+    \forall i\mathpunct{:}\;\;  \lctx \seq P_i :: c{:}A_i}
+  \and
+  \infer[\llab{{\with}}]{\lmatch[']{c : \nwith[_i]{{\ell_i}{A_i}}} \seq \moutputl{c.\ell_k; Q} :: e{:}C}{
+    \lfill[']{c{:}A_k} \seq Q :: e{:}C} \:.
+\end{mathpar}
+Another possibility would be to simply treat $n$-ary labeled conjunctions as syntactic sugar for nested binary conjunctions, but this would turn out to introduce a communication overhead because we would separately send several $\inl$/$\inr$s rather than a single label.
 
 
 
@@ -257,6 +716,21 @@ The left rule for linear implication uses the service offerred by the right rule
 
 
 \subsection{Ordered logic}\label{sec:ordered-logic}
+
+As described in \cref{sec:introduction}, this thesis proposes to show that session types form a bridge between notions of concurrency that arise in proof-search-as-computation and proof-reduction-as-computation interpretations of linear logic.
+Proof search in linear logic appears a bit too complex to tackle outright.
+So, in this proposal, we turn our attention to ordered logic.
+
+In linear logic, the order of hypotheses is unimportant; $A \tensor B \lolli B \tensor A$ is provable, for example.
+Pure ordered logic, on the other hand, is a restriction of linear logic in which order matters:
+in addition to rejecting contraction and weakening, ordered logic also rejects the structural principle of exchange.
+The basic sequent is
+\begin{equation*}
+  \underbrace{A_1, \dotsc, A_n}_{\displaystyle \octx} \seq A \:.
+\end{equation*}
+
+Having rejected {??}, we must reconsider the various forms of proposition.
+
 
 \NewDocumentCommand{\ofrm}{m}{\Theta\{#1\}}
 \begin{figure}

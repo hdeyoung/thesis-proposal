@@ -1,0 +1,169 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {msill}{2013/11/04}{0.01}{Monadic SILL}
+
+
+\RequirePackage{xparse}
+
+\RequirePackage{amsmath}
+\RequirePackage{logic}
+
+
+
+\cs_new:Npn \msill_tt:n #1 {
+  \text { \normalfont \texttt {#1} }
+}
+
+
+\NewDocumentCommand { \minput } { >{ \SplitArgument { 1 } { ; } }m }
+  { \msill_minput:w #1 }
+
+\NewDocumentCommand { \msill_minput:w } { >{ \SplitArgument { 1 } { <- } }m m }
+  { \msill_minput:nnn #1 {#2} }
+
+\cs_new:Npn \msill_minput:nnn #1#2#3 {
+  {
+    #1
+    \mathrel { \msill_tt:n { <- } }
+    \msill_tt:n { input }
+    \:
+    #2
+  }
+  \msill_tt:n { ; } \:
+  #3
+}
+
+
+\cs_new:Npn \msill_moutput:nnn #1#2#3 {
+  \msill_tt:n { output }
+  \: #1 \:
+  #2
+  \msill_tt:n { ; }
+  #3
+}
+
+\NewDocumentCommand \moutputc { m >{ \SplitArgument { 1 } { <- } }m m }
+  { \msill_moutputc:nnnn {#1} #2 {#3} }
+
+\cs_new:Npn \msill_moutputc:nnnn #1#2#3#4 {
+  \msill_moutput:nnn
+    {#1}
+    { ( { #2 \mathrel { \msill_tt:n { <- } } #3 } ) }
+    {#4}
+}
+
+\NewDocumentCommand \moutputv { m m m }
+  { \msill_moutputv:nnn {#1} {#2} {#3} }
+
+\cs_new:Npn \msill_moutputv:nnn #1#2#3 {
+  \msill_moutput:nnn {#1} {#2} {#3}
+}
+
+
+\NewDocumentCommand \ctxmonad { >{ \SplitArgument { 1 } { <- } }m }
+  { \msill_ctxmonad:nn #1 }
+
+\cs_new:Npn \msill_ctxmonad:nn #1#2 {
+  \{ #1
+     \mathrel { \msill_tt:n { <- } }
+     #2 \}
+}
+
+\NewDocumentCommand \nwith { O{} m }
+  { \msill_nwith:nn {#1} {#2} }
+
+\cs_new:Npn \msill_nwith:nn #1#2 {
+  \mathord { \with } #1
+  \{ \msill_labeledtype:nn #2 \}
+}
+
+\NewDocumentCommand \nllor { O{} m }
+  { \msill_nllor:nn {#1} {#2} }
+
+\cs_new:Npn \msill_nllor:nn #1#2 {
+  \mathord { \llor } #1
+  \{ \msill_labeledtype:nn #2 \}
+}
+
+\cs_new:Npn \msill_labeledtype:nn #1#2 {
+  #1 \mathpunct{:} #2
+}
+
+
+\NewDocumentCommand \mcase { m >{ \SplitArgument { 1 } { => } }m }
+ { \msill_mcase:w {#1} #2 }
+
+\cs_new:Npn \msill_mcase:w #1#2#3 {
+  \msill_mcase_caseof:n {#1}
+  \msill_mcase_arms:w {#2} {#3}
+}
+
+\cs_new:Npn \msill_mcase_caseof:n #1 {
+  \msill_tt:n { case } \:
+  #1
+  \: \msill_tt:n { of } \:
+}
+
+\NewDocumentCommand \msill_mcase_arms:w { m m >{ \SplitArgument { 1 } { => } }g } {
+  {
+    #1
+    \mathrel { \msill_tt:n { => } }
+    #2
+  }
+  \IfValueT {#3}
+    {
+      \mathrel { \msill_tt:n { | } }
+      \msill_mcase_arms:w #3
+    }
+}
+
+
+\NewDocumentCommand \moutputl { >{ \SplitArgument { 1 } { ; } }m }
+  { \msill_moutputl:w #1 }
+
+\NewDocumentCommand \msill_moutputl:w { >{ \SplitArgument { 1 } { . } }m m }
+  { \msill_moutputl:nnn #1 {#2} }
+
+\cs_new:Npn \msill_moutputl:nnn #1#2#3 {
+  #1 \msill_tt:n { . } #2
+  \msill_tt:n { ; } \:
+  #3
+}
+
+
+\NewDocumentCommand \mbind { >{ \SplitArgument { 1 } { ; } }m }
+  { \msill_mbind:w #1 }
+
+\NewDocumentCommand \msill_mbind:w { >{ \SplitArgument { 2 } { <- } }m m } {
+  \IfValueTF {#2}
+    { \msill_mbind:nnnn #1 {#2} }
+    { \msill_mbind:nnn #1 }
+}
+
+\cs_new:Npn \msill_mbind:nnnn #1#2#3#4 {
+  \msill_mbind:nnn {#1} {#2} {#3}
+  \msill_tt:n { ; } \:
+  #4
+}
+
+\cs_new:Npn \msill_mbind:nnn #1#2#3 {
+  {
+    #1
+    \mathrel { \msill_tt:n { <- } } 
+    #2
+    \mathrel { \msill_tt:n { <- } } 
+    #3
+  }
+}  
+
+
+\NewDocumentCommand \mfwd { >{ \SplitArgument { 1 } { <- } }m }
+  { \msill_mfwd:nn #1 }
+
+\cs_new:Npn \msill_mfwd:nn #1#2 {
+  {
+    #1
+    \mathrel { \msill_tt:n { <- } }
+    #2
+  }
+}
