@@ -9,14 +9,16 @@
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage[sc,osf]{mathpazo}
-\linespread{1.05}
+% \linespread{1.05}
+\usepackage[semibold,tt=false,osf]{libertine}
+% \usepackage{inconsolata}
 % \usepackage{fullpage}
 \usepackage{microtype}
 
 \usepackage[american]{babel}
 \usepackage{csquotes}
 
-\usepackage{enumitem}
+\usepackage[inline]{enumitem}
 
 \usepackage[capitalize]{cleveref}
 
@@ -43,8 +45,23 @@
   short = SML,
   long  = Standard ML
 }
+\DeclareAcronym{SOS}{
+  short = SOS,
+  short-indefinite = an,
+  long = structural operational semantics
+}
+\DeclareAcronym{SSOS}{
+  short = SSOS,
+  short-indefinite = an,
+  long = substructural operational semantics
+}
+\DeclareAcronym{SILL}{
+  short = SILL,
+  long = session-typed intuitionistic linear logic
+}
 
 \usepackage{booktabs}
+\usepackage{caption}[2013/01/01] % needs v3.3 or newer
 
 \usepackage{logic}
 \usepackage{predicates}
@@ -54,10 +71,35 @@
 \usepackage{verbments}
 % \NewDocumentEnvironment{smlcode}{}{\begin{pyglist}[language=sml,gobble=2]}{\end{pyglist}}
 \usepackage{listings}
+\crefname{listing}{listing}{listings}
+\Crefname{listing}{Listing}{Listings}
+
 \newlength{\mywidth}
 \settowidth{\mywidth}{\ttfamily A}
 \lstset{basicstyle=\ttfamily, basewidth=\mywidth}
+
+\captionsetup[lstlisting]{%
+  box=colorbox, boxcolor=gray,
+  font={normalfont, sf, color=white},
+  labelfont=bf,
+  justification=justified, singlelinecheck=false
+}
+
+\lstnewenvironment{sillcode}[1][]
+  {\lstset{language={},frame=bottomline,framerule=0.8ex,rulecolor=\color{gray},float,#1}}%
+  {}
+
+\lstnewenvironment{sillcode*}[1][]
+  {\lstset{language={},#1}}%
+  {}
+
 \NewDocumentCommand{\sml}{o}{%
+  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
+}
+\NewDocumentCommand{\msill}{o}{%
+  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
+}
+\NewDocumentCommand{\haskell}{o}{%
   \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
 }
 
@@ -85,7 +127,7 @@
 
 
 
-% \includeonly{background}
+\includeonly{background}
 
 \begin{document}
 

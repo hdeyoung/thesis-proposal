@@ -14,32 +14,35 @@
   \text { \normalfont \texttt {#1} }
 }
 
+\cs_new:Npn \msill_seq:nn #1#2 {
+  #1 \mathpunct { \msill_tt:n { ; } } #2
+}
+
+
+\NewDocumentCommand \bv { m }
+  { \msill_tt:n {#1} }
 
 \NewDocumentCommand { \minput } { >{ \SplitArgument { 1 } { ; } }m }
   { \msill_minput:w #1 }
 
-\NewDocumentCommand { \msill_minput:w } { >{ \SplitArgument { 1 } { <- } }m m }
+\NewDocumentCommand { \msill_minput:w } { >{ \SplitArgument { 1 } { <-~input } }m m }
   { \msill_minput:nnn #1 {#2} }
 
 \cs_new:Npn \msill_minput:nnn #1#2#3 {
-  {
-    #1
-    \mathrel { \msill_tt:n { <- } }
-    \msill_tt:n { input }
-    \:
-    #2
-  }
-  \msill_tt:n { ; } \:
-  #3
+  \msill_seq:nn
+    {
+      { #1 \mathrel { \msill_tt:n { <- } }
+        { \mathpunct { \msill_tt:n { input } } #2 }
+      }
+    }
+    {#3}
 }
 
 
 \cs_new:Npn \msill_moutput:nnn #1#2#3 {
-  \msill_tt:n { output }
-  \: #1 \:
-  #2
-  \msill_tt:n { ; }
-  #3
+  \msill_seq:nn
+    { \msill_tt:n { output } \: #1 \: #2 }
+    {#3}
 }
 
 \NewDocumentCommand \moutputc { m >{ \SplitArgument { 1 } { <- } }m m }
@@ -64,9 +67,10 @@
   { \msill_ctxmonad:nn #1 }
 
 \cs_new:Npn \msill_ctxmonad:nn #1#2 {
-  \{ #1
-     \mathrel { \msill_tt:n { <- } }
-     #2 \}
+  \{ #2 \seq #1 \}
+  % \{ #1
+  %    \mathrel { \msill_tt:n { <- } }
+  %    #2 \}
 }
 
 \NewDocumentCommand \nwith { O{} m }
@@ -118,6 +122,36 @@
 }
 
 
+\NewDocumentCommand \mletrec {m m}
+  { \msill_mletrec:nn {#1} {#2} }
+
+\cs_new:Npn \msill_mletrec:nn #1#2 {
+  \seq_set_split:Nnn \l_tmpa_seq { and } {#1}
+  \msill_tt:n { let rec }
+  \;
+  \seq_use:Nn \l_tmpa_seq { \mathrel { \msill_tt:n { and } } }
+  \mathrel { \msill_tt:n { in } }
+  #2
+}
+
+\NewDocumentCommand \mprocdef { >{ \SplitArgument { 1 } { = } }m }
+  { \msill_mprocdef:nn #1 }
+
+\NewDocumentCommand{ \msill_mprocdef:nn}{ >{ \SplitArgument { 2 } { <- } }m m}
+  { \msill_mprocdef:nnnn #1 {#2} }
+
+\cs_new:Npn \msill_mprocdef:nnnn #1#2#3#4 {
+  \mbind { #1 <- #2 <- #3 }
+  \mathrel { \msill_tt:n { = } }
+  \msill_tt:n { \char`\{ }
+  #4
+  \msill_tt:n { \char`\} }
+}
+
+
+\NewDocumentCommand \mlabel {m}
+  { \underline {#1} }
+
 \NewDocumentCommand \moutputl { >{ \SplitArgument { 1 } { ; } }m }
   { \msill_moutputl:w #1 }
 
@@ -125,9 +159,9 @@
   { \msill_moutputl:nnn #1 {#2} }
 
 \cs_new:Npn \msill_moutputl:nnn #1#2#3 {
-  #1 \msill_tt:n { . } #2
-  \msill_tt:n { ; } \:
-  #3
+  \msill_seq:nn
+    { #1 \msill_tt:n { . } #2 }
+    {#3}
 }
 
 
@@ -141,9 +175,9 @@
 }
 
 \cs_new:Npn \msill_mbind:nnnn #1#2#3#4 {
-  \msill_mbind:nnn {#1} {#2} {#3}
-  \msill_tt:n { ; } \:
-  #4
+  \msill_seq:nn
+    { \msill_mbind:nnn {#1} {#2} {#3} }
+    {#4}
 }
 
 \cs_new:Npn \msill_mbind:nnn #1#2#3 {
@@ -155,6 +189,17 @@
     #3
   }
 }  
+
+\NewDocumentCommand \mspawn {m} {
+  \msill_mspawn:n {#1}
+}
+
+\cs_new:Npn \msill_mspawn:n #1 {
+  {
+    \mathpunct { \msill_tt:n { spawn } }
+    #1
+  }
+}
 
 
 \NewDocumentCommand \mfwd { >{ \SplitArgument { 1 } { <- } }m }
