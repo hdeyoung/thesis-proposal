@@ -1,14 +1,353 @@
 \section{Choreographies}\label{sec:choreographies}
 
+Traditionally, concurrency is phrased as the composition of interacting, distributed processes.
+As the binary counter \wc{specification}[\st{example}] from \cref{sec:exampl-binary-count-2,sec:exampl-binary-count-3} demonstrates, ordered logic programming gives rise to a notion of concurrency, based on indistinguishable interleavings of independent rewrites.
+% a notion of concurrency based on indestinguishable interleavings arises naturally in ordered logic programming.
+% However, it is not as clear how to identify a notion of process
+But where are the distributed processes?
+
+Taking a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the atomic propositions in an ordered logic program are the processes.
+% This thesis proposes that the atomic propositions in an ordered logic program are the processes.
+% \fxnote{[How much of this is already implied by a formula-as-process interpretation?]}%
+The program's \wc{clauses}[\st{rules}], then, serve to specify the valid interactions among processes. 
+In the binary counter \wc{specification}[\st{program}], for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$, among others,
+% $\dec$, $\bit[']{0}$, $\zero$, and $\succ$ 
+are
+% all 
+atoms-as-processes,
+% whose interactions are governed by the program's rules.
+% In particular, the rule
+and the clause
+\begin{equation*}
+  \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+\end{equation*}
+% says that neighboring $\bit{1}$ and $\inc$ processes \fxnote{should be able to} interact to form neighboring $\inc$ and $\bit{0}$ processes.
+says that one valid interaction is for neighboring $\bit{1}$ and $\inc$ processes to cooperate to become neighboring $\inc$ and $\bit{0}$ processes.
+% (with similar readings for the other clauses).
+
+The program's clauses don't tell the full story, however:
+The clauses specify what are valid interactions but not \emph{how} to realize those interactions; the \enquote*{how} is instead supplied by the logic programming language's operational semantics.
+In the usual operational semantics, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+
+However, because they rely so heavily on the central conductor, processes using this semantics are no more than superficially distributed.
+% Under this semantics, however, processes are only nominally distributed because they rely so heavily on the central conductor.
+To be truly distributed, the processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
+
+It's difficult to argue that this centralized \enquote{how} is suitable for \emph{distributed} processes, however.
+The distributed processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
+How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+In session terminology, the logic program with a centralized operational semantics is known as an orchestration of processes, whereas the desired distributed semantics is known as a choreography.
+
+
+
+
+The program's clauses do not tell the full story, however: the clauses specify what are valid interactions but not \emph{how} to realize those interactions.
+In the usual operational semantics, the \enquote{how} is supplied by providing a central \enquote{conductor} that, having the benefit of a global view\fxnote{\ \st{of all atoms}}, manipulates the atoms according to the program's clauses.
+But it's difficult to argue that this centralized \enquote{how} is suitable for \emph{distributed} processes.
+Distributed processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
+How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+
+
+
+
+
+This isn't the full story, however:
+% The program's clauses specify \emph{what} are valid interactions but not \emph{how} to achieve those interactions.
+the program's clauses specify what are valid interactions but not \emph{how} to achieve them.
+The \enquote{how} is provided by the logic programming language's operational semantics.
+The usual operational semantics
+
+
+How do $\bit{1}$ and $\inc$, for example, learn that they are neighbors and that the above clause therefore applies?
+
+
+the \enquote{how}it is provided by the logic programming language's operational semantics.
+The usual operational semantics for logic programming 
+
+This isn't the full story, however.
+The usual operational semantics for ordered logic programming assumes a central \enquote{puppeteer} that has a global view of all atoms and manipulates them according to the program's clauses.
+It's difficult to argue that this centralization is appropriate for distributed processes, however.
+Instead, the processes should communicate directly to identify their neighbors and thereby deduce which, if any, of the valid interactions are possible for them at that moment.
+But this communication is left unspecified in the original logic program.
+How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+% What's left unspecified in the ordered logic program is how the distributed processes communicate to identify their neighbors and thereby deduce which, if any, of the valid interactions are possible for them at that moment.
+% % Using a communication protocol that is left unspecified in the program, the atoms deduce 
+% How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+Orchestration vs. choreography
+
+% elem 4 * elem 1 * elem 3 * elem 5 * elem 2 * elem 0
+% l4 r1  l3 r5  l2 r0
+% r4 l5 r2
+% l4 r5
+
+\subsection{Example: A choreography for the binary counter}\label{sec:exampl-chor-binary}
+
+In giving the intuition behind the binary counter program (\cref{sec:exampl-binary-count-2}), we described the $\inc$s % as moving --- moving past any $\bit{1}$s and eventually stopping at the $\eps$ or right-most $\bit{0}$.
+as moving up the counter.
+% , a subliminal hint that $\inc$s are like messages.
+% This suggests a choreography in which $\inc$ processes take the active lead:
+This hints that $\inc$s are a bit like messages, and suggests a choreography in which $\inc$ processes take the active lead:
+First, each $\inc$ process sends a message, $\inc[<-]$, to its left-hand neighbor, thereby notifying that neighbor of its existence, and then the $\inc$ process terminates.
+If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the $\inc$'s message, that neighbor takes responsibility for carrying out the corresponding program clause.  
+
+We can even express this choreography as an ordered logic program in its own right:
+\begin{align*}
+  &\inc \lrimp \monad{\inc[<-]} \\
+  &\eps \fuse \inc[<-] \lrimp \monad{\eps \fuse \bit{1}} \\
+  &\bit{0} \fuse \inc[<-] \lrimp \monad{\bit{1}} \\
+  &\bit{1} \fuse \inc[<-] \lrimp \monad{\inc \fuse \bit{0}} \text{\,,}
+\end{align*}
+where $\inc$, $\eps$, $\bit{0}$, and $\bit{1}$ are still viewed as processes, but $\inc[<-]$ is viewed as a message.
+%
+Two features are worth mentioning.
+\begin{description}[font=\normalfont\itshape, leftmargin=\parindent, labelindent=\leftmargin]
+\item[Local decisions.]
+% First, notice that
+Each clause of the choreography depends on exactly one process atom and at most one message atom.
+In this way, each process's decisions are completely local: the $\inc$ process always sends $\inc[<-]$ regardless of its neighbors, and the $\eps$ and $\bit{}$ processes act only after receiving an $\inc[<-]$ message.%
+\footnote{In \ac{SSOS} terminology, processes that act regardless of their neighbors, like $\inc$, would be termed \vocab{active} propositions; processes that wait to receive a message, like $\eps$, $\bit{0}$, and $\bit{1}$, would be termed \vocab{latent} propositions; and messages, like $\inc[<-]$, would be termed \vocab{passive} propositions.}
+%
+\item[Preserves implementation.]
+% Second, notice that
+The choreography exposes the same $\eps$, $\bit{}$, and $\inc$ processes as the original binary counter program; the last three clauses of the choreography differ from the original program's clauses only in the substitution of $\inc[<-]$ for $\inc$ in their premises.
+In this sense, there is a very strong equivalence between the two programs.
+The choreography does not fundamentally alter the original implementation -- it only refines that implementation by making the communication patterns explicit.
+
+\NewPredicate{\num}{1}%
+Although it is equivalent to the binary counter in the sense that it tracks the same value, we wouldn't call the following program a choreography because it fundamentally alters the implementation by using a single $\num{}$ instead of a string of $\bit{}$s
+\begin{align*}
+  &\inc \lrimp \monad{\inc[<-]} \\
+  &\num{N} \fuse \inc[<-] \lrimp \monad{\num{(N{+}1)}}
+\end{align*}
+\end{description}
+
+% In this sense, there is a strong equivalence between the 
+% The choreography does not fundamentally alter the implementation given in the original program -- it only refines that implementation by making the communication patterns explicit.
+% In this sense, there is a strong equivalence between, which will be made precise in \cref{??}
+
+% Notice that this choreography \wc{refactors} the original program so that each new clause depends on exactly one process atom and at most one message atom.
+% In this way, each process's decisions are completely local: the $\inc$ process always sends $\inc[<-]$ regardless of its neighbors, and the $\eps$ and $\bit{}$ processes act only after receiving an $\inc[<-]$ message.%
+% \footnote{In \ac{SSOS} terminology, processes that act regardless of their neighbors, like $\inc$, would be termed \vocab{active} propositions; processes that wait to receive a message, like $\eps$, $\bit{0}$, and $\bit{1}$, would be termed \vocab{latent} propositions; and messages, like $\inc[<-]$, would be termed \vocab{passive} propositions.}
+
+
+\subsubsection{Adding decrements}\label{sec:chor-binary-count}
+
+In the binary counter, $\dec$s propagate up the counter similarly to $\inc$s, with the difference being that each $\dec$ eventually gives rise to either a $\zero$ or $\succ$ that travels back down the counter.
+Once again, this hints that $\dec$s, $\zero$s, and $\succ$s are like messages.
+These can be incorporated into the counter's choreography:
+% We can also incorporate decrements into the counter's choreography.
+\begin{itemize}
+\item Each $\dec$ process sends a message, $\dec[<-]$, to its left-hand neighbor and terminates.
+      If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the message, that neighbor carries out the corresponding interaction from the original program.
+\item Each $\zero$ or $\succ$ process sends a message, $\zero[->]$ or $\succ[->]$, respectively, to its \emph{right-hand} neighbor and terminates.
+      If the neighbor is $\bit[']{0}$, then, upon receiving the message from $\zero$ or $\succ$, that neighbor carries out the corresponding interaction from the original program.
+\end{itemize}
+When expressed as an ordered logic program, the counter's choreography is extended with the following clauses that account for decrements:
+\begin{align*}
+  &\dec \lrimp \monad{\dec[<-]} \\
+  &\eps \fuse \dec[<-] \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{0} \fuse \dec[<-] \lrimp \monad{\dec \fuse \bit[']{0}} \\
+  &\bit{1} \fuse \dec[<-] \lrimp \monad{\bit{0} \fuse \succ} \\[1.5\jot]
+  %
+  &\zero \lrimp \monad{\zero[->]} \\
+  &\succ \lrimp \monad{\succ[->]} \\
+  &\zero[->] \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+  &\succ[->] \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ}
+  \,.
+\end{align*}
+
+This extension shows that message atoms can be either left-directed, like $\inc[<-]$ and $\dec[<-]$, or right-directed, like $\zero[->]$ and $\succ[->]$.
+Moreover, a message's direction determines the structure of premises in which it is received:
+A left-directed (right-directed) message must arrive at the receiving process's right (resp., left) side, otherwise the message would not be travelling from left to right (resp., right to left).
+
+\subsection{Multiple choreographies are sometimes possible}\label{sec:mult-chor-are}
+
+\begin{align*}
+  &\eps \lrimp \monad{\eps[->]} \\
+  &\bit{0} \lrimp \monad{\bit{0}[->]} \\
+  &\bit{1} \lrimp \monad{\bit{1}[->]} \\
+  &\eps[->] \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+  &\bit{0}[->] \fuse \inc \lrimp \monad{\bit{1}} \\
+  &\bit{1}[->] \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+\end{align*}
+
+
 \subsection{What counts as a choreography?}\label{sec:what-counts-choreo}
+
+Nevertheless, the choreography still exposes the same $\eps$, $\bit{}$, and $\inc$ processes -- it only refines the original implementation by specifying the communication patterns.
+Although the following program is equivalent in the sense that it tracks the same value, we wouldn't call it a choreography because it fundamentally alters the implementation.
+% \NewPredicate{\num}{1}%
+% \begin{align*}
+%   &\inc \lrimp \monad{\inc[<-]} \\
+%   &\num{N} \fuse \inc[<-] \lrimp \monad{\num{(N{+}1)}}
+% \end{align*}
+
+
+
+Notice that here each clause's premise depends on exactly one process atom and at most one message atom.
+In this way, the choreography \wc{localizes}[refactors] the interactions so that each process makes only local decisions.
+
+
+
+
+
+
+% c <- bit1 <- d =
+% { case c of
+%     inc => d.inc;
+%            case c of
+%              inc => c <- bit1 <- d }
+
+
+% c <- eps =
+% { case c of
+%     inc => c' <- eps;
+%            case c of
+%              inc => c'.inc;
+%                     c <- bit0 <- c' }
+
+% c <- bit0 <- d =
+% { case c of
+%     inc => case c of
+%              inc => d.inc;
+%                     c <- bit0 <- d }
+
+
+
+
+
+\subsection{What counts as a choreography?}\label{sec:what-counts-choreo}
+
+\begin{claim*}
+  Define a "choreography" to be a program where each process sends or receives a message (or perhaps both).
+  The "choreography" can be compiled to a well-typed SILL program if and only if there is a particular bisimulation between the "choreography" and the original logic program.
+\end{claim*}
+
 
 \NewPredicate{\elem}{1}
 
+
+
+% inc R inc[<-]
+% p R p  for p \in {eps, bit0, bit1, inc}
+
+% inc --> inc[<-]
+%  R         R
+% inc -->*  inc
+\begin{equation*}
+  \begin{tikzcd}[row sep = 6ex]
+    \inc \rar \dar[dash][description]{\mathcal{R}^{-1}}
+      & \inc[<-] \dar[gray,dash,dashed][description]{\mathcal{R}^{-1}}
+    \\
+    \inc \rar[gray,dashed][very near end]{*} & \inc
+  \end{tikzcd}
+\end{equation*}
+
+\begin{equation*}
+  \begin{tikzcd}[row sep = 6ex]
+    \eps \fuse \inc[<-] \rar \dar[dash][description]{\mathcal{R}^{-1}}
+      & \eps \fuse \bit{1} \dar[gray,dash,dashed][description]{\mathcal{R}^{-1}}
+    \\
+    \eps \fuse \inc \rar[gray,dashed][very near end]{*} & \eps \fuse \bit{1}
+  \end{tikzcd}
+\end{equation*}
+
+
+
 \begin{align*}
-  &\inc \lrimp \inc[<-] \\
-  &\eps \lrimp (\inc[<-] \rimp \eps \fuse \bit{1}) \\
-  &\bit{0} \lrimp (\inc[<-] \rimp \bit{1}) \\
-  &\bit{1} \lrimp (\inc[<-] \rimp \inc \fuse \bit{0})
+  &\inc \lrimp \monad{\inc[<-]} \\
+  &\eps \lrimp (\inc[<-] \rimp \monad{\eps \fuse \bit{1}}) \\
+  &\bit{0} \lrimp (\inc[<-] \rimp \monad{\bit{1}}) \\
+  &\bit{1} \lrimp (\inc[<-] \rimp \monad{\inc \fuse \bit{0}})
+\end{align*}
+
+The following chroeography can get stuck, even though the original program cannot.
+\begin{align*}
+  &\inc \lrimp \parens[auto, align=c@{\,}l]{
+& \monad{\inc[<-]} \\
+\with & (\eps[->] \limp \monad{\eps \fuse \bit{1}})} \\
+  &\eps \lrimp \monad{\eps[->]} \\
+  &\bit{0} \lrimp (\inc[<-] \rimp \monad{\bit{1}}) \\
+  &\bit{1} \lrimp (\inc[<-] \rimp \monad{\inc \fuse \bit{0}})
+\end{align*}
+For example, 
+\begin{align*}
+  &\eps \fuse \mathul{\inc} \trans \mathul{\eps} \fuse \inc[<-] \trans \eps[->] \fuse \inc[<-] \ntrans \\
+\shortintertext{but sometimes}
+  &\mathul{\eps} \fuse \inc \trans \mathul{\eps[->] \fuse \inc} \trans \eps \fuse \bit{1}
+\end{align*}
+
+\begin{equation*}
+  \begin{tikzcd}[row sep = 6ex]
+    \eps \fuse \inc \rar \dar[dash][description]{\mathcal{R}}
+      & \eps \fuse \bit{1} \dar[gray,dash,dashed][description]{\mathcal{R}}
+    \\
+    \eps[->] \fuse \inc[<-] \rar[gray,dashed][very near end]{*} & ?
+  \end{tikzcd}
+\end{equation*}
+
+
+\begin{align*}
+  &\inc \lrimp \monad[auto]{
+                 \inc[<-] \fuse
+                 \parens[auto, align=c@{\,}l]{
+                       & (\eps[->] \limp \monad{\bit{1}}) \\[3pt]
+                 \with & (\bit[->]{0} \limp \monad{\one}) \\[3pt]
+                 \with & (\bit[->]{1} \limp \monad{\bit{0}})}
+               }
+  \\
+  &\eps \lrimp (\inc[<-] \rimp \monad{\eps \fuse \eps[->]}) \\
+  &\bit{0} \lrimp (\inc[<-] \rimp \monad{\bit{1} \fuse \bit[->]{0}}) \\
+  &\bit{1} \lrimp (\inc[<-] \rimp \monad{\inc \fuse \bit[->]{1}})
+\end{align*}
+
+\begin{equation*}
+  \begin{tikzcd}[ampersand replacement = \&, row sep = 6ex]
+    \inc \rar \dar[dash][description]{\mathcal{R}^{-1}}
+      \& \inc[<-] \fuse
+           \parens[auto, align=c@{\,}l]{
+                 & (\eps[->] \limp \monad{\bit{1}}) \\[3pt]
+           \with & (\bit[->]{0} \limp \monad{\one}) \\[3pt]
+           \with & (\bit[->]{1} \limp \monad{\bit{0}})}
+         \dar[dash,gray,dashed][description]{\mathcal{R}^{-1}}
+    \\
+    \inc \rar[gray,dashed][very near end]{*} \& \inc
+  \end{tikzcd}
+\end{equation*}
+
+
+\begin{equation*}
+  \begin{tikzcd}[ampersand replacement = \&, row sep = 6ex]
+    \eps \fuse \inc[<-] \fuse
+      \parens[auto, align=c@{\,}l]{
+            & (\eps[->] \limp \monad{\bit{1}}) \\[3pt]
+      \with & (\bit[->]{0} \limp \monad{\one}) \\[3pt]
+      \with & (\bit[->]{1} \limp \monad{\bit{0}})}
+    \rar \dar[dash][description]{\mathcal{R}^{-1}}
+    \& \eps \fuse \eps[->] \fuse
+         \parens[auto, align=c@{\,}l]{
+               & (\eps[->] \limp \monad{\bit{1}}) \\[3pt]
+         \with & (\bit[->]{0} \limp \monad{\one}) \\[3pt]
+         \with & (\bit[->]{1} \limp \monad{\bit{0}})}
+    \dar[dash,gray,dashed][description]{\mathcal{R}^{-1}}
+    \\
+    ? \rar[gray,dashed][very near end]{*} \& ?
+  \end{tikzcd}
+\end{equation*}
+
+
+\NewPredicate{\nop}[\smash[b]{\mathsf{nop}}]{0}
+\begin{align*}
+  &\inc \lrimp \monad{\inc[<-]} \\
+  &\eps \lrimp \parens[auto, align=c@{\,}l]{
+                     & (\inc[<-] \rimp \monad{\eps \fuse \bit{1}}) \\
+               \with & (\nop[->] \limp \monad{\eps})} \\
+  &\bit{0} \lrimp (\inc[<-] \rimp \monad{\bit{1}}) \\
+  &\bit{1} \lrimp (\inc[<-] \rimp \monad{\inc \fuse \bit{0}})
 \end{align*}
 
 \begin{align*}

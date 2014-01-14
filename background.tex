@@ -1,9 +1,11 @@
 \section{Background}\label{sec:background}
 
-The reader who is familiar with a two-context sequent calculus presentation of intuitionistic linear logic may skip \cref{sec:linear-logic}.
-
 \subsection{Linear logic}\label{sec:linear-logic}
 
+Here we review the sequent calculus presentation of \ac{ILL}.
+The reader who is familiar with \acl{ILL} may easily (and perhaps should) skip this \lcnamecref{sec:linear-logic}.
+
+\vskip 3.25ex plus 1ex minus .2ex\noindent
 Like a good witness, traditional intuitionistic logic is concerned only with facts.
 Facts are \vocab{persistent};
 % Traditional intuitionistic logic is concerned with the \emph{truth} of propositions.
@@ -26,8 +28,9 @@ The main judgment is a linear hypothetical judgment, or \vocab{sequent}, which s
 Because resources may be permuted but neither duplicated nor discarded, the context of resources~$A_1, \dotsc, A_n$ is treated as a multiset.
 Following tradition, we use the metavariable~$\lctx$ to stand for an arbitrary context of resources.
 
-\NewDocumentCommand{\lmatch}{O{} m}{\lctx#1, #2}%
+
 \ExplSyntaxOn
+\NewDocumentCommand{\lmatch}{O{} m}{\lfill[#1]{#2}}
 \NewDocumentCommand{\lfill}{O{} m}{
   \lctx#1\tl_if_empty:nF{#2}{, #2}
 }
@@ -216,7 +219,7 @@ the other rules of linear logic are uniformly modified to include a context $\uc
 
 \subsubsection{Summary}\label{sec:summary-linear-logic}
 
-For convenience, the rules described above are summarized in their complete form in \cref{fig:seq-jill}.%
+For convenient reference, the rules described above are summarized in their complete form in \cref{fig:seq-jill}.%
 \fxerror{\ [Decide whether to present $\bang A$ and $\monad{A}$ here.]}
 
 % In this section, we briefly review a judgmental intuitionistic formulation of \citeauthor{Girard:TCS87}'s linear logic~\autocite*{Girard:TCS87}, a substructural logic of resources that is especially suited to modeling stateful systems.
@@ -299,10 +302,70 @@ For convenience, the rules described above are summarized in their complete form
       \tctx ; \uctx ; \lctxe \seq A &
       \tctx ; \uctx, A ; \lctx' \seq C}
   \end{mathpar}
-  \caption{Sequent calculus rules for a fragment of \acl{JILL}~\autocite{Chang+:CMU03}.\label{fig:seq-jill}}
+  \caption{A sequent calculus for a fragment of first-order \acl{ILL}.\label{fig:seq-jill}}
 \end{figure}
 
 \subsection{Proof search as computation: Bottom-up linear logic programming}\label{sec:linear-lp}
+
+% \NewDocumentCommand{\lfoc}{m}{[#1]}%
+% \NewDocumentCommand{\rfoc}{m}{[#1]}%
+% \begin{figure}
+%   \begin{mathpar}
+%     \infer[\lab{id$_{P^+}$}]{\uctx ; P^+ \seq \rfoc{P^+}}{
+%       }
+%     \\
+%     \infer[\lab{lfoc}]{\uctx ; \lmatch[']{A^-} \seq J}{
+%       (\uctx ; \lfill[']{A^-} \seq J \text{\ stable}) &
+%       \uctx ; \lfill[']{\lfoc{A^-}} \seq J}
+%     \and
+%     \infer[\lab{blur}]{\uctx ; \lctx \seq \rfoc{A^-}}{
+%       \uctx ; \lctx \seq A^-}
+%     \\
+%     \infer[\rlab{{\lolli}}]{\uctx ; \lctx \seq A^+ \lolli B^-}{
+%       \uctx ; \lctx, A^+ \seq B^-}
+%     \and
+%     \infer[\llab{{\lolli}}]{\uctx ; \lmatch[']{\lctx'_A, \lfoc{A^+ \lolli B^-}} \seq J}{
+%       \uctx ; \lctx'_A \seq \rfoc{A^+} &
+%       \uctx ; \lfill[']{\lfoc{B^-}} \seq J}
+%     \\
+%     \infer[\rlab{{\tensor}}]{\uctx ; \lctx_1, \lctx_2 \seq \rfoc{A^+ \tensor B^+}}{
+%       \uctx ; \lctx_1 \seq \rfoc{A^+} &
+%       \uctx ; \lctx_2 \seq \rfoc{B^+}}
+%     \and
+%     \infer[\llab{{\tensor}}]{\uctx ; \lmatch[']{A^+ \tensor B^+} \seq J}{
+%       \uctx ; \lfill[']{A^+, B^+} \seq J}
+%     \\
+%     \infer[\rlab{\one}]{\uctx ; \lctxe \seq \rfoc{\one}}{
+%       }
+%     \and
+%     \infer[\llab{\one}]{\uctx ; \lmatch[']{\one} \seq J}{
+%       \uctx ; \lfill[']{} \seq J}
+%     \\
+%     \infer[\rlab{{\with}}]{\uctx ; \lctx \seq A^- \with B^-}{
+%       \uctx ; \lctx \seq A^- &
+%       \uctx ; \lctx \seq B^-}
+%     \and
+%     \infer[{\llab{{\with}}[1]}]{\uctx ; \lmatch[']{\lfoc{A^- \with B^-}} \seq J}{
+%       \uctx ; \lfill[']{\lfoc{A^-}} \seq J}
+%     \and
+%     \infer[{\llab{{\with}}[2]}]{\uctx ; \lmatch[']{\lfoc{A^- \with B^-}} \seq J}{
+%       \uctx ; \lfill[']{\lfoc{B^-}} \seq J}
+%     \\
+%     \infer[\lab{copy}]{\uctx, A^- ; \lmatch[']{} \seq J}{
+%       (\uctx, A^- ; \lfill[']{} \seq J \text{\ stable}) &
+%       \uctx, A^- ; \lfill[']{\lfoc{A^-}} \seq J}
+%     \\
+%     \infer[\lab{lax}]{\uctx ; \lctx \seq A^+ \lax}{
+%       \uctx ; \lctx \seq \rfoc{A^+}}
+%     \and
+%     \infer[\rlab{\monad{}}]{\uctx ; \lctx \seq \monad{A^+}}{
+%       \uctx ; \lctx \seq A^+ \lax}
+%     \and
+%     \infer[\llab{\monad{}}]{\uctx ; \lmatch[']{\lfoc{\monad{A^+}}} \seq C^+ \lax}{
+%       \uctx ; \lfill[']{A^+} \seq C^+ \lax}
+%   \end{mathpar}
+%   \caption{A focused sequent calculus for linear lax logic.\label{fig:focused-linear-logic}}
+% \end{figure}%
 
 \begin{itemize}
 \item Notion of transition obtained by reading sequent calculus left rules  (bipoles) bottom-up.
@@ -540,40 +603,40 @@ Now, having presented recursion, we can finally give a simple example program.
 \subsubsection{Example: Binary counter}\label{sec:exampl-binary-count}
 
 % As an example session-typed program, we can implement a simple counter as shown in \cref{fig:counter-inc}.%
-We can implement a simple session-typed counter as shown in \cref{fig:counter-inc}.%
+We can implement a simple session-typed counter on natural numbers as shown in \cref{fig:counter-inc}.%
 \footnote{This example is adapted from one by \textcite{Toninho+:ESOP13}.}
 %
-  \begin{sillcode}[
-    caption={A simple binary counter supporting an increment operation},%
-    label={fig:counter-inc},%
-    gobble=4
-  ]
-    stype Counter = &{ inc: Counter }
-    
-    eps : {|- c:Counter}
-    c <- eps =
-    { case c of
-        inc => d <- eps;
-               c <- bit1 <- d }
-    
-    bit0 : {d:Counter |- c:Counter}
-    c <- bit0 <- d =
-    { case c of
-        inc => c <- bit1 <- d }
-    
-    bit1 : {d:Counter |- c:Counter}
-    c <- bit1 <- d =
-    { case c of
-        inc => d.inc;
-               c <- bit0 <- d }
-  \end{sillcode}
+\begin{sillcode}[
+  caption={A simple binary counter supporting an increment operation},%
+  label={fig:counter-inc},%
+  gobble=2
+]
+  stype Counter = &{ inc: Counter }
+  
+  eps : {|- c:Counter}
+  c <- eps =
+  { case c of
+      inc => d <- eps;
+             c <- bit1 <- d }
+  
+  bit0 : {d:Counter |- c:Counter}
+  c <- bit0 <- d =
+  { case c of
+      inc => c <- bit1 <- d }
+  
+  bit1 : {d:Counter |- c:Counter}
+  c <- bit1 <- d =
+  { case c of
+      inc => d.inc;
+             c <- bit0 <- d }
+\end{sillcode}
 %
 The counter is a linear network of \msill`bit0` and \msill`bit1` processes, one for each bit in the binary representation of the counter's value, and is terminated at the most significant end with an \msill`eps` process.
 For instance, the process network \msill`<- bit0 <- bit1 <- eps`\fxnote{\ [Write in opposite order?]} represents a counter with value $2$.
 
 The counter offers a very simple service: the client may only choose to increment the counter, with the same service being offered recursively after the increment.
 % The counter thus offers a service of type \msill`Counter` declared as \msill`stype Counter = &{ inc: Counter }`.
-This service, \msill`Counter`, is therefore a recursive additive conjunction
+This service, \msill`Counter`, is therefore a recursive additive conjunction,
 % The service is of type \msill`Counter`,
 declared in the concrete syntax as \msill`stype Counter = &{ inc: Counter }`.
 The \msill`eps` process offers this service outright, and thus has type \msill`{|- Counter}`.
@@ -586,8 +649,9 @@ When an \msill`eps` process receives an \msill`inc` message, it creates a new mo
 When a \msill`bit0` process receives an \msill`inc`, the bit is flipped by way of a recursive call to a \msill`bit1` process.
 Lastly, when a \msill`bit1` process receives an \msill`inc`, the bit is flipped and a carry is propagated; this is accomplished by first sending \msill`inc` along channel \msill`d` to the \msill`Counter` offered by the next more significant bit and then making a recursive call to a \msill`bit0` process.
 
-Informally, we can see that the \msill`inc` operation just described respects a counter's denotation: whenever a counter representing $n$ is incremented, the resulting counter represents $n+1$.
-\fxnote{Dependent types?}
+Informally, we can see that, as implemented, the \msill`inc` operation respects a counter's denotation: whenever a counter representing natural number $n$ is incremented, the resulting counter represents $n+1$.
+Note, however, that this adequacy property is not enforced by the type \msill`Counter`.
+An appropriate dependent session type could enforce increment adequacy, but, for simplicity of presentation, we prefer the simple type for now.
 
 
 \subsubsection{Additive disjunction as choice}\label{sec:addit-disj-as-choice}
@@ -621,7 +685,7 @@ The typing rules are thus more generally
 The operational semantics for these guarded choice constructs was already given in \cref{sec:addit-conj-as-branching}.
 
 
-\subsubsection{Example: Binary counter with increment and decrement operations}\label{sec:exampl-binary-count-1}
+\subsubsection{Example: Binary counter with decrements}\label{sec:exampl-binary-count-1}
 
 \Cref{lst:counter-inc-dec} shows a counter that takes advantage of additive disjunction to support a truncated decrement operation.
 %
@@ -670,10 +734,9 @@ If the client chooses to decrement, the offering process will choose to reply wi
 %                      dec: +{ zero: Counter , succ: Counter } }
 % \end{sillcode*}
 
-As implemented, the counter gives \msill`zero` and leaves the process network unchanged if the counter represents $0$;
-if it represents some $N > 0$, then the counter gives \msill`succ` after decrementing to $N - 1$.
-However, these properties are not enforced by the type \msill`Counter`.
-With an appropriate dependent session type, these properties could be enforced, but for simplicity we use the simple type here.
+As implemented, decrementing the counter gives \msill`zero` and leaves the process network unchanged if the counter represents $0$;
+if it represents some $N > 0$, then decrementing the counter gives \msill`succ` after decrementing to $N - 1$.
+Once again, these adequacy properties are not enforced by the type \msill`Counter`, although they could be with an appropriate dependent session type.
 
 \subsubsection{Identity as forwarding}\label{sec:ident-as-forw}
 
@@ -701,7 +764,8 @@ The first-order quantifiers type processes that exchange functional values.
 A process offering service $\univq x:\tau. A_x$ (or using service $\existq x:\tau. A_x$) first inputs a value $x$ of functional type $\tau$ and then offers (resp., uses) service $A_x$.
 % , where $A_x$ may depend on $x$.
 Dually, a process offering service $\existq x:\tau. A_x$ (or using service $\univq x:\tau. A_x$) asynchronously outputs the value of some functional term $M$\fxnote{\ \st{a functional value}} of type $\tau$ and then offers (resp., uses) service $\subst{M/x}{A_x}$.
-The first order quantifiers are thus dependent session types; in the non-dependent case, we write the types as $\tau \land A$ and $\tau \imp A$.
+The first order quantifiers are thus dependent session types\fxnote{
+\st{; in the non-dependent case, we write the types as $\tau \imp A$ and $\tau \land A$}}.
 % Processes that send and receive funcitonal values are written as $\minput{x <- input c; P}$ and $\moutputv{c}{M}{Q}$.
 The syntax for value inputs and outputs is $\minput{\bv{x} <- input c; P_{\bv{x}}}$ and $\moutputv{c}{M}{Q}$.
 
@@ -715,226 +779,734 @@ The syntax for channel inputs and outputs is $\minput{\bv{d} <- input c; P_{\bv{
 Since value and channel inputs and outputs are not important to the remainder of this proposal, the reader who is interested in further details of their static and operational semantics should refer to the papers by \textcites{Toninho+:ESOP13}{Toninho+:PPDP11}.
 
 
-\subsubsection{Linear implication as input}\label{sec:linear-implication-as-input}
-
-Recall the sequent calculus right rule for linear implication:
-\begin{equation*}
-  \infer[\rlab{{\lolli}}]{\lctx \seq A \lolli B}{
-    \lctx, A \seq B} \:.
-\end{equation*}
-% It says that to obtain ${A \lolli B}$ we can obtain $B$ while presuming to have $A$.
-It says that to prove $A \lolli B$ we should presume to have an $A$ and then show how to use it to obtain $B$.
-Correspondingly, a process that offers service $A \lolli B$ should first input a channel offering service $A$ and then continue the session by using that service to offer service $B$.
-Based on this intuition, we assign an input process to the $\rlab{{\lolli}}$ rule:
-\begin{equation*}
-  \infer[\rlab{{\lolli}}]{\lctx \seq \minput{d <- input c; P_d} :: c{:}A \lolli B}{
-    \lctx, d{:}A \seq P_d :: c{:}B} \:,
-\end{equation*}
-where the syntax $\minput{d <- input c; P_d}$ means \enquote{Input channel $d$ along channel $c$ and then continue as process $P_d$.}
-
-The left rule for linear implication uses the service offered by the right rule, so it should be a matching output:
-\begin{equation*}
-  \infer[\llab{{\lolli}}]{\lmatch[']{\lctx'_A, c{:}A \lolli B} \seq \moutputc{c}{d <- Q_d}{R} :: e{:}C}{
-    \lctx'_A \seq Q_d :: d{:}A &
-    \lfill[']{c{:}B} \seq R :: e{:}C} \:,
-\end{equation*}
-where the syntax $\moutputc{c}{d <- Q_d}{R}$ means \enquote{Output a fresh channel $d$ along channel $c$, spawn process $Q_d$ that interacts along $d$, and then continue as process $R$.}
-
-\subsubsection{Multiplicative conjunction as output}\label{sec:mult-conj-as-output}
-
-Once again, because there is a flavor of duality between multiplicative conjunction and linear implication, their prociss assignments are also dual:
-% In the sequent calculus for intuitionistic linear logic, multiplicative conjunction, $A \tensor B$, is dual to linear implication.
-% We should expect this duality to also appear in the process assignment.
-Whereas a process of type $A \lolli B$ offers an input of an $A$ and then continues as $B$, a process of type $A \tensor B$ offers an output of an $A$ and then continues as $B$:
-\begin{mathpar}
-  \infer[\rlab{{\tensor}}]{\lctx_1, \lctx_2 \seq \moutputc{c}{d <- P_d}{Q} :: c{:}A \tensor B}{
-    \lctx_1 \seq P_d :: d{:}A &
-    \lctx_2 \seq Q :: c{:}B}
-  \and
-  \infer[\llab{{\tensor}}]{\lmatch[']{c{:}A \tensor B} \seq \minput{d <- input c; R} :: e{:}C}{
-    \lfill[']{d{:}A, c{:}B} \seq R :: e{:}C} \:.
-\end{mathpar}
-
-Because the operational semantics is asynchronous
-
-\begin{align*}
-  &\exec{(\moutputc{c}{d <- Q_d}{R})}
-     \lolli \monad{\existq d,c'. \msgc{c,d,c'} \tensor \exec{Q_d} \tensor \exec{(\subst{c'/c}{R})}} \\
-  %
-  &\exec{(\minput{d <- input c; P_d})} \tensor \msgc{c,d,c'}
-     \lolli \monad{\exec{(\subst{c'/c}{P_d})}}
-\end{align*}
-
-
-\begin{itemize}
-\item Present monadic language only?  Disadvantage is that proof reduction is not quite as clear or simple to see since it involves run-time typing.
-\end{itemize}
-
-
-
-
-\subsubsection{Appendix: dependently typed counter}\label{sec:append-depend-typed}
-
-\begin{pyglist}[language=text,
-    captionbgcolor=gray,
-    listingnamefont=\sffamily\bfseries\color{white},
-    captionfont=\sffamily\color{white},
-    fvset={frame=bottomline, framerule=0.8ex, rulecolor=\color{gray}},
-    caption={A dependently typed binary counter supporting increments},
-    label={fig:dep-counter-inc},
-    gobble=4]
-    stype Counter N = &{ inc: Counter (s N) ,
-                         dec: +{ succ: Counter (N-1) , fail: Counter N } }
-
-    stype Counter 0     = &{ inc: Counter (s 0)     , dec: +{ fail: Counter 0 } }
-        | Counter (s N) = &{ inc: Counter (s (s N)) , dec: +{ succ: Counter N } }
-    
-    stype Counter 0     = &{ inc: Counter (s 0)     , dec: Counter 0 }
-        | Counter (s N) = &{ inc: Counter (s (s N)) , dec: Counter N }
-    
-    eps : {|- Counter 0}
-    c <- eps =
-    { case c of
-        inc => e <- eps;
-               c <- bit1 <- e
-      | dec => c.fail;
-               c <- eps }
-    
-    bit0 : {Counter N |- Counter 2N}
-    c <- bit0 <- d =
-    { case c of
-        inc => c <- bit1 <- d
-      | dec => d.dec;
-               case d of
-                 succ => c.succ;
-                         c <- bit1 <- d
-               | fail => c.fail;
-                         c <- bit0 <- d }
-
-    c <- bit0 N <- d =
-    { case c of
-        inc => c <- bit1 <- d
-      | dec => case N of
-                 s N' => d.dec;
-                         c <- bit1 <- d
-               | 0 => c <- bit0 <- d }                      
-    
-    bit1 : {Counter N |- Counter (s 2N)}
-    c <- bit1 <- d =
-    { case c of
-        inc => d.inc;
-               c <- bit0 <- d
-      | dec => c.succ;
-               c <- bit0 <- d }
-  \end{pyglist}
-
-
-
 \subsection{Ordered logic}\label{sec:ordered-logic}
 
 As described in \cref{sec:introduction}, this thesis proposes to show that session types form a bridge between notions of concurrency that arise in proof-search-as-computation and proof-reduction-as-computation interpretations of linear logic.
-Proof search in linear logic appears a bit too complex to tackle outright.
-So, in this proposal, we turn our attention to ordered logic.
+Unfortunately, proof search in first-order linear logic appears to be a bit too general to tackle outright.
 
-In linear logic, the order of hypotheses is unimportant; $A \tensor B \lolli B \tensor A$ is provable, for example.
-Pure ordered logic, on the other hand, is a restriction of linear logic in which order matters:
-in addition to rejecting contraction and weakening, ordered logic also rejects the structural principle of exchange.
-The basic sequent is
+In this proposal, we therefore turn our attention to the special case of propositional ordered logic~\autocites{Lambek:AMM58}{Polakow+Pfenning:MFPS99}.
+% leaving the details of the more general case as thesis research.
+% In linear logic, the order of hypotheses is unimportant; $A \tensor B \lolli B \tensor A$ is provable, for example.
+% Pure ordered logic, on the other hand, is a restriction of linear logic in which order matters:
+% in addition to rejecting contraction and weakening, ordered logic also rejects the structural principle of exchange.
+In linear logic, the order of hypotheses is always unimportant---$A \tensor B \lolli B \tensor A$ is provable, for example---but in ordered logic the order matters.
+
+Nevertheless, \textcite{Simmons+Pfenning:HOSC11} have shown that there is a sound and complete translation from ordered logic to first-order linear logic with equality.
+This justifies taking ordered logic as a special case of linear logic.
+An understanding of concurrency in ordered logic will thus be invaluable to the thesis goal of understanding how session types bridge the notions of concurrency in linear logic.
+
+Once again, the reader who is familiar with ordered logic may easily skip the remainder of this \lcnamecref{sec:ordered-logic}.
+
+\subsubsection{Sequent calculus}\label{sec:sequent-calculus}
+
+In addition to rejecting contraction and weakening like linear logic, ordered logic also rejects the structural principle of exchange.
+The basic hypothetical judgment in the sequent calculus for propositional ordered lax logic is thus
 \begin{equation*}
-  \underbrace{A_1, \dotsc, A_n}_{\displaystyle \octx} \seq A \:.
+  \underbrace{A_1, \dotsc, A_n}_{\displaystyle \octx} \seq A \:,
 \end{equation*}
+which states that resource $A$ can be obtained by using resources $A_1, \dotsc, A_n$ \emph{in order}.
+% Because there is no exchange principle, 
+The ordered context $\octx$ is therefore treated as a list (\ie, a non-commutative monoid) of resources.
+To this basic hypothetical judgement, we add a persistant context $\uctx$ holding persistant facts, just as we did in linear logic.
 
-Having rejected {??}, we must reconsider the various forms of proposition.
+Having rejected exchange, we must reconsider the various forms of proposition and judgmental principles.
+\begin{itemize}
+\item Like linear logic, ordered logic contains a multiplicative conjunction in which both conjuncts must be used.
+      However, unlike $A \tensor B$, it cannot be commutative because the logic rejects exchange.
+      We write this ordered conjunction as $A \fuse B$ to make the distinction clear.
+%
+\item
+% In place of $A \lolli B$, Ordered logic has left- and right-handed implications $A \limp B$ and $A \rimp B$: without exchange, it now matters from which side resources are used to obtain the implication's antecedent.
+      Without exchange, it now matters from which side resources are used to obtain an implication's antecedent.
+      In ordered logic, implication is thus divided into left- and right-handed forms, $A \limp B$ and $A \rimp B$: 
+      when using a left (or right) implication, only resources to the immediate left (resp., right) may be used.
+% ; when using a right implication, only resources to the immediate right may be used.
+%
+\item The other propositions---additive conjunction, multiplicative unit, and the lax modality---are unchanged from linear logic because they do not rely on the exchange principle.%
+      \footnote{An additive disjunction could also be included in ordered logic, but it is not needed for this proposal.}
+%
+\item The identity and cut principles for ordered logic are essentially the same as in linear logic, except that they are now stated in a way that avoids assuming an exchange principle.
+\end{itemize}
 
-
-\NewDocumentCommand{\ofrm}{m}{\Theta\{#1\}}
+The sequent calculus rules for propositional ordered lax logic are given in \cref{fig:ordered-logic}.
+\NewDocumentCommand{\ofrm}{O{}}{\Theta#1}%
+\NewDocumentCommand{\omatch}{O{} m}{\ofrm[#1]\{#2\}}%
+\NewDocumentCommand{\ofill}{O{} m}{\ofrm[#1]\{#2\}}%
 \begin{figure}
   \begin{mathpar}
-    \infer[\lab{id}]{P \seq P}{
-      }
-    \\
-    \infer[\rlab{{\rimp}}]{\octx \seq A \rimp B}{
-      \octx, A \seq B}
-    \and
-    \infer[\llab{{\rimp}}]{\ofrm{A \rimp B, \octx'} \seq J}{
-      \octx' \seq A &
-      \ofrm{B} \seq J}
-    \\
-    \infer[\rlab{{\limp}}]{\octx \seq A \limp B}{
-      A, \octx \seq B}
-    \and
-    \infer[\llab{{\limp}}]{\ofrm{\octx', A \limp B} \seq J}{
-      \octx' \seq A &
-      \ofrm{B} \seq J}
-    \\
-    \infer[\rlab{{\with}}]{\octx \seq A \with B}{
-      \octx \seq A &
-      \octx \seq B}
-    \and
-    \infer[{\llab{{\with}}[1]}]{\ofrm{A \with B} \seq J}{
-      \ofrm{A} \seq J}
-    \and
-    \infer[{\llab{{\with}}[2]}]{\ofrm{A \with B} \seq J}{
-      \ofrm{B} \seq J}
-    \\
-    \infer[\rlab{{\fuse}}]{\octx_1, \octx_2 \seq A \fuse B}{
-      \octx_1 \seq A &
-      \octx_2 \seq B}
-    \and
-    \infer[\llab{{\fuse}}]{\ofrm{A \fuse B} \seq J}{
-      \ofrm{A, B} \seq J}
-    \\
-    \infer[\rlab{\one}]{\octxe \seq \one}{
+    \infer[\lab{id$_A$}]{\uctx ; A \seq A}{
       }
     \and
-    \infer[\llab{\one}]{\ofrm{\one} \seq J}{
-      \ofrm{\octxe} \seq J}
+    \infer[\lab{cut$_A$}]{\uctx ; \omatch{\octx} \seq J}{
+      \uctx ; \octx \seq A &
+      \uctx ; \ofill{A} \seq J}
+    \\
+    \infer[\rlab{{\limp}}]{\uctx ; \octx \seq A \limp B}{
+      \uctx ; A, \octx \seq B}
+    \and
+    \infer[\llab{{\limp}}]{\uctx ; \omatch{\octx', A \limp B} \seq J}{
+      \uctx ; \octx' \seq A &
+      \uctx ; \ofill{B} \seq J}
+    \\
+    \infer[\rlab{{\rimp}}]{\uctx ; \octx \seq A \rimp B}{
+      \uctx ; \octx, A \seq B}
+    \and
+    \infer[\llab{{\rimp}}]{\uctx ; \omatch{A \rimp B, \octx'} \seq J}{
+      \uctx ; \octx' \seq A &
+      \uctx ; \ofill{B} \seq J}
+    \\
+    \infer[\rlab{{\fuse}}]{\uctx ; \octx_1, \octx_2 \seq A \fuse B}{
+      \uctx ; \octx_1 \seq A &
+      \uctx ; \octx_2 \seq B}
+    \and
+    \infer[\llab{{\fuse}}]{\uctx ; \omatch{A \fuse B} \seq J}{
+      \uctx ; \ofill{A, B} \seq J}
+    \\
+    \infer[\rlab{\one}]{\uctx ; \octxe \seq \one}{
+      }
+    \and
+    \infer[\llab{\one}]{\uctx ; \omatch{\one} \seq J}{
+      \uctx ; \ofill{\octxe} \seq J}
+    \\
+    \infer[\rlab{{\with}}]{\uctx ; \octx \seq A \with B}{
+      \uctx ; \octx \seq A &
+      \uctx ; \octx \seq B}
+    \and
+    \infer[{\llab{{\with}}[1]}]{\uctx ; \omatch{A \with B} \seq J}{
+      \uctx ; \ofill{A} \seq J}
+    \and
+    \infer[{\llab{{\with}}[2]}]{\uctx ; \omatch{A \with B} \seq J}{
+      \uctx ; \ofill{B} \seq J}
+    \\
+    \infer[\lab{copy}]{\uctx, A ; \omatch{\octxe} \seq J}{
+      \uctx, A ; \ofill{A} \seq J}
+    \and
+    \infer[\lab{cut$^{\bang}_A$}]{\uctx ; \octx' \seq J}{
+      \uctx ; \octxe \seq A &
+      \uctx, A ; \octx' \seq J}
+    \\
+    \infer[\lab{lax}]{\uctx ; \octx \seq A \lax}{
+      \uctx ; \octx \seq A}
+    \and
+    \infer[\lab{cut$^{{\monad[split=false]{}}}_A$}]{\uctx ; \omatch{\octx} \seq C \lax}{
+      \uctx ; \octx \seq A \lax &
+      \uctx ; \ofill{A} \seq C \lax}
+    \\
+    \infer[\rlab{\monad{}}]{\uctx ; \octx \seq \monad{A}}{
+      \uctx ; \octx \seq A \lax}
+    \and
+    \infer[\llab{\monad{}}]{\uctx ; \omatch{\monad{A}} \seq C \lax}{
+      \uctx ; \ofill{A} \seq C \lax}
   \end{mathpar}
-  \begin{mathpar}
-    \infer-[\lab{id$_A$}]{A \seq A}{
-      }
-    \and
-    \infer-[\lab{cut$_A$}]{\ofrm{\octx} \seq J}{
-      \octx \seq A &
-      \ofrm{A} \seq J}
-  \end{mathpar}
-  \caption{Sequent calculus rules for ordered logic~\autocite{Polakow+Pfenning:MFPS99,Simmons:CMU12}.}
-\end{figure}
+  \caption{A sequent calculus for a fragment of propositional ordered lax logic.\label{fig:ordered-logic}}
+\end{figure}%
+Following \textcite{Simmons:CMU12}, we choose to present the rules using \vocab{frames}.
+A frame $\ofrm$ is an ordered context with a single hole that may be filled by another ordered context.
+For instance, the left rule for left implication is expressed as 
+\begin{equation*}
+  \infer[\llab{{\limp}}]{\uctx ; \omatch{\octx'_A, A \limp B} \seq J}{
+    \uctx ; \octx'_A \seq A &
+    \uctx ; \ofill{B} \seq J}
+  \:.
+\end{equation*}
+Reading bottom-up, the rule may be applied if:
+% \begin{enumerate*}
+% \item
+the ordered context can be matched as some frame $\ofrm$ filled with $\octx'_A, A \limp B$;
+% \item
+$A$ is provable from the context $\octx'_A$; and
+% \item
+$J$ is provable from the context consisting of the frame $\ofrm$ filled with $B$.
+% \end{enumerate*}
+
+
+% in the rule's conclusion, the matching construct $\omatch{\octx', A \limp B}$ indicates that the rule applies only if the ordered context can be matched as frame $\ofrm$ filled with $\octx', A \limp B$ for some $\ofrm$ and $\octx'$.
+% In the second premise, the construct $\ofill{B}$ indicates that the ordered context is frame $\ofrm$ filled with the singleton context $B$.
 
 
 
 
-\begin{itemize}
-\item Should I give a brief introduction to linear logic here?  Or, is this overkill for committee members?
-\item Present ordered logic in its own right here, or present ordered logic only in the context of bottom-up logic programming?
-\end{itemize}
+\subsection{Concurrent ordered logic programming}\label{sec:ordered-lp}
 
-\subsection{Bottom-up ordered logic programming}\label{sec:ordered-lp}
+As we saw in \cref{sec:linear-lp}, proof search in linear logic is the foundation for concurrent linear logic programming, which can be seen as a logically motivated form of multiset rewriting.
+Likewise, proof search in ordered logic forms the basis of concurrent ordered logic programming~\autocites{Pfenning+Simmons:LICS09}{Simmons:CMU12}, which is a form of string rewriting~\autocite[see, \eg,][]{Book+Otto:SRS93}.
 
-\NewPredicate{\eps}{0}
-\NewPredicate{\bitz}[bit_0]{0}
-\NewPredicate{\bito}[bit_1]{0}
+% A focused sequent calculus for ordered logic is given in \cref{fig:focused-ordered-logic}.
+% %
+% \begin{figure}
+%   \begin{mathpar}
+%     \infer[\lab{id$_{P^+}$}]{\uctx ; P^+ \seq \rfoc{P^+}}{
+%       }
+%     \and
+%     \infer[\lab{lfoc}]{\uctx ; \omatch{A^-} \seq J}{
+%       (\uctx ; \ofill{A^-} \seq J \text{\ stable}) &
+%       \uctx ; \ofill{\lfoc{A^-}} \seq J}
+%     \\
+%     \infer[\rlab{{\limp}}]{\uctx ; \octx \seq A^+ \limp B^-}{
+%       \uctx ; A^+, \octx \seq B^-}
+%     \and
+%     \infer[\llab{{\limp}}]{\uctx ; \omatch{\octx', \lfoc{A^+ \limp B^-}} \seq J}{
+%       \uctx ; \octx' \seq \rfoc{A^+} &
+%       \uctx ; \ofill{\lfoc{B^-}} \seq J}
+%     \\
+%     \infer[\rlab{{\rimp}}]{\uctx ; \octx \seq A^+ \rimp B^-}{
+%       \uctx ; \octx, A^+ \seq B^-}
+%     \and
+%     \infer[\llab{{\rimp}}]{\uctx ; \omatch{\lfoc{A^+ \rimp B^-}, \octx'} \seq J}{
+%       \uctx ; \octx' \seq \rfoc{A^+} &
+%       \uctx ; \ofill{\lfoc{B^-}} \seq J}
+%     \\
+%     \infer[\rlab{{\fuse}}]{\uctx ; \octx_1, \octx_2 \seq \rfoc{A^+ \fuse B^+}}{
+%       \uctx ; \octx_1 \seq \rfoc{A^+} &
+%       \uctx ; \octx_2 \seq \rfoc{B^+}}
+%     \and
+%     \infer[\llab{{\fuse}}]{\uctx ; \omatch{A^+ \fuse B^+} \seq J}{
+%       \uctx ; \ofill{A^+, B^+} \seq J}
+%     \\
+%     \infer[\rlab{\one}]{\uctx ; \octxe \seq \rfoc{\one}}{
+%       }
+%     \and
+%     \infer[\llab{\one}]{\uctx ; \omatch{\one} \seq J}{
+%       \uctx ; \ofill{\octxe} \seq J}
+%     \\
+%     \infer[\rlab{{\with}}]{\uctx ; \octx \seq A^- \with B^-}{
+%       \uctx ; \octx \seq A^- &
+%       \uctx ; \octx \seq B^-}
+%     \and
+%     \infer[{\llab{{\with}}[1]}]{\uctx ; \omatch{\lfoc{A^- \with B^-}} \seq J}{
+%       \uctx ; \ofill{\lfoc{A^-}} \seq J}
+%     \and
+%     \infer[{\llab{{\with}}[2]}]{\uctx ; \omatch{\lfoc{A^- \with B^-}} \seq J}{
+%       \uctx ; \ofill{\lfoc{B^-}} \seq J}
+%     \\
+%     \infer[\lab{copy}]{\uctx, A^- ; \omatch{\octxe} \seq J}{
+%       (\uctx, A^- ; \ofill{\octxe} \seq J \text{\ stable}) &
+%       \uctx, A^- ; \ofill{\lfoc{A^-}} \seq J}
+%     \\
+%     \infer[\lab{lax}]{\uctx ; \octx \seq A^+ \lax}{
+%       \uctx ; \octx \seq \rfoc{A^+}}
+%     \and
+%     \infer[\rlab{\monad{}}]{\uctx ; \octx \seq \monad{A^+}}{
+%       \uctx ; \octx \seq A^+ \lax}
+%     \and
+%     \infer[\llab{\monad{}}]{\uctx ; \omatch{\lfoc{\monad{A^+}}} \seq C^+ \lax}{
+%       \uctx ; \ofill{A^+} \seq C^+ \lax}
+%   \end{mathpar}
+%   \caption{A focused sequent calculus for ordered lax logic.\label{fig:focused-ordered-logic}}
+% \end{figure}%
+
+\subsubsection{}\label{sec:xyz}
+
+%
+\NewPredicate{\eps}{0}%
+\expandafter\NewPredicate\expandafter{\csname bit0\endcsname}[bit_0]{0}%
+\expandafter\NewPredicate\expandafter{\csname bit1\endcsname}[bit_1]{0}%
+\NewPredicate{\bitp}[bit]{0}%
 \ExplSyntaxOn
-\NewDocumentCommand{\bit}{m}{
-  \int_case:nnF {#1}
-    {
-      {0} {\bitz}
-      {1} {\bito}
-    }
-    { Error! }
+\NewDocumentCommand{\bit}{O{} m O{}}{
+  \tl_if_empty:nTF {#2}
+    { \bitp[#1,#3] }
+    { \use:c {bit#2} [#1,#3] }
 }
 \ExplSyntaxOff
-\NewPredicate{\inc}{0}
+\NewPredicate{\inc}{0}%
+%
 
+Viewed through a computational lens, proof search in a fragment of ordered logic becomes a forward-chaining logic programming language~\autocite{Pfenning+Simmons:LICS09}.
+This form of ordered logic programming can be seen as a generalization of string rewriting~\autocite[see, \eg,][]{Book+Otto:SRS93}.
+
+We can exploit this analogy to provide some intuition for forward-chaining ordered logic programming.
+From the perspective of string rewriting, an ordered logic program's atomic propositions are letters, ordered conjunctions of these atoms are strings, and, under a focused proof search strategy~\autocite{Andreoli:JLC92}, the ordered implications that serve as a program's clauses are string rewriting rules.
+An example will help to clarify.
+
+\subsubsection{Example: Binary counter}\label{sec:exampl-binary-count-5}
+
+Here we give an ordered logic program for an incrementable binary counter.
+% We can implement an incrementable binary counter as an ordered logic program.
+% From the perspective of string rewriting, atomic propositions are letters, and ordered conjunctions of these atoms are strings.
+% 
+% % In the string rewriting terminology, atomic propositions correspond to letters; ordered conjunctions of these atoms correspond to strings; and ordered implications correspond to string rewriting rules.
+% In the string rewriting terminology, atomic propositions correspond to letters, and ordered conjunctions of these atoms correspond to strings.
+% % Using a focused proof search strategy~\autocite{Andreoli:JLC92}, ordered implications correspond to string rewriting rules.
+The counter is represented as a string of $\bit{0}$ and $\bit{1}$ letters terminated at the most significant end by an $\eps$.
+For instance, the string, or ordered conjunction, $\eps \fuse \bit{1} \fuse \bit{0}$ represents a counter with value $2$.
+%
+Increment instructions are represented by $\inc$ letters at the counter's least significant end. 
+% Also interspersed are $\inc$ atoms, each of which serves as an increment instruction sent to the counter given by the more significant bits.
+Thus, $\eps \fuse \bit{1} \fuse \inc$ represents a counter with value $1$ that has been instructed to increment once.
+
+Operationally, increments are described by the program's three clauses, the first of which is:
+\begin{equation*}
+  \bit{1} \fuse \inc \rimp \inc \fuse \bit{0}
+  \,.
+\end{equation*}
+When this proposition is part of the persistent context $\uctx$, the following rule is admissible:
+\begin{equation*}
+  \infer{\uctx ; \omatch{\bit{1} \fuse \inc} \seq J}{
+    \uctx ; \ofill{\inc \fuse \bit{0}} \seq J}
+  \,.
+\end{equation*}
+Read bottom-up, this rule serves to rewrite the (sub)string $\bit{1} \fuse \inc$ as the string $\inc \fuse \bit{0}$.
+
+Thus, by rewriting $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, this clause serves to carry the $\inc$ up past any $\bit{1}$s at the counter's least significant end.
+Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carry is resolved by one of the other two program clauses:
 \begin{align*}
-  &\eps \fuse \inc \lrimp \eps \fuse \bit{1} \\
-  &\bit{0} \fuse \inc \lrimp \bit{1} \\
-  &\bit{1} \fuse \inc \lrimp \inc \fuse \bit{0}
+  &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+  &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \,.
+\end{align*}
+By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second clause ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
+By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third clause ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
+
+
+, which correspond to string rewriting rules.
+To increment a counter with least significant bit $\bit{1}$, the bit should be flipped to $\bit{0}$ and a carry propogated to the more significant neighbor.
+
+
+\paragraph{String rewriting rules as ordered implications.}
+
+Using a focused proof search strategy~\autocite{Andreoli:JLC92}, ordered implications correspond to string rewriting rules.
+
+
+\subsubsection{Example: Binary counter}\label{sec:exampl-binary-count-4}
+
+As a running example, we can implement a binary counter that supports increments.
+The counter is represented as a string of $\bit{0}$ and $\bit{1}$ letters terminated at the most significant end by an $\eps$.
+So, for instance, the ordered conjunction, or string, $\eps \fuse \bit{1} \fuse \bit{0}$ represents a counter with value $2$.
+Also interspersed are $\inc$ atoms, each of which serves as an increment instruction sent to the counter given by the more significant bits.
+Thus, $\eps \fuse \bit{1} \fuse \inc$ represents a counter with value $1$ that has been sent an increment instruction.
+
+Operationally, increments are described by three ordered implications that correspond to string rewriting rules; the first of these is
+\begin{equation*}
+  \bit{1} \fuse \inc \rimp \monad{\inc \fuse \bit{0}} \,.
+\end{equation*}
+By rewriting the string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, this rule carries the $\inc$ up past any $\bit{1}$s at the counter's least significant end.
+Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carry is resolved:
+\begin{align*}
+  &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+  &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \,.
+\end{align*}
+By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second rule ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
+By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third rule ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
+
+
+
+When this proposition is part of the persistent context $\uctx$, the following rule is derivable:
+\begin{equation*}
+  \infer{\uctx ; \omatch{\bit{1}, \inc} \seq J}{
+    \uctx ; \ofill{\inc, \bit{0}} \seq J}
+  \,.
+\end{equation*}
+Read bottom-up, this derived rule rewrites part of the ordered context so that $\bit{1}, \inc$ becomes $\inc, \bit{0}$.
+
+
+\begin{equation*}
+  \infer[\lab{copy}]{\uctx ; \omatch{\bit{1}, \inc} \seq J}{
+    \infer[\llab{{\rimp}}]{\uctx ; \ofill{\bit{1}, \inc, (\bit{1} \fuse \inc \rimp \inc \fuse \bit{0})} \seq J}{
+      \infer[\rlab{{\fuse}}]{\uctx ; \bit{1}, \inc \seq \bit{1} \fuse \inc}{
+        \infer[\lab{id}]{\uctx ; \bit{1} \seq \bit{1}}{
+          } &
+        \infer[\lab{id}]{\uctx ; \inc \seq \inc}{
+          }} &
+      \infer[\llab{{\fuse}}]{\uctx ; \ofill{\inc \fuse \bit{0}} \seq J}{
+        \uctx ; \ofill{\inc, \bit{0}} \seq J}}}
+\end{equation*}
+
+
+\begin{alignat*}{3}
+  &\text{Negative Propositions} &\quad&& A^- &::= A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+} \\
+  &\text{Positive Propositions} &&& A^+ &::= p \mid A^+ \fuse B^+ \mid \one \mid A^-
+\end{alignat*}
+
+
+\subsubsection{Example: Binary counter}\label{sec:exampl-binary-count-2}
+
+As an example of an ordered logic program, we can implement a binary counter that supports increments.
+Similarly to the process implementation from \cref{sec:exampl-binary-count}, the counter is represented as a list of $\bit{0}$ and $\bit{1}$s terminated at the most significant end by an $\eps$.
+Here, however, the $\bit{}$s and $\eps$ are not processes, but rather atomic propositions (or, in string rewriting terminology, letters).
+For instance, the ordered conjunction (or string) $\eps \fuse \bit{1} \fuse \bit{0}$ represents a counter with value $2$.
+
+% An increment instruction is represented by an $\inc$ atom at the counter's least significant end.
+% There are three rewrite rules that describe the increment operation:
+% \begin{align*}
+%   &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+%   &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \\
+%   &\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+% \end{align*}
+% By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the first rule introduces $\bit{1}$ as a new most significant bit, and thereby serves to increment an $\eps$.
+% % By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$ and thereby introducing $\bit{1}$ as a new most significant bit, the first rule serves to increment $\eps$s.
+% Likewise, the second rule serves to increment a counter whose least significant bit is $\bit{0}$, by rewriting $\bit{0} \fuse \inc$ as $\bit{1}$ and thereby flipping $\bit{0}$.
+% % Likewise, by rewriting $\bit{0} \fuse \inc$ as $\bit{1}$ and thereby flipping $\bit{0}$, the second rule serves to increment a counter whose least significant bit is $\bit{0}$.
+% Finally, by rewriting $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, the third rule flips $\bit{1}$ and propogates a carry to the more significant bits, thereby serving to increment a counter whose least significant bit is $\bit{1}$.
+
+An increment instruction is represented by an $\inc$ atom at the counter's least significant end.
+There are three rewrite rules that describe increments, the first of which is
+\begin{equation*}
+  \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}} \,.
+\end{equation*}
+By rewriting $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, this rule carries the $\inc$ up past any $\bit{1}$s at the counter's least significant end.
+Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carry is resolved:
+\begin{align*}
+  &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+  &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \,.
+\end{align*}
+By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second rule ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
+By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third rule ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
+
+% For example, after two rewrites, the counter $\eps \fuse \bit{1} \fuse \inc$ becomes $\eps \fuse \bit{1} \fuse \bit{0}$: using an abbreviated notation, the sequence of rewrites is 
+For example, the counter $\eps \fuse \bit{1} \fuse \inc$ can be rewritten as
+% % \newcolumntype{b}[1]{>{\centering\arraybackslash\hspace{0pt}$}p{#1}<{$}}%
+% \newcommand*{\threebits}[4][0.85em]{%
+%   $\mathsf{#2\,#3\,#4}$%
+% %   \begin{tabular}{@{}b{#1}@{}b{#1}@{}b{#1}@{}}
+% %     \mathsf{#2}&\mathsf{#3}&\mathsf{#4}
+% %   \end{tabular}
+% }%
+% \newcommand*{\fourbits}[5][0.85em]{%
+%   $\mathsf{#2\,#3\,#4\,#5}$%
+%   % \begin{tabular}{@{}b{#1}@{}b{#1}@{}b{#1}@{}b{#1}@{}}
+%   %   \mathsf{#2}&\mathsf{#3}&\mathsf{#4}&\mathsf{#5}
+%   % \end{tabular}
+% }%
+\ExplSyntaxOn
+\NewDocumentCommand{\mathul}{m}{
+  \mathpalette\mathul:nn{#1}
+}
+\cs_new:Npn \mathul:nn #1#2 {
+  \tikz [baseline] {
+    \node (pr) [anchor = base, inner~sep = 0em] {$#1#2$};
+    \draw [overlay, ultra~thick, gray]
+      ([yshift=-0.3em]pr.base~west) -- ([yshift=-0.3em]pr.base~east);
+  }
+}
+\ExplSyntaxOff
+\begin{equation*}
+  \eps \fuse \mathul{\bit{1} \fuse \inc}
+    \trans \mathul{\eps \fuse \inc} \fuse \bit{0}
+    \trans \eps \fuse \bit{1} \fuse \bit{0}
+  \text{\,,}
+\end{equation*}
+% \begin{center}
+%   \begin{tikzpicture}
+%   [
+%     baseline, every node/.append style = {anchor = base},
+%     start chain, node distance = 1.5em, 
+%     every node/.append style = {on chain, join},
+%     every join/.append style = {->}
+%   ]
+%     \node {$\eps \fuse \bit{1} \fuse \inc$};
+%     \node {$\eps \fuse \inc \fuse \bit{0}$};
+%     \node {$\eps \fuse \bit{1} \fuse \bit{0}$};
+%     % \node {\threebits{e}{b_1}{i}};
+%     % \node {\threebits{e}{i}{b_0}};
+%     % \node {\threebits{e}{b_1}{b_0}};
+%   \end{tikzpicture}%
+%   ,
+% \end{center}
+% at which point no more rewrites are possible.
+where the rewrite sites available at each step are underlined;
+this trace computes $1 + 1 = 2$ in binary representation.\fxnote{\ \st{%
+More generally, the above rewrite rules adequately implement an increment operation:
+$C$ represents a counter with value $N$ if and only if $C \fuse \inc \trans+ C' \ntrans$ for some $C'$ that represents a counter of value $N + 1$.}}
+
+The above ordered logic program for increments has a progress property:
+For every counter $\octx$, there exists a counter $\octx'$ such that $\octx \fuse \inc \trans \octx'$.
+
+
+Notice that we can also allow multiple $\inc$s to be in flight at once, and that independent rewrites can thought of as happening concurrently.
+For instance, the counter $\eps \fuse \inc \fuse \bit{0} \fuse \inc$ has two $\inc$s in flight, and they give rise to independent rewrites.
+\begin{center}
+  \begin{tikzpicture}
+    \matrix [matrix of math nodes, column sep = 1.5em]
+    {
+      % First row
+      & |(inc-1-2)| \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \inc} & \\
+      % Second row
+      |(inc-2-1)| \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+        && |(inc-2-3)| \eps \fuse \bit{1} \fuse \bit{1} \\
+      % Third row
+      & |(inc-3-2)| \mathul{\eps \fuse \inc} \fuse \bit{1} & \\
+    };
+
+    \begin{scope}
+    [ start chain, every join/.style={->} ]
+      \chainin (inc-2-1);
+      \begin{scope}[start branch=inc-1-2]
+        \chainin (inc-1-2) [join];
+      \end{scope}
+      \begin{scope}[start branch=inc-3-2]
+        \chainin (inc-3-2) [join];
+      \end{scope}
+      \chainin (inc-2-3) [join = with inc-1-2, join = with inc-3-2];
+    \end{scope}
+  \end{tikzpicture}
+\end{center}
+
+
+% \begin{center}
+%   \begin{tikzpicture}
+%   [
+%     rewrite source/.style = {fill = gray},
+%     rewrite target/.style = {}
+%   ]
+%     \matrix [matrix of math nodes,
+%              column sep = 0pt,
+%              cells = {right}]
+%     {
+%       % First row:
+%       && |(e1-1) [rewrite target]| \mathsf{e\,b_1} & |(0i-1) [rewrite source]| \mathsf{b_0\,i} && \\
+%       % Second row:
+%       |(ei-2) [rewrite source]| \mathsf{e\,i} & |(0i-2) [rewrite source]| \mathsf{b_0\,i}
+%         &&& |(e1-2) [rewrite target]| \mathsf{e\,b_1} & |(1-2) [rewrite target]| \mathsf{b_1} \\
+%       % Third row:
+%       && |(ei-3) [rewrite source]| \mathsf{e\,i} & |(1-3) [rewrite target]| \mathsf{b_1} && \\      
+% % % column sep = 1.5em, matrix of nodes, cells = {right}] {
+% %                                   & |(e10i)| \fourbits e{b_1}{b_0}i & \\
+% %       |(ei0i)| \fourbits ei{b_0}i &                                 & |(e11)| \threebits e{b_1}{b_1} \\
+% %                                   & |(ei1)| \threebits ei{b_1}      & \\
+%     };
+
+%     % \begin{scope}
+%     % [ start chain, every join/.style={->} ]
+%     %   \chainin (ei0i);
+%     %   \begin{scope}[start branch=e10i]
+%     %     \chainin (e10i) [join];
+%     %   \end{scope}
+%     %   \begin{scope}[start branch=ei1]
+%     %     \chainin (ei1) [join];
+%     %   \end{scope}
+%     %   \chainin (e11) [join = with e10i, join = with ei1];
+%     % \end{scope}
+%   \end{tikzpicture}
+% \end{center}
+
+
+\subsubsection{Example: Binary counter with decrements}\label{sec:exampl-binary-count-3}
+
+It's also possible to add support for decrements to the above ordered logic program.
+%
+\NewPredicate{\dec}{0}%
+\NewPredicate{\zero}{0}%
+\RenewPredicate{\succ}{0}%
+%
+Like increments, a decrement instruction is represented by a $\dec$ atom at the counter's least significant end.
+To perform the decrement, a $\dec$ begins propogating up the counter.
+As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$s to indicate that they are waiting to borrow from their more significant neighbors:
+\begin{equation*}
+  \bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \,.
+\end{equation*}
+Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\dec$ is replaced with either $\zero$ or $\succ$, respectively, to show whether the borrow was possible; in the case of $\bit{1}$, the borrow is also effected:
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ} \,.
+\end{align*}
+Then the $\zero$ or $\succ$ travels back over all of the $\bit[']{0}$s that were waiting to borrow.
+In the case of $\zero$, the bits are returned to their original $\bit{0}$ state because no borrow was possible;
+in the case of $\succ$, a borrow was performed and so the bits are set to $\bit{1}$:
+\begin{align*}
+  &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+  &\succ \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ} \,.
 \end{align*}
 
-\begin{itemize}
-\item Example: binary counter with increment.
-\end{itemize}
+
+% According to the following rewrite rules, a $\dec$ propogates up the counter past any $\bit{0}$s until it reaches an $\eps$ or the right-most $\bit{1}$.
+% At this point, the $\dec$ is replaced with either $\zero$ or $\succ$, respectively.
+% \begin{align*}
+%   &\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \\
+%   &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+%   &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ}
+% \end{align*}
+% Then the $\zero$ or $\succ$ traveles back down the counter
+% \begin{align*}
+%   &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+%   &\succ \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ}
+% \end{align*}
+
+
+For example, the counter $\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$ can be rewritten as
+\begin{align*}
+  \MoveEqLeft[0.5]
+  \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
+    &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+    &\trans \eps \fuse \mathul{\bit{0} \fuse \succ} \fuse \bit[']{0} \\
+    &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \succ \\
+    &\ntrans
+\end{align*}
+% \begin{center}
+%   \begin{tikzpicture}
+%   [
+%     baseline, every node/.append style = {anchor = base},
+%     start chain, node distance = 1.5em, 
+%     every node/.append style = {on chain, join},
+%     every join/.append style = {->}
+%   ]
+%     \node {$\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$};
+%     \node {$\eps \fuse \bit{1} \fuse \dec \fuse \bit[']{0}$};
+%     \node {$\eps \fuse \bit{0} \fuse \succ \fuse \bit[']{0}$};
+%     \node {$\eps \fuse \bit{0} \fuse \bit{1} \fuse \succ$};
+%   \end{tikzpicture}%
+%   ,
+% \end{center}
+at which point no more rewrites are possible.
+
+
+\begin{align*}
+  \MoveEqLeft[0.5]
+  \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \\
+    &\trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0}
+\end{align*}
+
+
+% c <- dec <- d =
+% { case d of
+%     eps => wait d;
+%            d' <- eps;
+%            c <- zero <- d'
+%   | bit0 => d' <- dec <- d
+%             c <- bit0' <- d'
+%   | bit1 => d' <- bit0 <- d
+%             c <- succ <- d' }
+
+% c <- zero <- d =
+% { case c of
+%     bit0' => d' <- bit0 <- d
+%              c <- zero <- d' }
+
+% Cntr = +{ eps: 1 , bit0: Cntr , bit1: Cntr }
+% Cntr' = &{ bit0': Cntr' }
+
+% bit0 : {Cntr |- Cntr}
+% dec : {Cntr |- Cntr'}
+% zero : {Cntr |- Cntr'}
+% bit0' : {Cntr' |- Cntr'}
+
+
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{0} \fuse \dec \lrimp \monad[auto]{
+                               \dec \fuse \parens[auto, align=c@{\,}l]{
+                                                & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+                                          \with & (\succ \limp \monad{\bit{1} \fuse \succ})}} \\
+  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ}
+\end{align*}
+
+\NewPredicate{\epsq}[eps{?}]{0}%
+\NewPredicate{\yes}{0}%
+\NewPredicate{\no}{0}%
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps} \\
+  &\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit{1}} \\
+  &\bit{1} \fuse \dec \lrimp \monad[auto]{
+                               \epsq \fuse \parens[auto, align=c@{\,}l]{
+                                                 & (\yes \limp \monad{\one}) \\
+                                           \with & (\no \limp \monad{\bit{0}})}}
+  \\
+  &\eps \fuse \epsq \lrimp \monad{\eps \fuse \yes} \\
+  &\bit{0} \fuse \epsq \lrimp \monad{\bit{0} \fuse \no} \\
+  &\bit{1} \fuse \epsq \lrimp \monad{\bit{1} \fuse \no}
+\end{align*}
+Or, push some details into the choreography:
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps} \\
+  &\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit{1}} \\
+  &\eps \fuse \bit{1} \fuse \dec \lrimp \monad{\eps} \\
+  &\bit{0} \fuse \bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \bit{0}} \\
+  &\bit{1} \fuse \bit{1} \fuse \dec \lrimp \monad{\bit{1} \fuse \bit{0}}
+\end{align*}
+
+
+
+
+\NewPredicate{\rend}[rend]{0}
+\begin{align*}
+  &\rend \fuse \inc \lrimp \monad{\inc \fuse \rend}     &&\rend \fuse \dec \lrimp \monad{\dec \fuse \rend[']} \\
+  &\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}} &&\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \\
+  &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}}    &&\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{0} \fuse \inc \lrimp \monad{\bit{1}}            &&\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ} \\
+  &                                                     &&\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+  &                                                     &&\succ \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ} \\
+  &                                                     &&\zero \fuse \rend['] \lrimp \monad{\rend} \\
+  &                                                     &&\succ \fuse \rend['] \lrimp \monad{\rend}
+\end{align*}
+
+\begin{sillcode*}
+stype Nat = &{ inc: Nat , dec: Nat }
+stype Counter = &{ inc: Counter , dec: Counter' }
+  and Counter' = +{ zero: Counter , succ: Counter }
+
+rend : unit -> {Counter |- Nat}
+c <- rend () <- d =
+{ case c of
+    inc => ...
+  | dec => d' <- dec () <- d;
+           (case d' of
+              zero => c <- rend () <- d'
+            | succ => c <- rend () <- d') }
+
+bit0 : unit -> {Counter |- Counter}
+c <- bit0 () <- d =
+{ case c of
+    inc => ...
+  | dec => d' <- dec () <- d;
+           (case d' of
+              zero => c' <- bit0 () <- d';
+                      c <- zero () <- c'
+            | succ => c' <- bit1 () <- d';
+                      c <- succ () <- c') }
+
+dec : unit -> {Counter |- Counter'}
+dec : unit -> {Nat |- Nat}
+c <- dec () <- d =
+{ d.dec;
+  c <- d }
+\end{sillcode*}
+
+
+
+\expandafter\NewPredicate\expandafter{\csname trit+\endcsname}[trit_{+}]{0}
+\expandafter\NewPredicate\expandafter{\csname trit0\endcsname}[trit_{0}]{0}
+\expandafter\NewPredicate\expandafter{\csname trit-\endcsname}[trit_{-}]{0}
+\NewDocumentCommand{\trit}{O{} m}{\csname trit#2\endcsname[#1]}
+\begin{align*}
+  &\eps \fuse \inc \lrimp \monad{\eps \fuse \trit{+}} \\
+  &\trit{+} \fuse \inc \lrimp \monad{\inc \fuse \trit{-}} \\
+  &\trit{0} \fuse \inc \lrimp \monad{\trit{+}} \\
+  &\trit{-} \fuse \inc \lrimp \monad{\trit{0}}
+  %
+  \\[\baselineskip]
+  %
+  &\eps \fuse \dec \lrimp \monad{\eps \fuse \trit{-}} \\
+  &\trit{+} \fuse \dec \lrimp \monad{\trit{0}} \\
+  &\trit{0} \fuse \dec \lrimp \monad{\trit{-}} \\
+  &\trit{-} \fuse \dec \lrimp \monad{\dec \fuse \trit{+}}  
+\end{align*}
+
+
+\subsubsection{Generative invariants}\label{sec:gener-invar}
+
+\NewPredicate{\cntr}{0}%
+\begin{align*}
+  &\cntr \lrimp \monad{\eps} \\
+  &\cntr \lrimp \monad{\cntr \fuse \bit{0}} \\
+  &\cntr \lrimp \monad{\cntr \fuse \bit{1}} \\
+  &\cntr \lrimp \monad{\cntr \fuse \inc}
+\end{align*}
+
+
+% cntrq -> eps
+% cntrq -> cntrq * bit0
+% cntrq -> cntrq * bit1
+
+% cntri -> eps
+% cntri -> cntri * bit0
+% cntri -> cntri * bit1
+% cntri -> cntri * inc
+
+% cntr' -> cntri * dec
+% cntr' -> cntrq * zero
+% cntr' -> cntrq * succ
+% cntr' -> cntr' * (& ...)
+% 
+% with a valid state being either cntri or cntr'.
 
 
 %%% Local Variables:

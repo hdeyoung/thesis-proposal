@@ -25,11 +25,11 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
-\newtheorem*{claim}{Claim}
+\newtheorem*{claim*}{Claim}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 
-\let\lolli\multimap
+\NewDocumentCommand{\lolli}{}{\mathbin{\multimap}}
 \let\tensor\otimes
 \NewDocumentCommand{\one}{}{\mathbf{1}}
 \NewDocumentCommand{\with}{}{\mathbin{\binampersand}}
@@ -38,13 +38,13 @@
 \let\uimp\imp
 \let\pmiu\pmi
 
-\let\rimp\twoheadrightarrow
-\let\limp\rightarrowtail
-\let\lrimp\rightarrowtriangle
+\NewDocumentCommand{\rimp}{}{\mathbin{\twoheadrightarrow}}
+\NewDocumentCommand{\limp}{}{\mathbin{\rightarrowtail}}
+\NewDocumentCommand{\lrimp}{}{\mathbin{\rightarrowtriangle}}
 \let\fuse\bullet
 \let\esuf\circ
 \NewDocumentCommand{\gnab}{}{\mathord{\text{!`}}}
-\let\octx\Omega
+\NewDocumentCommand{\octx}{}{\Omega}
 \let\octxe\cdot
 
 
@@ -80,8 +80,16 @@
   #2#1
 }
 
+\cs_new:Npn \__exp_swap_first_unbraced:nn #1#2 {
+  #2{#1}
+}
+
 \cs_new:Npn \exp_last_unbraced:nV #1#2 {
   \exp_args:NV \__exp_swap_unbraced:nn #2 {#1}
+}
+
+\cs_new:Npn \exp_args:nx #1#2 {
+  \exp_args:Nx \__exp_swap_first_unbraced:nn {#2} {#1}
 }
 
 \cs_new_protected:Npn \logic_delimarray:Nnn #1#2#3 {
@@ -90,13 +98,13 @@
     
     \bool_if:NTF \l_delimarray_split_bool {
       \tl_set:Nn \l_tmpa_tl {
-        { \begin{array} [t] { @{} \tl_use:N \l_delimarray_align_tl @{} }
+        { \exp_args:nx { \begin{array} [t] } { @{} \tl_use:N \l_delimarray_align_tl @{} }
             #3 }
         \end{array}
       }
     } {
       \tl_set:Nn \l_tmpa_tl {
-        { \begin{array} [c] { @{} \tl_use:N \l_delimarray_align_tl @{} }
+        { \exp_args:nx { \begin{array} [c] } { @{} \tl_use:N \l_delimarray_align_tl @{} }
             #3
           \end{array} }
       }
@@ -117,9 +125,9 @@
 
 
 
-\let\lctx\Delta
+\NewDocumentCommand{\lctx}{}{\Delta}
 \let\lctxe\cdot
-\let\uctx\Gamma
+\NewDocumentCommand{\uctx}{}{\Gamma}
 
 \let\seq\vdash
 
@@ -136,7 +144,16 @@
 \NewDocumentCommand{\valid}{}{\postfixjudgment{valid}}
 \NewDocumentCommand{\pers}{}{\postfixjudgment{pers}}
 \NewDocumentCommand{\poss}{}{\postfixjudgment{poss}}
+\NewDocumentCommand{\lax}{}{\postfixjudgment{lax}}
 
 \NewDocumentCommand{\lab}{m}{\text{\normalfont\scshape #1}}
 \NewDocumentCommand{\rlab}{m O{}}{#1\text{\normalfont\scshape r\textsubscript{#2}}}
 \NewDocumentCommand{\llab}{m O{}}{#1\text{\normalfont\scshape l\textsubscript{#2}}}
+
+
+
+
+\NewDocumentCommand{\trans}{s t+}{
+  \longrightarrow\IfBooleanT{#1}{^*} \IfBooleanT{#2}{^+}
+}
+\NewDocumentCommand{\ntrans}{}{\longarrownot\trans}

@@ -1,5 +1,38 @@
 \section{Compiling choreographies}\label{sec:compile-choreo}
 
+\NewDocumentCommand{\compile}{m m m m}{%
+  \llbracket #2\rrbracket^{#1}_{#3} = #4%
+}
+
+\begin{mathpar}
+  \infer{\compile{d}{H_1 \fuse H_2}{c}{\mbind{\bv{c'} <- \mspawn{P_1} <- d; P_2}}}{
+    \compile{d}{H_1}{c'}{P_1} &
+    \compile{c'}{H_2}{c}{P_2}}
+  \and
+  \infer{\compile{d}{\one}{c}{\mfwd{c <- d}}}{
+    }
+  \and
+  \infer{\compile{d}{p}{c}{\mbind{c <- p <- d}}}{
+    }
+\end{mathpar}
+
+\NewDocumentCommand{\compilectx}{m m m m}{%
+  \compile{#1}{#2}{#3}{#4}%
+}
+
+\begin{mathpar}
+  \infer{\compilectx{d}{\octx_1, \octx_2}{c}{\existq c'. A^+_1 \tensor A^+_2}}{
+    \compilectx{d}{\octx_1}{c'}{A^+_1} &
+    \compilectx{c'}{\octx_2}{c}{A^+_2}}
+  \and
+  \infer{\compilectx{d}{\octxe}{c}{c \eq d}}{
+    }
+  \\
+  \infer{\compilectx{d}{H}{c}{\exec{P}}}{
+    \compile{d}{H}{c}{P}}
+\end{mathpar}
+
+
 \subsection{Correctness}\label{sec:correctness}
 
 \begin{itemize}

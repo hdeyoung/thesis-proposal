@@ -6,17 +6,37 @@
 
 \usepackage{fixltx2e}
 
+% \usepackage[semibold,tt=false,lining]{libertine}
+% \usepackage[T1]{fontenc}
+% \usepackage{textcomp}
+% \usepackage[varqu,varl,var0]{zi4}
+% \usepackage[scr=rsfso]{mathalfa}
+% \usepackage{bm}% load after all math to give access to bold math
+%After loading math package, switch to osf in text.
+
+
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
-\usepackage[sc,osf]{mathpazo}
+% \usepackage[varqu,varl,var0]{zi4}
+% \usepackage[sc,osf]{mathpazo}
+% \usepackage{tgpagella}
 % \linespread{1.05}
-\usepackage[semibold,tt=false,osf]{libertine}
-% \usepackage{inconsolata}
+\usepackage[semibold,tt=false,lining]{libertine}
 % \usepackage{fullpage}
+
+
+% \usepackage{unicode-math}% run with xelatex
+% \defaultfontfeatures{Ligatures=TeX}
+% \setmainfont[
+%  BoldFont=texgyrepagella-bold.otf,
+%  ItalicFont=texgyrepagella-italic.otf,
+%  BoldItalicFont=texgyrepagella-bolditalic.otf]{texgyrepagella-regular.otf}
+% \setmathfont{texgyrepagella-math.otf}
+
 \usepackage{microtype}
 
 \usepackage[american]{babel}
-\usepackage{csquotes}
+\usepackage[english=american]{csquotes}
 
 \usepackage[inline]{enumitem}
 
@@ -41,6 +61,10 @@
   short = JILL,
   long  = judgmental intuitionistic linear logic
 }
+\DeclareAcronym{ILL}{
+  short = ILL,
+  long  = intuitionistic linear logic
+}
 \DeclareAcronym{SML}{
   short = SML,
   long  = Standard ML
@@ -60,12 +84,22 @@
   long = session-typed intuitionistic linear logic
 }
 
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{caption}[2013/01/01] % needs v3.3 or newer
 
 \usepackage{logic}
+
+% \usepackage[varg,bigdelims]{newpxmath}
+\usepackage[libertine,bigdelims]{newtxmath}
+\useosf
+
 \usepackage{predicates}
 \usepackage{msill}
+
+\usepackage{tikz}
+\usetikzlibrary{matrix, chains}
+\usepackage{tikz-cd}
 
 \usepackage{minted}
 \usepackage{verbments}
@@ -127,7 +161,7 @@
 
 
 
-\includeonly{background}
+\includeonly{background,choreographies,compiling}
 
 \begin{document}
 
@@ -141,6 +175,8 @@
   % Logic programs are remarkably concise and expressive, whereas well-typed functional programs provide guarantees about their behavior.
   % This thesis proposes to identify a class of (bottom-up) logic programs that do, in fact, enjoy the same kinds of behavioral guarantees as functional programs, thereby affording programmers the best of both worlds.
 \end{abstract}
+
+\tableofcontents
 
 \include{intro}
 
