@@ -1,7 +1,7 @@
 \section{Choreographies}\label{sec:choreographies}
 
 Traditionally, concurrency is phrased as the composition of interacting, distributed processes.
-As the binary counter \wc{specification}[\st{example}] from \cref{sec:exampl-binary-count-2,sec:exampl-binary-count-3} demonstrates, ordered logic programming gives rise to a notion of concurrency, based on indistinguishable interleavings of independent rewrites.
+As the binary counter \wc{example}[\st{specification}] from \cref{sec:exampl-binary-count-2,sec:exampl-binary-count-3} demonstrates, ordered logic programming gives rise to a notion of concurrency, based on indistinguishable interleavings of independent rewrites.
 % a notion of concurrency based on indestinguishable interleavings arises naturally in ordered logic programming.
 % However, it is not as clear how to identify a notion of process
 But where are the distributed processes?
@@ -9,8 +9,10 @@ But where are the distributed processes?
 Taking a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the atomic propositions in an ordered logic program are the processes.
 % This thesis proposes that the atomic propositions in an ordered logic program are the processes.
 % \fxnote{[How much of this is already implied by a formula-as-process interpretation?]}%
-The program's \wc{clauses}[\st{rules}], then, serve to specify the valid interactions among processes. 
-In the binary counter \wc{specification}[\st{program}], for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$, among others,
+The program's \wc{clauses}[\st{rules}], \wc{accordingly}[\st{then}], serve to specify the valid interactions among processes. 
+In the binary counter,
+% \wc{specification}[\st{program}], 
+for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$, among others,
 % $\dec$, $\bit[']{0}$, $\zero$, and $\succ$ 
 are
 % all 
@@ -26,9 +28,35 @@ says that one valid interaction is for neighboring $\bit{1}$ and $\inc$ processe
 % (with similar readings for the other clauses).
 
 The program's clauses don't tell the full story, however:
-The clauses specify what are valid interactions but not how to realize those interactions.
-The program is thus only a \vocab{specification}, with the how instead being supplied by the logic programming language's operational semantics.
-In the usual operational semantics, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+the clauses specify \emph{what} are valid interactions but not \emph{how} to realize \wc{them}[\st{those interactions}].
+% The program is thus only a \vocab{specification}, with the how instead being supplied by the logic programming language's operational semantics.
+In ordered logic programming, the how is\fxnote{\ \st{instead}} traditionally supplied by an operational semantics in which a central conductor, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+% The how is instead supplied by the language's operational semantics.
+% % The  language's operational semantics instead supplies the how.
+% % The program is thus only a \vocab{specification}, with
+% In the usual operational semantics for ordered logic programming, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+But because they rely so heavily on the central conductor, processes using this semantics are no more than superficially distributed.
+% Under this semantics, however, processes are only nominally distributed because they rely so heavily on the central conductor.
+
+
+To be truly distributed, the processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
+% For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process and that the above clause therefore applies; further direct communication between the two processes would effect
+For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process; with further direct communication, the $\bit{1}$ and $\inc$ processes could coordinate to effect the above interaction.
+% How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+Unfortunately, because different programs will require different patterns of communication among processes, we won't be able to leave the how up to the operational semantics.
+The programmer will want control over the communication patterns.
+
+
+
+Borrowing terminology from the literature on sessions
+
+In session terminology, the logic program with a centralized operational semantics is known as an orchestration of processes, whereas the desired distributed semantics is known as a choreography.
+
+
+
+
+\mbox{}\\
 
 The program's clauses don't tell the full story, however:
 The clauses specify what are valid interactions but not \emph{how} to realize those interactions; the \enquote*{how} is instead supplied by the logic programming language's operational semantics.
@@ -91,14 +119,15 @@ Orchestration vs. choreography
 
 \subsection{Choreographies by example: The binary counter}\label{sec:exampl-chor-binary}
 
-In giving the intuition behind the binary counter program (\cref{sec:exampl-binary-count-2}), we described the $\inc$s % as moving --- moving past any $\bit{1}$s and eventually stopping at the $\eps$ or right-most $\bit{0}$.
+In giving the intuition behind the binary counter \wc{specification}[\st{program}] (\cref{sec:exampl-binary-count-2}), we described the $\inc$ processes % as moving --- moving past any $\bit{1}$s and eventually stopping at the $\eps$ or right-most $\bit{0}$.
 as moving up the counter.
 % , a subliminal hint that $\inc$s are like messages.
 % This suggests a choreography in which $\inc$ processes take the active lead:
 This hints that $\inc$s are a bit like messages, and suggests a choreography in which $\inc$ processes initiate the interaction:
 First, each $\inc$ process sends a message, $\inc[<-]$, to its left-hand neighbor, thereby notifying that neighbor of its existence, and then the $\inc$ process terminates.
-If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the $\inc$'s message, that neighbor takes responsibility for carrying out the corresponding program clause.  
+If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the $\inc$'s message, that neighbor takes full responsibility for completing the corresponding interaction.
 
+\NewPredicate{\num}{1}%
 We can even express this choreography as an ordered logic program in its own right:
 \begin{align*}
   &\inc \lrimp \monad{\inc[<-]} \\
@@ -106,24 +135,25 @@ We can even express this choreography as an ordered logic program in its own rig
   &\bit{0} \fuse \inc[<-] \lrimp \monad{\bit{1}} \\
   &\bit{1} \fuse \inc[<-] \lrimp \monad{\inc \fuse \bit{0}} \text{\,,}
 \end{align*}
-where the $\inc$, $\eps$, $\bit{0}$, and $\bit{1}$ atoms are still viewed as processes, but the $\inc[<-]$ atom, which is distinct from $\inc$, is viewed as a message.
+where the $\inc$, $\eps$, $\bit{0}$, and $\bit{1}$ atoms are still viewed as processes, but the $\inc[<-]$ atom, which is formally distinct from $\inc$, is viewed as a message.
 %
-Two features are worth mentioning.
+Two properties are noteworthy:
 \begin{description}[font=\normalfont\itshape, leftmargin=\parindent, labelindent=\leftmargin]
-\item[Local decisions.]
+\item[Locality.]
 % First, notice that
-Each clause of the choreography depends on exactly one process atom and at most one message atom.
-In this way, each process's decisions are completely local: the $\inc$ process always sends $\inc[<-]$ regardless of its neighbors, and the $\eps$ and $\bit{}$ processes act only after receiving an $\inc[<-]$ message.%
+In this choreography, each clause's premise depends on exactly one process atom and at most one message atom.
+Consequently, each process's decisions are entirely local: the $\inc$ process always sends $\inc[<-]$ regardless of its neighbors, and the $\eps$ and $\bit{}$ processes act (independantly) only after receiving an $\inc[<-]$ message.%
 \footnote{In \ac{SSOS} terminology, processes that act regardless of their neighbors, like $\inc$ here, would be termed \vocab{active} propositions; processes that wait to receive a message, like $\eps$, $\bit{0}$, and $\bit{1}$ here, would be termed \vocab{latent} propositions; and messages, like $\inc[<-]$ here, would be termed \vocab{passive} propositions.}
 %
-\item[Preserves implementation.]
+\item[Specification-preserving.]
 % Second, notice that
 The choreography exposes the same $\eps$, $\bit{}$, and $\inc$ processes as the original binary counter specification; the last three clauses of the choreography differ from the specification's clauses only in the substitution of $\inc[<-]$ for $\inc$ in their premises.
 In this sense, there is a very strong equivalence between the two programs.
-The choreography does not fundamentally alter the specification -- it only refines that specification by making the communication patterns explicit.
+The choreography does not fundamentally alter the specification---it only refines that specification by making the communication patterns explicit.
 
-\NewPredicate{\num}{1}%
-Although it is equivalent to the binary counter in the sense that it tracks the same value, we wouldn't consider the following program to be a choreography of the binary counter specification because it fundamentally alters the implementation by using a single $\num{}$ instead of a string of $\bit{}$s.
+% Although it is equivalent to the binary counter in the sense that it tracks the same value, we wouldn't consider the following program to be a choreography of the binary counter specification because it fundamentally alters the implementation by using a single $\num{}$ instead of a string of $\bit{}$s.
+The following program is also equivalent to the binary counter specification, in the sense that it tracks the same value.
+Nevertheless, we wouldn't consider it to be a choreography of the binary counter because it fundamentally alters the specification by using a single number held by $\num{}$ instead of a string of $\bit{}$s.
 \begin{align*}
   &\inc \lrimp \monad{\inc[<-]} \\
   &\num{N} \fuse \inc[<-] \lrimp \monad{\num{(N{+}1)}}
@@ -132,7 +162,7 @@ Although it is equivalent to the binary counter in the sense that it tracks the 
 \end{description}
 
 % In this sense, there is a strong equivalence between the 
-% The choreography does not fundamentally alter the implementation given in the original program -- it only refines that implementation by making the communication patterns explicit.
+% The choreography does not fundamentally alter the implementation given in the original program---it only refines that implementation by making the communication patterns explicit.
 % In this sense, there is a strong equivalence between, which will be made precise in \cref{??}
 
 % Notice that this choreography \wc{refactors} the original program so that each new clause depends on exactly one process atom and at most one message atom.
@@ -142,17 +172,17 @@ Although it is equivalent to the binary counter in the sense that it tracks the 
 
 \subsubsection{Messages can flow in both directions}\label{sec:chor-binary-count}
 
-In our binary counter specification, $\dec$s propagate up the counter similarly to $\inc$s, with the difference being that each $\dec$ eventually gives rise to either a $\zero$ or $\succ$ that travels back down the counter.
+In our binary counter specification, $\dec$s propagate up the counter similarly to $\inc$s, with the difference that each $\dec$ eventually gives rise to\fxnote{\ \st{either}} a $\zero$ or $\succ$ that travels back down the counter.
 Once again, this hints that $\dec$s, $\zero$s, and $\succ$s are like messages.
 These can be incorporated into the counter's choreography:
 % We can also incorporate decrements into the counter's choreography.
 \begin{itemize}
 \item Each $\dec$ process sends a message, $\dec[<-]$, to its left-hand neighbor and terminates.
-      If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the message, that neighbor carries out the corresponding interaction from the specification.
+      If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the message, that neighbor \wc{completes}[\st{carries out}] the corresponding interaction from the specification.
 \item Each $\zero$ or $\succ$ process sends a message, $\zero[->]$ or $\succ[->]$, respectively, to its \emph{right-hand} neighbor and terminates.
-      If the neighbor is $\bit[']{0}$, then, upon receiving the message from $\zero$ or $\succ$, that neighbor carries out the corresponding interaction from the specification.
+      If the neighbor is $\bit[']{0}$, then, upon receiving the message from $\zero$ or $\succ$, that neighbor \wc{completes}[\st{carries out}] the corresponding interaction\fxnote{\ \st{from the specification}}.
 \end{itemize}
-When expressed as an ordered logic program, the binary counter's choreography is extended with the following clauses that account for decrements:
+\wc{To account for decrements}[\st{When expressed as an ordered logic program}], the binary counter's choreography is therefore extended with the following clauses\fxnote{\ \st{that account for decrements}}:
 \begin{align*}
   &\dec \lrimp \monad{\dec[<-]} \\
   &\eps \fuse \dec[<-] \lrimp \monad{\eps \fuse \zero} \\
@@ -165,67 +195,384 @@ When expressed as an ordered logic program, the binary counter's choreography is
   &\succ[->] \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ}
   \,.
 \end{align*}
+% Once again, the atoms that are decorated with arrows are formally distinct from their undecorated counterparts.
+(As before, the atoms that are decorated with arrows are formally distinct from their undecorated counterparts.)
 
-This extension shows that message atoms can be either left-directed, like $\inc[<-]$ and $\dec[<-]$, or right-directed, like $\zero[->]$ and $\succ[->]$.
-Moreover, a message's direction determines the structure of premises in which it is received:
-A left-directed (right-directed) message must arrive at the receiving process's right (resp., left) side, otherwise the message would not be travelling from left to right (resp., right to left).
+This extended choreography illustrates that message atoms may be either left-directed, like $\inc[<-]$ and $\dec[<-]$, or right-directed, like $\zero[->]$ and $\succ[->]$.
+% Moreover, a message's direction determines the structure of premises in which it is received:
+% a left-directed (right-directed) message must arrive at the receiving process's right (resp., left) side, otherwise the message would not be traveling from left to right (resp., right to left).
+% 
+\NewPredicate{\p}[p][font=\mathit]{0}%
+\NewPredicate{\q}[q][font=\mathit]{0}%
+% Because it is traveling left-to-right, a left-directed message must always arrive at the right-hand side of its recipient; dually, a right-directed message must always arrive at the left-hand side of its recipient.
+Because a left-directed message travels from right to left, it must always arrive at the right-hand side of its recipient; dually, a right-directed message must always arrive at the left-hand side of its recipient.
+This is another aspect of the locality property, and it further constrains the structure of a choreography's premises: $\bit{1} \fuse \inc[<-]$ and $\zero[->] \fuse \bit[']{0}$, for instance, are well-formed premises, but premises of the form $\q[<-] \fuse \p$ or $\p \fuse \q[->]$ would not be.
 
-Once again, $\dec[<-]$ is a distinct atom from $\dec$.
-As a general rule, the arrow annotations on message atoms are considered decorations in the same sense as subscripts.
+As well as retaining locality, also notice that this extended choreography continues to be specification-preserving.
 
-\subsubsection{Multiple choreographies are sometimes possible}\label{sec:mult-chor-are}
+
+\subsubsection{Choreographies are not always unique}\label{sec:mult-chor-are}
 
 For some specifications, multiple choreographies are possible.
 % for the same specification.
 
-This is true of our binary counter specification, for example.
+This is true of our binary counter specification\fxnote{\st{, for example}}.
 % To illustrate, let's return to the binary counter specification without decrements.
 % Instead of having the $\inc$ 
 %
-In our first choreography,
+In the above choreography,
 % In the above choreography, 
-the $\inc$ processes initiated the interaction but left the bulk of the work to the $\eps$, $\bit{0}$, and $\bit{1}$ processes.
-(To simplify the example, let's ignore decrements.)
-Alternatively, $\inc$ could wait for $\eps$, $\bit{0}$, or $\bit{1}$ to initiate an interaction, but thereafter take full responsibility for its completion:
+the $\inc$ processes initiate\fxnote{\st{d}} the interaction but \wc{leave}[\st{left}] all remaining work to the $\eps$, $\bit{0}$, and $\bit{1}$ processes alone.
+(To simplify the example, we'll ignore decrements for now.)
+Alternatively, the $\inc$ processes could wait for $\eps$, $\bit{0}$, or $\bit{1}$ to initiate the interaction, but thereafter take full responsibility for its completion.
 %  Another choreography of the binary counter has $\inc$ taking responsibility:
-\begin{align*}
-  &\eps \lrimp \monad{\eps[->]} \\
-  &\bit{0} \lrimp \monad{\bit{0}[->]} \\
-  &\bit{1} \lrimp \monad{\bit{1}[->]} \\
-  &\eps[->] \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
-  &\bit{0}[->] \fuse \inc \lrimp \monad{\bit{1}} \\
-  &\bit{1}[->] \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
-\end{align*}
+
 % In this choreography, 
 Specifically, each $\eps$, $\bit{0}$, and $\bit{1}$ process sends a message to its right-hand neighbor and then terminates.
 If the neighbor is $\inc$, then, upon receiving the message, that $\inc$ completes the interaction.
 % takes responsibility for carrying out the corresponding clause of the specification.
+\begin{align*}
+  &\eps \lrimp \monad{\eps[->]} \\
+  &\bit{0} \lrimp \monad{\bit{0}[->]} \\
+  &\bit{1} \lrimp \monad{\bit{1}[->]} \\[1.5\jot]
+  %
+  &\eps[->] \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+  &\bit{0}[->] \fuse \inc \lrimp \monad{\bit{1}} \\
+  &\bit{1}[->] \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+\end{align*}
+Once again, the choreography satisfies the locality and specification-preserving properties.
 
-This alternate choreography has a funcitonal flavor: $\inc$ can be viewed as a function on the $\eps$-and-$\bit{}$ representation of data.
-In contrast, the previous choreography has a more object-oriented flavor
+% Owing to the difference in roles held by, these two choreographies have distinct flavors.
+% These two choreographies
+These two choreographies
+% presented thus far
+have distinct flavors, owing to the different sending and receiving roles that they assign to $\inc$ and $\eps$ and $\bit{}$ processes.
+Our first choreography (\cref{??}) has an object-oriented flavor: by sending an $\inc[<-]$ message, the $\inc$ method dispatches on the receiving object's class---either $\eps$, $\bit{0}$, or $\bit{1}$.
+In contrast, this new choreography has a more functional flavor, with $\inc$ a function that receives its argument as a message---either $\eps[->]$, $\bit{0}[->]$, or $\bit{1}[->]$.
 
-The difference in sender and recipient between this alternate choreography and the previous one gives the two choreographies different flavors.
-In this alternate choreography
-In constrast, the previous choreography has a more object-oriented flavor, with $\inc$ being a method that dispatches on the class of the recipient -- either $\eps$, $\bit{0}$, or $\bit{1}$.
+% The increment method dispatches on 
+% $\inc$ invokes the increment method on the neighboring object by sending an $\inc[<-]$ message
+% There, the $\inc$ method sends an $\inc[<-]$ message like a method that dispatches on the class of the recipient object---either $\eps$, $\bit{0}$, or $\bit{1}$.
+% Our first choreography has an object-oriented flavor, with $\inc$ like a method that dispatches on the class of the recipient object---either $\eps$, $\bit{0}$, or $\bit{1}$.
+% In contrast, this second choreography has a more functional flavor, with 
 
-If we view the $\eps$ and $\bit{}$ processes as data, then this alternate choreography has a functional flavor.
-In contrast, the previous choreography has an object-oriented flavor, with a dynamic dispatch of $\inc[<-]$ on the recipient.
+% This alternate choreography has a funcitonal flavor: $\inc$ can be viewed as a function on the $\eps$-and-$\bit{}$ representation of data.
+% In contrast, the previous choreography has a more object-oriented flavor
+
+% The difference in sender and recipient between this alternate choreography and the previous one gives the two choreographies different flavors.
+% In this alternate choreography
+% In constrast, the previous choreography has a more object-oriented flavor, with $\inc$ being a method that dispatches on the class of the recipient---either $\eps$, $\bit{0}$, or $\bit{1}$.
+
+% If we view the $\eps$ and $\bit{}$ processes as data, then this alternate choreography has a functional flavor.
+% In contrast, the previous choreography has an object-oriented flavor, with a dynamic dispatch of $\inc[<-]$ on the recipient.
+
+These choreographies are just two of the many possibilities.
+Another, more complex alternative divides the work of completing the interaction among the $\eps$ and $\bit{}$ and\fxnote{\ \st{(the continuation of)}} the $\inc$ processes:
+\begin{align*}
+  &\inc \lrimp \monad{\inc[<-] \fuse \inc[']} \\[1.5\jot]
+  %
+  &\eps \fuse \inc[<-] \lrimp \monad{\eps \fuse \eps[->]} \\
+  &\bit{0} \fuse \inc[<-] \lrimp \monad{\bit{0}[->]} \\
+  &\bit{1} \fuse \inc[<-] \lrimp \monad{\inc \fuse \bit{1}[->]} \\[1.5\jot]
+  %
+  &\eps[->] \fuse \inc['] \lrimp \monad{\bit{1}} \\
+  &\bit{0}[->] \fuse \inc['] \lrimp \monad{\bit{1}} \\
+  &\bit{1}[->] \fuse \inc['] \lrimp \monad{\bit{0}} \,.
+\end{align*}
+Notice that this choreography introduces an auxiliary process atom, $\inc[']$, to represent a $\inc$ process that has sent out a message and is now waiting for an $\eps[->]$, $\bit{0}[->]$, or $\bit{1}[->]$ response.
+Even so\fxnote{\ \st{Even though this choreography introduces and auxiliary process atom}}, we still consider it to be a valid choreography: $\inc[']$ is only temporary, leaving the underlying specification fundamentally unchanged.
+
 
 \subsection{What counts as a choreography?}\label{sec:what-counts-choreo}
 
-Nevertheless, the choreography still exposes the same $\eps$, $\bit{}$, and $\inc$ processes -- it only refines the original implementation by specifying the communication patterns.
-Although the following program is equivalent in the sense that it tracks the same value, we wouldn't call it a choreography because it fundamentally alters the implementation.
-% \NewPredicate{\num}{1}%
+\begin{align*}
+    A ::= A \limp B^r \mid A \rimp B^\ell \\
+  A^r ::= A^r \rimp B^r \mid A \limp B \\
+  A^\ell ::= A^\ell \limp B^\ell \mid A \rimp B \\
+  \\
+  A &::= A^\ell \mid A^r \\
+  A^\ell &::= S^r \rimp A^\ell \mid S^r \limp A^\ell \mid S \limp A^b \\
+  A^r &::= S^\ell \limp A^r \mid S^\ell \rimp A^r \mid S \rimp A^b \\
+  A^b &::= S^\ell \limp A^b \mid S^r \rimp A^b
+\end{align*}
+
+
+\begin{mathpar}
+  \infer{A^+ \limp B^- \gg A^+ \esuf G_\ell ; G_r}{
+    B^- \gg G_\ell ; G_r}
+  \and 
+  \infer{A^+ \rimp B^- \gg G_\ell ; A^+ \fuse G_r}{
+    B^- \gg G_\ell ; G_r}
+  \and
+  \infer{A^- \with B^- \gg }{
+    A^- \gg &
+    B^- \gg}
+\end{mathpar}
+% A, O, B |- C
+% O
+
+% R ->> ... ->> R ->> P >-> A
+% L >-> ... >-> L >-> P ->> A
+
+% O1, A ->> B ->> C, A, B, O2
+% O1, B, A, A >-> B >-> C, O2
+
+\NewDocumentCommand{\erase}{m}{(#1)^e}
+\begin{equation*}
+  \erase{\p^+} = \erase{\p[<-]^+} = \erase{\p[->]^+} = \p^+
+\end{equation*}
+
+\begin{definition}[Specification-preserving]
+  A program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if:
+  \begin{enumerate}
+  \item\label{def:spec-pres-1}
+    for each transition $\octx \trans_{\spec} \octx'$, there is a nonempty trace $\octx \trans+_{\chor} \octx'$; and\\
+    for each transition $\octx \trans_{\spec} \octx'$ and $\octx \trans*_{\chor} \lctx$, there is a trace $\lctx \trans*_{\chor} \octx'$; and
+  \item\label{def:spec-pres-2}
+    for each transition $\octx \trans_{\chor} \octx'$, either $\erase{\octx} = \erase{\octx'}$ or $\erase{\octx} \trans_{\spec} \erase{\octx'}$.
+  \end{enumerate}
+\end{definition}
+
+% inc ->> {<inc}
+% eps ->> {eps>}
+% eps * <inc ->> {eps * bit1}
+
+
+\subsection{What counts as a choreography?}\label{sec:what-counts-choreo}
+
+% O1 -->  O2
+%  |       |
+% O1 -->* O2
+
+% O1 -->i
+
+By drawing out two key properties---the locality and specification-preserving properties---the above examples have hopefully provided some intuition for the notion of choreography used in this proposal.
+We can arrive at a precise definition of choreography by formalizing those two properties.
+
+First, 
+
+\begin{definition}[Locality]
+  A program $\chor$ has \vocab{locality} if each clause's premise adheres to the following grammar.
+  \begin{equation*}
+    A^+ ::= \p^+ \mid \p[->]^+ \fuse A^+ \mid A^+ \fuse \p[<-]^+
+  \end{equation*}
+\end{definition}
+
+\begin{definition}[Specification-preserving]
+  A program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if:
+  \begin{enumerate}
+  \item\label{def:spec-pres-1}
+    for each transition $\octx \trans_{\spec} \octx'$,
+    % possible in the specification, 
+    there is a trace $\octx \trans+_{\chor} \octx'$; and
+    % , possible in the program $\chor$; and
+  \item\label{def:spec-pres-2}
+    for each maximal trace $\mathcal{T} :: \octx \trans\trans[\infty]_{\chor}$, there is
+    \begin{itemize}
+    \item a transition $\octx \trans_{\spec} \octx'$ for some $\octx'$; and
+    \item traces $\mathcal{T}_1 :: \octx \trans+_{\chor} \octx'$ and
+      $\mathcal{T}_2 :: \octx' \trans[\infty]_{\chor}$ such that
+      $\mathcal{T} \equiv \mathcal{T}_1; \mathcal{T}_2$.
+    \end{itemize}
+  \end{enumerate}
+\end{definition}
+
+
+
+The \enquote{choreography} with a functional flavor is not, in fact, a valid choreography under this definition.
+The context $\octx = \eps$ is a well-formed state and $\eps \trans \eps[->] \ntrans$ is a maximal trace, but there is no transition from $\eps$ in the specification.
+
+
+
+\begin{definition}[Specification-preserving]
+  A program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if:
+  \begin{enumerate}
+  \item\label{def:spec-pres-1}
+    for each transition $\octx_s \trans_{\spec} \octx'_s$,
+    % possible in the specification, 
+    there is a trace $\octx_s \trans+_{\chor} \octx'_s$; and
+    % , possible in the program $\chor$; and
+  \item\label{def:spec-pres-2}
+    there is a relation $\mathrel{\mathcal{R}}$ such that $\octx_c \mathrel{\mathcal{R}} \octx_s$ and $\octx_c \trans_{\chor} \octx'_c$ together imply $\octx'_c \mathrel{\mathcal{R}} \octx_s$ or $\octx_s \trans_{\spec} \octx'_c$.
+  \end{enumerate}
+\end{definition}
+\noindent
+The second condition can be trivially satisfied by taking $\mathrel{\mathcal{R}}$ to be the universal relation.
+
+
+\begin{definition}[Specification-preserving]
+  A program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if there is a relation $\mathrel{\mathcal{R}}$ such that:
+  \begin{enumerate}
+  \item\label{def:spec-pres-1}
+    for each transition $\octx^s_0 \trans_{\spec} \octx^s_1$,
+    % possible in the specification, 
+    there is a trace $\octx^s_0 = \octx^c_0 \trans*_{\chor} \octx^c_n \trans_{\chor} \octx^s_1$ with $\octx^s_0 \mathrel{\mathcal{R}} \octx^c_i$ for all $0 \leq i \leq n$; and
+    % , possible in the program $\chor$; and
+  \item\label{def:spec-pres-2}
+    for each transition $\octx^c_0 \trans_{\chor} \octx^c_1$,
+    the relationship $\octx^c_0 \mathrel{\mathcal{R}^{-1}} \octx^s$ implies $\octx^c_1 \mathrel{\mathcal{R}^{-1}} \octx^s$ or $\octx^s \trans_{\spec} \octx^c_1$;
+  \end{enumerate}
+\end{definition}
+\noindent
+This definition is the same as the previous one if $\mathrel{\mathcal{R}}$ is taken to be the universal relation.
+
+
+% eps * inc --> eps * bit1
+% eps * inc --> eps> * inc --> eps * bit1
+
+% eps> * inc --> eps * bit1
+% eps * inc R eps * bit1  or  eps * inc --> eps * bit1
+\begin{definition}[Specification-preserving]
+  A program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if there is a relation $\mathrel{\mathcal{R}}$ such that:
+  \begin{enumerate}
+  \item\label{def:spec-pres-1}
+    for each transition $\octx^s_0 \trans_{\spec} \octx^s_1$,
+    % possible in the specification, 
+    there is a trace $\octx^s_0 = \octx^c_0 \trans*_{\chor} \octx^c_n \trans_{\chor} \octx^s_1$ with $\octx^s_0 \mathrel{\mathcal{R}} \octx^c_i$ for all $0 \leq i \leq n$; and
+    % , possible in the program $\chor$; and
+  \item\label{def:spec-pres-2}
+    for each transition $\octx^c_0 \trans_{\chor} \octx^c_1$,
+    the relationship $\octx^c_0 \mathrel{\mathcal{R}^{-1}} \octx^s$ implies $\octx^c_1 \mathrel{\mathcal{R}^{-1}} \octx^s$ or $\octx^s \trans_{\spec} \octx^c_1$; and
+  \item
+    $\octx^s \mathrel{\mathcal{R}} \octx^c$ implies $\ofill{\octx^s} \mathrel{\mathcal{R}} \ofill{\octx^s}$.
+  \end{enumerate}
+\end{definition}
+
+
+
+% eps> * inc ->> eps * bit1
+% bit0> * inc ->> bit1
+% bit1> * inc ->> inc * bit0
+
+% D |- p >> G
+
+% G1 ->> D |- p >> G ->> D
+
+
+
+Part \cref{def:spec-pres-1} of this definition requires that $\chor$ be able to simulate the specification $\spec$.
+Part \cref{def:spec-pres-2} states the converse: 
+
+
+
+
+
 % \begin{align*}
-%   &\inc \lrimp \monad{\inc[<-]} \\
-%   &\num{N} \fuse \inc[<-] \lrimp \monad{\num{(N{+}1)}}
+%   &\eps \fuse \dec \lrimp \monad{\eps} \\
+%   &\bit{0} \fuse \dec \lrimp \monad{\bit{1}} \\
+%   &\eps \fuse \bit{1} \fuse \dec \lrimp \monad{\eps} \\
+%   &\bit{0} \fuse \bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \bit{0}} \\
+%   &\bit{1} \fuse \bit{1} \fuse \dec \lrimp \monad{\bit{1} \fuse \bit{0}}
 % \end{align*}
 
 
 
-Notice that here each clause's premise depends on exactly one process atom and at most one message atom.
-In this way, the choreography \wc{localizes}[refactors] the interactions so that each process makes only local decisions.
 
+
+Intuitively, this definition says that 
+
+We assume \vocab{weak fairness}, roughly that if a transition is almost always enabled, then it is eventually taken.
+Formally, a maximal execution $S_0 \trans[\infty]$ is \vocab{weakly unfair} if there exists $S \trans$ and an $i$ such that $S_j = \omatch[_j]{S}$ for all $j \geq i$.
+A maximal execution $S_0 \trans[\infty]$ is \vocab{weakly fair} if it is not weakly unfair.
+As a special case, maximal executions that are finite are weakly fair.
+
+
+% $\Sigma_c$ is a choreography of $\Sigma$ if
+
+
+\begin{definition}[Choreography]
+  A program $\chor$ is a \vocab{choreography} for specification $\spec$ if $\chor$ is:
+  \begin{enumerate*}[label=\textit{\alph*)}, itemjoin={{, }}, itemjoin*={{, and }}]
+  \item local
+  \item specification-preserving for $\spec$
+  \end{enumerate*}.
+\end{definition}
+
+Our definition of choreography is primarily semantic because {??}.
+This provides a flexibility in terms of 
+communicative specification
+
+
+% Recall from \cref{??} the choreographies that have an object-oriented and a functional flavor.
+Of course, not all programs involving messages are choreographies.
+For example, suppose that we combine the object-oriented and functional choreographies from \cref{??} into one program.
+Among other clauses, this new program would include:
+\begin{align*}
+  &\inc \lrimp \monad{\inc[<-]} \\
+  &\eps \lrimp \monad{\eps[->]} \\
+  &\eps \fuse \inc[<-] \lrimp \monad{\eps \fuse \inc} \\
+  &\eps[->] \fuse \inc \lrimp \monad{\eps \fuse \inc} \\
+  &\vdots
+\end{align*}
+This program is \emph{not} a choreography, however, because it has some executions that do not preserve the binary counter specification:
+\begin{equation*}
+  \eps \fuse \inc
+    \trans \eps[->] \fuse \inc
+    \trans \eps[->] \fuse \inc[<-]
+    \ntrans
+\end{equation*}
+is an execution that gets stuck before reaching $\eps \fuse \bit{1}$, in contrast with the specification that can always reach $\eps \fuse \bit{1}$ from $\eps \fuse \inc$.
+
+
+We speculate that choreographies can be compiled to the untyped $\pi$-calculus.
+However, because we are primarily interested in understanding the relationship between concurrent logic programs and \emph{well-typed} concurrent functional programs, 
+
+
+
+% <>[]A -> []<>A
+% either "everywhere k
+
+
+\NewPredicate{\lft}[L]{0}%
+\NewPredicate{\rgt}[R]{0}%
+\NewPredicate{\mdl}[M]{0}%
+\NewPredicate{\done}{0}%
+Here is a simple specification:
+\begin{equation*}
+  \lft \fuse \rgt \lrimp \monad{\done}
+\end{equation*}
+Under the above definition, the following program is not a choreography for that specification.
+It is also \emph{not} implementable in \ac{SILL} because $\rgt$ nondeterministically chooses between sending and receiving.
+\begin{align*}
+  &\lft \lrimp \monad{\lft[->]} \\
+  &\rgt \lrimp \monad{\rgt[<-]} \\
+  &\lft[->] \fuse \rgt \lrimp \monad{\done} 
+\end{align*}
+
+Here is another specification:
+\begin{equation*}
+  \lft \fuse \mdl \fuse \rgt \lrimp \monad{\done}
+\end{equation*}
+Under the above definition, the following program \emph{is} a choreography for that specification.
+Even so, it is not implementable in \ac{SILL} because $\mdl$ nondeterministically chooses to receive first on the left or on the right.
+\begin{align*}
+  &\lft \lrimp \monad{\lft[->]} \\
+  &\rgt \lrimp \monad{\rgt[<-]} \\
+  &\lft[->] \fuse \mdl \lrimp \monad{\mdl[_r]} \\
+  &\mdl \fuse \rgt[<-] \lrimp \monad{\mdl[_l]} \\
+  &\lft[->] \fuse \mdl[_l] \lrimp \monad{\done} \\
+  &\mdl[_r] \fuse \rgt[<-] \lrimp \monad{\done}
+\end{align*}
+
+\NewPredicate{\valq}[val?]{0}%
+\NewPredicate{\val}{1}%
+Should the following be a choreography for the binary counter, despite being so convoluted?
+It does meet the above criteria, so this is a way of asking if those criteria are sufficient.
+\begin{align*}
+  &\inc \lrimp \monad{\valq[<-] \fuse \inc[']} \\[1.5\jot]
+  %
+  &\eps \fuse \valq[<-] \lrimp \monad{\val[->]{0}} \\
+  &\bit{0} \fuse \valq[<-] \lrimp \monad{\valq[<-] \fuse \bit[']{0}} \\
+  &\bit{1} \fuse \valq[<-] \lrimp \monad{\valq[<-] \fuse \bit[']{1}} \\[1.5\jot]
+  %
+  &\val[->]{N} \fuse \bit[']{0} \lrimp \monad{\val[->]{(2N)}} \\
+  &\val[->]{N} \fuse \bit[']{1} \lrimp \monad{\val[->]{(2N{+}1)}} \\
+  &\val[->]{N} \fuse \inc['] \lrimp \monad{\num{N}} \\[1.5\jot]
+  %
+  &\num{0} \lrimp \monad{\eps} \\
+  &\num{(2N)} \lrimp \monad{\num{N} \fuse \bit{0}} \\
+  &\num{(2N{+}1)} \lrimp \monad{\num{N} \fuse \bit{1}}
+\end{align*}
 
 
 
@@ -300,7 +647,7 @@ In this way, the choreography \wc{localizes}[refactors] the interactions so that
   &\bit{1} \lrimp (\inc[<-] \rimp \monad{\inc \fuse \bit{0}})
 \end{align*}
 
-The following chroeography can get stuck, even though the original program cannot.
+The following choreography can get stuck, even though the original program cannot.
 \begin{align*}
   &\inc \lrimp \parens[auto, align=c@{\,}l]{
 & \monad{\inc[<-]} \\

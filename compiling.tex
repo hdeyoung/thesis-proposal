@@ -1,23 +1,49 @@
 \section{Compiling choreographies}\label{sec:compile-choreo}
 
-\NewDocumentCommand{\compile}{m m m m}{%
+\NewDocumentCommand{\compilebasic}{m m m m}{%
   \llbracket #2\rrbracket^{#1}_{#3} = #4%
+}
+\NewDocumentCommand{\compilepos}{m m m m}{%
+  \compilebasic{#1}{#2}{#3}{#4}%
+}
+\NewDocumentCommand{\compileneg}{m m m m}{%
+  \compilebasic{#1}{#2}{#3}{#4}%
 }
 
 \begin{mathpar}
-  \infer{\compile{d}{H_1 \fuse H_2}{c}{\mbind{\bv{c'} <- \mspawn{P_1} <- d; P_2}}}{
-    \compile{d}{H_1}{c'}{P_1} &
-    \compile{c'}{H_2}{c}{P_2}}
+  \infer{\compilepos{d}{A^+_1 \fuse A^+_2}{c}{\mbind{\bv{c'} <- \mspawn{P_1} <- d; P_2}}}{
+    \compilepos{d}{A^+_1}{c'}{P_1} &
+    \compilepos{c'}{A^+_2}{c}{P_2}}
   \and
-  \infer{\compile{d}{\one}{c}{\mfwd{c <- d}}}{
+  \infer{\compilepos{d}{\one}{c}{\mfwd{c <- d}}}{
+    }
+  \\
+  \infer{\compilepos{d}{\p^+}{c}{\mbind{c <- \p^+ <- d}}}{
     }
   \and
-  \infer{\compile{d}{p}{c}{\mbind{c <- p <- d}}}{
+  \infer{\compilepos{d}{\p[->]^+}{c}{\moutputl{c.\p[->]^+; \mfwd{c <- d}}}}{
     }
+  \and
+  \infer{\compilepos{d}{\p[<-]^+}{c}{\moutputl{d.\p[<-]^+; \mfwd{c <- d}}}}{
+    }
+  \\
+  \infer{\compilepos{d}{A^-}{c}{P}}{
+    \compileneg{d}{A^-}{c}{P}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\compileneg{d}{\with_i (\p[->, _i]^+ \limp \monad{A^+_i})}{c}{\mcase{d}{\p[->, _i]^+ => P_i}}}{
+    \compileneg{d}{A^+_i}{c}{P_i}}
+  \and
+  \infer{\compileneg{d}{\with_i (\p[<-, _i]^+ \rimp \monad{A^+_i})}{c}{\mcase{c}{\p[<-, _i]^+ => P_i}}}{
+    \compileneg{d}{A^+_i}{c}{P_i}}
+  \and
+  \infer{\compileneg{d}{\monad{A^+}}{c}{P}}{
+    \compilepos{d}{A^+}{c}{P}}
 \end{mathpar}
 
 \NewDocumentCommand{\compilectx}{m m m m}{%
-  \compile{#1}{#2}{#3}{#4}%
+  \compilebasic{#1}{#2}{#3}{#4}%
 }
 
 \begin{mathpar}
@@ -28,10 +54,97 @@
   \infer{\compilectx{d}{\octxe}{c}{c \eq d}}{
     }
   \\
-  \infer{\compilectx{d}{H}{c}{\exec{P}}}{
-    \compile{d}{H}{c}{P}}
+  \infer{\compilectx{d}{A^+}{c}{\exec{P}}}{
+    \compilepos{d}{A^+}{c}{P}}
+  \and
+  \infer{\compilectx{d}{\suspp{\p[->]^+}}{c}{\msgl{c,\p[->]^+,d}}}{
+    }
+  \and
+  \infer{\compilectx{d}{\suspp{\p[<-]^+}}{c}{\msgl{d,\p[<-]^+,c}}}{
+    }
 \end{mathpar}
 
+
+
+
+\subsection{}\label{sec:xyz}
+
+\begin{theorem}[Completeness]
+  If $\octx \trans_{\chor} \octx'$ and $\compilectx{d}{\octx}{c}{(\tctx ; \lctx)}$,
+  then $(\tctx ; \lctx) \trans+ (\tctx' ; \lctx')$ for some $(\tctx' ; \lctx')$ such that $\compilectx{d}{\octx'}{c}{(\tctx' ; \lctx')}$.
+\end{theorem}
+The claim does not hold for stutters involving $\monad{A^+}$.
+There is a transition
+\begin{equation*}
+  \monad{\p[<-]^+ \rimp \monad{\one}}
+    \trans \p[<-]^+ \rimp \monad{\one}
+\end{equation*}
+but there is no nonempty trace
+\begin{equation*}
+  \exec{(\mcase{c}{\p[<-]^+ => \mfwd{c <- d}})}
+    \trans+ \exec{(\mcase{c}{\p[<-]^+ => \mfwd{c <- d}})} \,.
+\end{equation*}
+Changing 
+
+
+
+\begin{theorem}[Soundness]
+  If $\mathcal{T} :: \lctx \trans\trans[\infty]$ is a maximal trace and $\compilectx{d}{\octx}{c}{\lctx}$, then
+  \begin{itemize}
+  \item there is a step $\octx \trans_{\chor} \octx'$ for some $\octx'$; and
+  \item there are traces $\mathcal{T}_1 :: \lctx \trans+ \lctx'$ and $\mathcal{T}_2 :: \lctx' \trans[\infty]$ for some $\lctx'$ such that $\compilectx{d}{\octx'}{c}{\lctx'}$ and $\mathcal{T} \equiv \mathcal{T}_1; \mathcal{T}_2$.
+  \end{itemize}
+\end{theorem}
+
+Given this soundness theorem, we cannot allow $\with_i (\p[_i, ->]^+ \limp A^-_i)$ and $\with_i (\p[_i, <-]^+ \rimp A^-_i)$ in general.
+There is a transition
+\begin{align*}\MoveEqLeft[0.5]
+  \msgl{d', \lft[->], d} \;{,}\; \exec{(\mcase{d'}{\lft[->] => \mcase{c}{\rgt[<-] => \mbind{c <- \mdl <- d'}}})} \\
+    &\trans \exec{(\mcase{c}{\rgt[<-] => \mbind{c <- \mdl <- d}})}
+\end{align*}
+but
+\begin{equation*}
+  \lft[->] \;{,}\; \lft[->] \limp (\rgt[<-] \rimp \monad{\mdl}) \ntrans
+\end{equation*}
+
+Even with this restriction, the soundness claim does not hold for unstable contexts.
+There is a maximal trace
+\begin{equation*}
+  \exec{(\moutputl{d.\p[<-]^+; \mfwd{c <- d}})}
+    \trans \msgl{d, \p[<-]^+, d'} \;{,}\; \exec{(\mfwd{c <- d'})}
+    \trans \msgl{d, \p[<-]^+, c}
+    \ntrans
+\end{equation*}
+but no transition $\p[<-]^+ \ntrans$.
+
+\begin{sillcode*}
+stype L = +{ left: L }
+stype R = &{ right: R }
+
+mid : {R <- L}
+c <- mid <- d =
+{ case d of
+    left => (case c of
+               right => c <- mid <- d) }
+\end{sillcode*}
+
+
+
+\begin{mathpar}
+  \infer{\cdot ; x{:}\suspp{p^+} \Vdash_{\cdot} x :: p^+}{
+    }
+  \and
+  \infer{\tctx_1, \tctx_2 ; \lctx_1, \lctx_2 \Vdash_{\sigma_2 \circ \sigma_1} p_1 \tensor p_2 :: A^+_1 \tensor A^+_2}{
+    \tctx_1 ; \lctx_1 \Vdash_{\sigma_1} p_1 :: A^+_1 &
+    \tctx_2 ; \lctx_2 \Vdash_{\sigma_2} p_2 :: A^+_2}
+  \and
+  \infer{a{:}\tau, \tctx ; \lctx \Vdash_\sigma a.p :: \exists a{:}\tau.A^+}{
+    \tctx ; \lctx \Vdash_\sigma p :: A^+}
+  \and
+  \infer{\cdot ; \cdot \Vdash_{[t/a]} t/a :: a \eq t}{
+    }
+\end{mathpar}
+If $\tctx_0 ; \lctx_0, A^+ \seq J \;\rightsquigarrow\; \sigma (\tctx_0, \tctx) ; \sigma(\lctx_0, \lctx) \seq \sigma\,J$, then $\tctx ; \lctx \Vdash_\sigma A^+$.
 
 \subsection{Correctness}\label{sec:correctness}
 

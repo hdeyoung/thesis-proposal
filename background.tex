@@ -998,7 +998,7 @@ Likewise, proof search in ordered logic forms the basis of concurrent ordered lo
 \subsubsection{}\label{sec:xyz}
 
 %
-\NewPredicate{\eps}{0}%
+\NewPredicate{\eps}[{\smash[b]{\mathsf{eps}}}]{0}%
 \expandafter\NewPredicate\expandafter{\csname bit0\endcsname}[bit_0]{0}%
 \expandafter\NewPredicate\expandafter{\csname bit1\endcsname}[bit_1]{0}%
 \NewPredicate{\bitp}[bit]{0}%
@@ -1016,7 +1016,7 @@ Viewed through a computational lens, proof search in a fragment of ordered logic
 This form of ordered logic programming can be seen as a generalization of string rewriting~\autocite[see, \eg,][]{Book+Otto:SRS93}.
 
 We can exploit this analogy to provide some intuition for forward-chaining ordered logic programming.
-From the perspective of string rewriting, an ordered logic program's atomic propositions are letters, ordered conjunctions of these atoms are strings, and, under a focused proof search strategy~\autocite{Andreoli:JLC92}, the ordered implications that serve as a program's clauses are string rewriting rules.
+From the perspective of string rewriting, an ordered logic program's atomic propositions are letters; ordered conjunctions of these atoms are strings; and, under a focused proof search strategy~\autocite{Andreoli:JLC92}, the ordered implications that serve as program clauses are string rewriting rules.
 An example will help to clarify.
 
 \subsubsection{Example: Binary counter}\label{sec:exampl-binary-count-5}
@@ -1028,16 +1028,16 @@ Here we give an ordered logic program for an incrementable binary counter.
 % % In the string rewriting terminology, atomic propositions correspond to letters; ordered conjunctions of these atoms correspond to strings; and ordered implications correspond to string rewriting rules.
 % In the string rewriting terminology, atomic propositions correspond to letters, and ordered conjunctions of these atoms correspond to strings.
 % % Using a focused proof search strategy~\autocite{Andreoli:JLC92}, ordered implications correspond to string rewriting rules.
-The counter is represented as a string of $\bit{0}$ and $\bit{1}$ letters terminated at the most significant end by an $\eps$.
-For instance, the string, or ordered conjunction, $\eps \fuse \bit{1} \fuse \bit{0}$ represents a counter with value $2$.
+The counter is represented as a string of $\bit{0}$ and $\bit{1}$ atoms terminated at the most significant end by an $\eps$.
+For instance, the\fxnote{\ \st{string, or}} ordered conjunction\fxnote{\st{,}} $\eps \fuse \bit{1} \fuse \bit{0}$ represents a counter with value $2$.
 %
-Increment instructions are represented by $\inc$ letters at the counter's least significant end. 
+Increment instructions are represented by $\inc$ atoms at the counter's least significant end. 
 % Also interspersed are $\inc$ atoms, each of which serves as an increment instruction sent to the counter given by the more significant bits.
 Thus, $\eps \fuse \bit{1} \fuse \inc$ represents a counter with value $1$ that has been instructed to increment once.
 
-Operationally, increments are described by the program's three clauses, the first of which is:
+Operationally, increments are described by the program's three clauses, the first of which is
 \begin{equation*}
-  \bit{1} \fuse \inc \rimp \inc \fuse \bit{0}
+  \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
   \,.
 \end{equation*}
 When this proposition is part of the persistent context $\uctx$, the following rule is admissible:
@@ -1112,10 +1112,6 @@ Read bottom-up, this derived rule rewrites part of the ordered context so that $
 \end{equation*}
 
 
-\begin{alignat*}{3}
-  &\text{Negative Propositions} &\quad&& A^- &::= A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+} \\
-  &\text{Positive Propositions} &&& A^+ &::= p \mid A^+ \fuse B^+ \mid \one \mid A^-
-\end{alignat*}
 
 
 \subsubsection{Example: Binary counter}\label{sec:exampl-binary-count-2}
@@ -1278,6 +1274,20 @@ For instance, the counter $\eps \fuse \inc \fuse \bit{0} \fuse \inc$ has two $\i
 %     % \end{scope}
 %   \end{tikzpicture}
 % \end{center}
+
+
+\NewPredicate{\incs}{0}%
+\begin{equation*}
+  \incs \lrimp \monad{\inc \fuse \incs}
+\end{equation*}
+\begin{equation*}
+  \eps \fuse \incs
+    \trans \eps \fuse \inc \fuse \incs
+    \trans \dotsb
+    \trans \eps \fuse \inc \fuse \dotsb \fuse \inc \fuse \incs
+    \trans \dotsb
+\end{equation*}
+
 
 
 \subsubsection{Example: Binary counter with decrements}\label{sec:exampl-binary-count-3}
@@ -1480,6 +1490,134 @@ c <- dec () <- d =
   &\trit{-} \fuse \dec \lrimp \monad{\dec \fuse \trit{+}}  
 \end{align*}
 
+
+\subsubsection{Technical details}\label{sec:technical-details}
+
+\begin{alignat*}{3}
+  &\text{Negative Propositions} &\quad&& A^- &::= A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+} \\
+  &\text{Positive Propositions} &&& A^+ &::= p^+ \mid A^+ \fuse B^+ \mid \one \mid A^-
+\end{alignat*}
+
+
+
+
+\begin{itemize}
+\item Suppose $c : p \rimp (\monad{p} \with \monad{\one})$.
+Should $\bigl(\{x\} \leftarrow c \cdot (x; \pi_1)\bigr)^\omega :: x{:}p \trans[\omega]$ be considered a weakly fair execution?
+I would argue that it should not be weakly fair because, with $c_1 : p \rimp \monad{p}$ and $c_2 : p \rimp \monad{\one}$, we certainly wouldn't say that $(\{x\} \leftarrow c_1 \cdot x)^\omega :: x{:}p \trans[\omega]$ is weakly fair.
+%
+\item By analogy, if $c : p \rimp (\monad{p} \with \monad{p})$, then $\bigl(\{x\} \leftarrow c \cdot (x; \pi_1)\bigr)^\omega :: x{:}p \trans[\omega]$ should not be considered weakly fair.
+%
+\item Notice that $p \rimp (\monad{p} \with \monad{p}) \dashv\vdash (p \llor p) \rimp \monad{p}$.
+      Suppose $c : (p \llor p) \rimp \monad{p}$.
+      Is $\bigl(\{x\} \leftarrow c \cdot (\mathsf{inl}\,x)\bigr)^\omega :: x{:}p \trans[\omega]$ a weakly fair execution?
+      Following our reasoning for the corresponding $p \rimp (\monad{p} \with \monad{p})$, the answer would seem to be \enquote{no}.
+%
+\item However, now suppose $c : p \rimp \monad{p}$.
+      I would argue that $(\{x\} \leftarrow c \cdot x)^\omega :: x{:}p, y{:}p \trans[\omega]$ \emph{is} a weakly fair execution, because the transition is made regardless of whether $x$ or $y$ is the justification.
+%
+\item To be consistent, it shouldn't matter whether $\mathsf{inl}\,x$ or $\mathsf{inr}\,x$ is the justification in the previous example.
+      To resolve the contradiction, I would say that two transitions are distinct if they arise from distinct monadic heads.
+\end{itemize}
+
+
+
+
+
+\NewDocumentCommand{\lfoc}{m}{[#1]}
+\NewDocumentCommand{\rfoc}{m}{[#1]}
+
+\NewDocumentCommand{\hole}{}{\square}
+\NewDocumentCommand{\pseq}{}{\Vdash}
+\NewDocumentCommand{\pval}{o m}{%
+  \IfValueT{#1}{#1 :} \rfoc{#2}}
+\NewDocumentCommand{\vfuse}{m m}{#1 \fuse #2}
+\NewDocumentCommand{\vone}{}{\one}
+\NewDocumentCommand{\npat}{o m m}{%
+  \IfValueT{#1}{#1 :} \lfoc{#2} \mathrel{>} #3}
+\NewDocumentCommand{\susp}{m}{\langle#1\rangle}
+\NewDocumentCommand{\suspp}{m}{\susp{#1}}
+\NewDocumentCommand{\suspn}{m}{\susp{#1}}
+\NewDocumentCommand{\pappr}{m m}{#1;#2}
+\NewDocumentCommand{\pappl}{m m}{#1;#2}
+\NewDocumentCommand{\pfst}{m}{\pi_1;#1}
+\NewDocumentCommand{\psnd}{m}{\pi_2;#1}
+\NewDocumentCommand{\pnil}{}{\text{\textsc{nil}}}
+
+\NewDocumentCommand{\atm}{m m}{#1 \cdot #2}
+\NewDocumentCommand{\rlam}{m m}{\lambda #1.#2}
+\NewDocumentCommand{\llam}{m m}{\lambda #1.#2}
+\NewDocumentCommand{\apair}{m m}{\langle #1, #2\rangle}
+
+\begin{alignat*}{3}
+  &\text{Normal Terms} &\quad&& N &::= \rlam{x}{N} \mid \llam{x}{N} \mid \apair{N_1}{N_2} \mid trace \\
+  &\text{Atomic Terms}      &&& R &::= \atm{c}{S} \mid \atm{x}{S} \\
+  &\text{Spines}            &&& S &::= \pnil \mid \pappr{V}{S} \mid \pappl{V}{S} \mid \pfst{S} \mid \psnd{S} \\
+  &\text{Values}            &&& V &::= x \mid \vfuse{V_1}{V_2} \mid \vone \mid N
+\end{alignat*}
+
+\NewDocumentCommand{\erasespine}{m}{#1^e}
+\NewDocumentCommand{\eraseatm}{m}{#1^e}
+\begin{align*}
+  &\erasespine{(\pnil)} = \pnil \\
+  &\erasespine{(\pappr{V}{S})} = \pappr{\hole}{\erasespine{S}} \\
+  &\erasespine{(\pappl{V}{S})} = \pappl{\hole}{\erasespine{S}} \\
+  &\erasespine{(\pfst{S})} = \pfst{\erasespine{S}} \\
+  &\erasespine{(\psnd{S})} = \psnd{\erasespine{S}}
+  %
+  \\
+  %
+  &\eraseatm{(\atm{c}{S})} = \atm{c}{\erasespine{S}} \\
+  &\eraseatm{(\atm{x}{S})} = \atm{x}{\erasespine{S}}
+\end{align*}
+
+
+A maximal execution $\mathcal{T} :: \octx_0 \trans[\infty]_{\spec}$ is \emph{weakly unfair} if:
+\begin{itemize}
+\item there is an $i \geq 0$ such that $R :: \octx_j \trans_{\spec}$ and $\eraseatm{R} \neq \eraseatm{(R_j)}$ for all $j \geq i$.
+\end{itemize}
+
+
+
+
+
+\begin{mathpar}
+  \infer{\octx_1, \octx_2 \seq \pval[\vfuse{V_1}{V_2}]{A^+ \fuse B^+}}{
+    \octx_1 \seq \pval[V_1]{A^+} &
+    \octx_2 \seq \pval[V_2]{B^+}}
+  \and
+  \infer{\octxe \seq \pval[\vone]{\one}}{
+    }
+  \and
+  \infer{x{:}\suspp{p^+} \seq \pval[x]{p^+}}{
+    }
+  \and
+  \infer{\octx \seq \pval[N]{A^-}}{
+    \octx \seq N : A^-}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\ofill{\hole, x{:}\suspp{A^+}} \pseq \npat[\pappr{x}{S}]{A^+ \rimp B^-}{\gamma}}{
+    \omatch{\hole} \pseq \npat[S]{B^-}{\gamma}}
+  \and
+  \infer{\ofill{x{:}\suspp{A^+}, \hole} \pseq \npat[\pappl{x}{S}]{A^+ \limp B^-}{\gamma}}{
+    \omatch{\hole} \pseq \npat[S]{B^-}{\gamma}}
+  \and
+  \infer{\omatch{\hole} \pseq \npat[\pfst{S}]{A^- \with B^-}{\gamma}}{
+    \ofill{\hole} \pseq \npat[S]{A^-}{\gamma}}
+  \and
+  \infer{\omatch{\hole} \pseq \npat[\psnd{S}]{A^- \with B^-}{\gamma}}{
+    \ofill{\hole} \pseq \npat[S]{B^-}{\gamma}}
+  \and
+  \infer{\hole \pseq \npat[\pnil]{A^-}{\suspn{A^-}}}{
+    }
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\octx', \octx'_0 \seq \theta, V/x : \octx, x{:}\suspp{A^+}}{
+    \octx'_0 \seq \pval[V]{A^+} &
+    \octx' \seq \theta : \octx}
+\end{mathpar}
 
 \subsubsection{Generative invariants}\label{sec:gener-invar}
 

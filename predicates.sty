@@ -48,9 +48,9 @@
   #4.
 }
 
-\cs_new_protected:Npn \__predicates_make:NNNnn #1#2#3#4#5 {
+\cs_new_protected:Npn \__predicates_make:NNNnnn #1#2#3#4#5#6 {
   #2 { __predicates_\cs_to_str:N#3:nn } ##1##2 {
-    \keys_set:nn { predicates } { default~options , ##1 }
+    \keys_set:nn { predicates } { default~options , #5, ##1 }
 
     % Pre-hook
     \tl_use:N \l__predicates_before_tl
@@ -66,12 +66,12 @@
 
     \bool_if:nTF { \seq_if_empty_p:N \l_tmpa_seq  ||
                    \int_compare_p:n {
-                     \seq_count:N \l_tmpa_seq == #5 } } {
+                     \seq_count:N \l_tmpa_seq == #6 } } {
       \seq_map_inline:Nn \l_tmpa_seq { \,####1 }
     } {
       \msg_error:nnxxxx { predicates } { wrong_arity }
         {#3}
-        {#5} { \seq_count:N \l_tmpa_seq }
+        {#6} { \seq_count:N \l_tmpa_seq }
         { \seq_use:Nn \l_tmpa_seq { ,~ } }
     }
     
@@ -79,7 +79,7 @@
     \tl_use:N \l__predicates_after_tl
   }
 
-  \int_compare:nTF { #5 == 0 } {
+  \int_compare:nTF { #6 == 0 } {
     #1 #3 { O{} } {
       \use:c { __predicates_ \cs_to_str:N #3 :nn } {##1} {}
     }
@@ -92,24 +92,26 @@
 
 % \seq_new:N \l__predicates_arg_seq
 
-\cs_generate_variant:Nn \__predicates_make:NNNnn { NNNfn }
+\cs_generate_variant:Nn \__predicates_make:NNNnnn { NNNfnn }
 
-\NewDocumentCommand{\NewPredicate}{m o m}{
-  \__predicates_make:NNNfn
+\NewDocumentCommand{\NewPredicate}{m o O{} m}{
+  \__predicates_make:NNNfnn
     \NewDocumentCommand
     \cs_new_protected:cpn
     #1
     { \IfValueTF {#2} {#2} { \cs_to_str:N #1 } }
     {#3}
+    {#4}
 }
 
-\NewDocumentCommand{\RenewPredicate}{m o m}{
-  \__predicates_make:NNNfn
+\NewDocumentCommand{\RenewPredicate}{m o O{} m}{
+  \__predicates_make:NNNfnn
     \RenewDocumentCommand
     \cs_gset_protected:cpn
     #1
     { \IfValueTF {#2} {#2} { \cs_to_str:N #1 } }
     {#3}
+    {#4}
 }
 
 

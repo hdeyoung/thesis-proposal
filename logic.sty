@@ -153,7 +153,11 @@
 
 
 
-\NewDocumentCommand{\trans}{s t+}{
-  \longrightarrow\IfBooleanT{#1}{^*} \IfBooleanT{#2}{^+}
+\NewDocumentCommand{\trans}{s t+ o o}{
+  \longrightarrow
+  \IfBooleanT{#1}{^*}
+  \IfBooleanT{#2}{^+}
+  \IfValueT{#3}{^{#3}}
+  \IfValueT{#4}{\c_math_subscript_token {#4}}
 }
 \NewDocumentCommand{\ntrans}{}{\longarrownot\trans}
