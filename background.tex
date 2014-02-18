@@ -1040,12 +1040,21 @@ Operationally, increments are described by the program's three clauses, the firs
   \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
   \,.
 \end{equation*}
-When this proposition is part of the persistent context $\uctx$, the following rule is admissible:
+This clause allows the string $\bit{1} \fuse \inc$ to be rewritten as $\inc \fuse \bit{0}$, in the sense that the rule
 \begin{equation*}
-  \infer{\uctx ; \omatch{\bit{1} \fuse \inc} \seq J}{
-    \uctx ; \ofill{\inc \fuse \bit{0}} \seq J}
+  \infer{\uctx ; \bit{1} \fuse \inc \seq C \lax}{
+    \uctx ; \inc \fuse \bit{0} \seq C \lax}
+\end{equation*}
+is admissible whenever this clause is part of the persistent context, $\uctx$.
+
+Just as this implication transforms 
+When this proposition is part of the persistent context $\uctx$, the rule
+\begin{equation*}
+  \infer{\uctx ; \omatch{\bit{1} \fuse \inc} \seq C \lax}{
+    \uctx ; \ofill{\inc \fuse \bit{0}} \seq C \lax}
   \,.
 \end{equation*}
+is admissible.
 Read bottom-up, this rule serves to rewrite the (sub)string $\bit{1} \fuse \inc$ as the string $\inc \fuse \bit{0}$.
 
 Thus, by rewriting $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, this clause serves to carry the $\inc$ up past any $\bit{1}$s at the counter's least significant end.
@@ -1057,9 +1066,265 @@ Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carr
 By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second clause ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
 By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third clause ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
 
+For example, the counter $\eps \fuse \bit{1} \fuse \inc$ can be maximally rewritten as
+\ExplSyntaxOn
+\NewDocumentCommand{\mathul}{m}{
+  \mathpalette\mathul:nn{#1}
+}
+\cs_new:Npn \mathul:nn #1#2 {
+  \tikz [baseline] {
+    \node (pr) [anchor = base, inner~sep = 0em] {$#1#2$};
+    \draw [overlay, ultra~thick, gray]
+      ([yshift=-0.3em]pr.base~west) -- ([yshift=-0.3em]pr.base~east);
+  }
+}
+\ExplSyntaxOff
+\begin{equation*}
+  \eps \fuse \mathul{\bit{1} \fuse \inc}
+    \trans \mathul{\eps \fuse \inc} \fuse \bit{0}
+    \trans \eps \fuse \bit{1} \fuse \bit{0}
+    \ntrans
+  \text{\,,}
+\end{equation*}
+where the rewrite sites available at each step are underlined.
+This trace computes $1 + 1 = 2$ in binary representation.
+More generally, the above rewrite rules adequately specify an increment operation:
+$C$ represents a counter with value $N$ if and only if $C \fuse \inc \trans+ C' \ntrans$ for some $C'$ that represents a counter of value $N + 1$.
 
-, which correspond to string rewriting rules.
-To increment a counter with least significant bit $\bit{1}$, the bit should be flipped to $\bit{0}$ and a carry propogated to the more significant neighbor.
+\subsubsection{\emph{Concurrent} ordered logic programming}\label{sec:concurrency}
+
+\NewPredicate{\coin}{0}
+\NewPredicate{\heads}{0}
+\NewPredicate{\tails}{0}
+\begin{align*}
+  &\coin \lrimp \monad{\heads} \\
+  &\coin \lrimp \monad{\tails}
+\end{align*}
+
+\paragraph{Concurrency.}\label{sec:concurrency-1}
+
+Some strings contain more than one rewrite site.
+% several disjoint substrings that are amenable to rewriting.
+% If these sites are disjoint, the rewrites can be thought of as happening concurrently.
+For instance, the following binary counter has two $\inc$s in flight, which give rise to two disjoint rewrite sites.
+\begin{equation*}
+  \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+\end{equation*}
+The rewrites in this example can be interleaved in two ways: either
+% there are two interleavings of these rewrites: either
+\begin{align*}
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+     \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \inc}
+     \trans \eps \fuse \bit{1} \fuse \bit{1}
+     \ntrans \\
+  %
+  \shortintertext{or}
+  %
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+     \trans \mathul{\eps \fuse \inc} \fuse \bit{1}
+     \trans \eps \fuse \bit{1} \fuse \bit{1}
+     \ntrans
+   \,.
+\end{align*}
+However, because these two rewrites are independent, they should be considered morally concurrent.
+Rather than giving a truly concurrent semantics for string rewriting, we can treat different interleavings of independent steps as indistinguishable.
+Then, because we can't observe which rewrite occurred first, the two rewrites appear to happen concurrently.
+This is the idea of \vocab{concurrent equality} from \acs{CLF}~\autocite{Watkins+:CMU02}, adapted to string rewriting.
+
+
+\paragraph{Infinite traces and fairness.}
+
+\NewPredicate{\incs}{0}%
+Thus far, all traces have been finite, but this is not necassarily so.
+Consider adding an atom, $\incs$, that generates a stream of $\inc$ atoms:
+\begin{equation*}
+  \incs \lrimp \monad{\inc \fuse \incs}
+  \,.
+\end{equation*}
+Among the infinite traces now possible is
+% Beginning from $\eps \fuse \incs$, there are now infinite trace
+\begin{equation*}
+  \eps \fuse \mathul{\incs}
+    \trans \mathul{\eps \fuse \inc} \fuse \mathul{\incs}
+    \trans \dotsb
+    \trans \mathul{\eps \fuse \inc} \fuse \inc \fuse \dotsb \fuse \inc \fuse \mathul{\incs}
+    \trans \dotsb
+  \,.
+\end{equation*}
+
+Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$, instead always choosing to rewrite $\incs$.
+Because of its\fxnote{\ \st{scheduling}} bias against rewriting $\eps \fuse \inc$, we say that the trace is \vocab{(weakly) transition-unfair}.
+
+Transition unfairness is fundamentally at odds with true concurrency.
+Because true concurrency allows multiple independent events to occur simultaneously, one event cannot preclude another independent event;
+in the above example, for instance, rewriting the $\incs$ atom would not preclude rewriting the independent $\eps \fuse \inc$.
+Therefore, to maintain the pretense of true concurrency, we must require all traces to be (weakly) transition-fair.
+
+
+% Transition unfairness is fundamentally at odds with true concurrency
+% because true concurrency allows multiple independent events to occur simultaneously;
+% the occurrence of one event cannot preclude another independent event from occurring at the same time.
+% To maintain the pretense of true concurrency, 
+
+% In the above example, $\eps \fuse \inc$ and $\incs$ are independent rewrite sites
+
+% In the above example, $\eps \fuse \inc$ and $\incs$ are independent rewrite sites.
+% % ; if they are truly concurrent, the rewrite of $\eps \fuse \inc$ should eventually occur.
+% To maintain any pretense of true concurrency, the rewrite of $\eps \fuse \inc$ should eventually occur since true concurrency would allow multiple independent events to occur simultaneously.
+
+
+
+% However, by treating different interleavings of independent steps as indistinguishable, these two rewrites happen concurrently.
+
+
+
+
+% For instance, notice that this binary counter specification allows multiple $\inc$s to be in flight at once, each of which is amenable to rewriting.
+
+
+
+% Sometimes several disjoint substrings are amenable to rewriting.
+
+
+% Different interleavings of independent steps are indistinguishable.
+
+% String rewriting (and therefore ordered logic programming) gives rise to 
+
+
+% The counter $\eps \fuse \inc \bit{0} \fuse \inc$ has two $\inc$s in flight, which can be rewritten independently.
+
+
+% Rewrites of disjoint substrings can be thought of as happening concurrently.
+
+% Notice that we can also allow multiple $\inc$s to be in flight at once, and that independent rewrites can thought of as happening concurrently.
+% For instance, the counter $\eps \fuse \inc \fuse \bit{0} \fuse \inc$ has two $\inc$s in flight, and they give rise to independent rewrites.
+% \begin{center}
+%   \begin{tikzpicture}
+%     \matrix [matrix of math nodes, column sep = 1.5em]
+%     {
+%       % First row
+%       & |(inc-1-2)| \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \inc} & \\
+%       % Second row
+%       |(inc-2-1)| \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+%         && |(inc-2-3)| \eps \fuse \bit{1} \fuse \bit{1} \\
+%       % Third row
+%       & |(inc-3-2)| \mathul{\eps \fuse \inc} \fuse \bit{1} & \\
+%     };
+
+%     \begin{scope}
+%     [ start chain, every join/.style={->} ]
+%       \chainin (inc-2-1);
+%       \begin{scope}[start branch=inc-1-2]
+%         \chainin (inc-1-2) [join];
+%       \end{scope}
+%       \begin{scope}[start branch=inc-3-2]
+%         \chainin (inc-3-2) [join];
+%       \end{scope}
+%       \chainin (inc-2-3) [join = with inc-1-2, join = with inc-3-2];
+%     \end{scope}
+%   \end{tikzpicture}
+% \end{center}
+
+
+\subsubsection{Example: Binary counter with decrements}\label{sec:exampl-binary-count-3}
+
+It's also possible to add support for decrements to the above ordered logic program.
+%
+\NewPredicate{\dec}{0}%
+\NewPredicate{\zero}{0}%
+\RenewPredicate{\succ}{0}%
+%
+Like increments, a decrement instruction is represented by a $\dec$ atom at the counter's least significant end.
+To perform the decrement, a $\dec$ begins propogating up the counter.
+As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$s to indicate that they are waiting to borrow from their more significant neighbors:
+\begin{equation*}
+  \bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \,.
+\end{equation*}
+Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\dec$ is replaced with either $\zero$ or $\succ$, respectively, to show whether the borrow was possible; in the case of $\bit{1}$, the borrow is also effected:
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ} \,.
+\end{align*}
+Then the $\zero$ or $\succ$ travels back over all of the $\bit[']{0}$s that were waiting to borrow.
+In the case of $\zero$, the bits are returned to their original $\bit{0}$ state because no borrow was possible;
+in the case of $\succ$, a borrow was performed and so the bits are set to $\bit{1}$:
+\begin{align*}
+  &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+  &\succ \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ} \,.
+\end{align*}
+
+
+% According to the following rewrite rules, a $\dec$ propogates up the counter past any $\bit{0}$s until it reaches an $\eps$ or the right-most $\bit{1}$.
+% At this point, the $\dec$ is replaced with either $\zero$ or $\succ$, respectively.
+% \begin{align*}
+%   &\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \\
+%   &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+%   &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ}
+% \end{align*}
+% Then the $\zero$ or $\succ$ traveles back down the counter
+% \begin{align*}
+%   &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+%   &\succ \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ}
+% \end{align*}
+
+
+For example, the counter $\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$ can be maximally rewritten as
+\begin{align*}
+  \MoveEqLeft[0.5]
+  \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
+    &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+    &\trans \eps \fuse \mathul{\bit{0} \fuse \succ} \fuse \bit[']{0} \\
+    &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \succ \\
+    &\ntrans
+\end{align*}
+Once again, there are possibilities for concurrency.
+For example, the following two traces are indistinguishable because they differ only in the order of independent rewrites:
+\begin{align*}
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+  %
+  \shortintertext{and}
+  %
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0}
+\end{align*}
+This justifies treating those two rewrites as concurrent.
+
+
+% c <- dec <- d =
+% { case d of
+%     eps => wait d;
+%            d' <- eps;
+%            c <- zero <- d'
+%   | bit0 => d' <- dec <- d
+%             c <- bit0' <- d'
+%   | bit1 => d' <- bit0 <- d
+%             c <- succ <- d' }
+
+% c <- zero <- d =
+% { case c of
+%     bit0' => d' <- bit0 <- d
+%              c <- zero <- d' }
+
+% Cntr = +{ eps: 1 , bit0: Cntr , bit1: Cntr }
+% Cntr' = &{ bit0': Cntr' }
+
+% bit0 : {Cntr |- Cntr}
+% dec : {Cntr |- Cntr'}
+% zero : {Cntr |- Cntr'}
+% bit0' : {Cntr' |- Cntr'}
+
+
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{0} \fuse \dec \lrimp \monad[auto]{
+                               \dec \fuse \parens[auto, align=c@{\,}l]{
+                                                & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+                                          \with & (\succ \limp \monad{\bit{1} \fuse \succ})}} \\
+  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ}
+\end{align*}
+
+
+
+
 
 
 \paragraph{String rewriting rules as ordered implications.}
@@ -1149,93 +1414,6 @@ By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second rule ensures 
 By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third rule ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
 
 % For example, after two rewrites, the counter $\eps \fuse \bit{1} \fuse \inc$ becomes $\eps \fuse \bit{1} \fuse \bit{0}$: using an abbreviated notation, the sequence of rewrites is 
-For example, the counter $\eps \fuse \bit{1} \fuse \inc$ can be rewritten as
-% % \newcolumntype{b}[1]{>{\centering\arraybackslash\hspace{0pt}$}p{#1}<{$}}%
-% \newcommand*{\threebits}[4][0.85em]{%
-%   $\mathsf{#2\,#3\,#4}$%
-% %   \begin{tabular}{@{}b{#1}@{}b{#1}@{}b{#1}@{}}
-% %     \mathsf{#2}&\mathsf{#3}&\mathsf{#4}
-% %   \end{tabular}
-% }%
-% \newcommand*{\fourbits}[5][0.85em]{%
-%   $\mathsf{#2\,#3\,#4\,#5}$%
-%   % \begin{tabular}{@{}b{#1}@{}b{#1}@{}b{#1}@{}b{#1}@{}}
-%   %   \mathsf{#2}&\mathsf{#3}&\mathsf{#4}&\mathsf{#5}
-%   % \end{tabular}
-% }%
-\ExplSyntaxOn
-\NewDocumentCommand{\mathul}{m}{
-  \mathpalette\mathul:nn{#1}
-}
-\cs_new:Npn \mathul:nn #1#2 {
-  \tikz [baseline] {
-    \node (pr) [anchor = base, inner~sep = 0em] {$#1#2$};
-    \draw [overlay, ultra~thick, gray]
-      ([yshift=-0.3em]pr.base~west) -- ([yshift=-0.3em]pr.base~east);
-  }
-}
-\ExplSyntaxOff
-\begin{equation*}
-  \eps \fuse \mathul{\bit{1} \fuse \inc}
-    \trans \mathul{\eps \fuse \inc} \fuse \bit{0}
-    \trans \eps \fuse \bit{1} \fuse \bit{0}
-  \text{\,,}
-\end{equation*}
-% \begin{center}
-%   \begin{tikzpicture}
-%   [
-%     baseline, every node/.append style = {anchor = base},
-%     start chain, node distance = 1.5em, 
-%     every node/.append style = {on chain, join},
-%     every join/.append style = {->}
-%   ]
-%     \node {$\eps \fuse \bit{1} \fuse \inc$};
-%     \node {$\eps \fuse \inc \fuse \bit{0}$};
-%     \node {$\eps \fuse \bit{1} \fuse \bit{0}$};
-%     % \node {\threebits{e}{b_1}{i}};
-%     % \node {\threebits{e}{i}{b_0}};
-%     % \node {\threebits{e}{b_1}{b_0}};
-%   \end{tikzpicture}%
-%   ,
-% \end{center}
-% at which point no more rewrites are possible.
-where the rewrite sites available at each step are underlined;
-this trace computes $1 + 1 = 2$ in binary representation.\fxnote{\ \st{%
-More generally, the above rewrite rules adequately implement an increment operation:
-$C$ represents a counter with value $N$ if and only if $C \fuse \inc \trans+ C' \ntrans$ for some $C'$ that represents a counter of value $N + 1$.}}
-
-The above ordered logic program for increments has a progress property:
-For every counter $\octx$, there exists a counter $\octx'$ such that $\octx \fuse \inc \trans \octx'$.
-
-
-Notice that we can also allow multiple $\inc$s to be in flight at once, and that independent rewrites can thought of as happening concurrently.
-For instance, the counter $\eps \fuse \inc \fuse \bit{0} \fuse \inc$ has two $\inc$s in flight, and they give rise to independent rewrites.
-\begin{center}
-  \begin{tikzpicture}
-    \matrix [matrix of math nodes, column sep = 1.5em]
-    {
-      % First row
-      & |(inc-1-2)| \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \inc} & \\
-      % Second row
-      |(inc-2-1)| \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
-        && |(inc-2-3)| \eps \fuse \bit{1} \fuse \bit{1} \\
-      % Third row
-      & |(inc-3-2)| \mathul{\eps \fuse \inc} \fuse \bit{1} & \\
-    };
-
-    \begin{scope}
-    [ start chain, every join/.style={->} ]
-      \chainin (inc-2-1);
-      \begin{scope}[start branch=inc-1-2]
-        \chainin (inc-1-2) [join];
-      \end{scope}
-      \begin{scope}[start branch=inc-3-2]
-        \chainin (inc-3-2) [join];
-      \end{scope}
-      \chainin (inc-2-3) [join = with inc-1-2, join = with inc-3-2];
-    \end{scope}
-  \end{tikzpicture}
-\end{center}
 
 
 % \begin{center}
@@ -1276,128 +1454,8 @@ For instance, the counter $\eps \fuse \inc \fuse \bit{0} \fuse \inc$ has two $\i
 % \end{center}
 
 
-\NewPredicate{\incs}{0}%
-\begin{equation*}
-  \incs \lrimp \monad{\inc \fuse \incs}
-\end{equation*}
-\begin{equation*}
-  \eps \fuse \incs
-    \trans \eps \fuse \inc \fuse \incs
-    \trans \dotsb
-    \trans \eps \fuse \inc \fuse \dotsb \fuse \inc \fuse \incs
-    \trans \dotsb
-\end{equation*}
 
 
-
-\subsubsection{Example: Binary counter with decrements}\label{sec:exampl-binary-count-3}
-
-It's also possible to add support for decrements to the above ordered logic program.
-%
-\NewPredicate{\dec}{0}%
-\NewPredicate{\zero}{0}%
-\RenewPredicate{\succ}{0}%
-%
-Like increments, a decrement instruction is represented by a $\dec$ atom at the counter's least significant end.
-To perform the decrement, a $\dec$ begins propogating up the counter.
-As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$s to indicate that they are waiting to borrow from their more significant neighbors:
-\begin{equation*}
-  \bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \,.
-\end{equation*}
-Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\dec$ is replaced with either $\zero$ or $\succ$, respectively, to show whether the borrow was possible; in the case of $\bit{1}$, the borrow is also effected:
-\begin{align*}
-  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
-  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ} \,.
-\end{align*}
-Then the $\zero$ or $\succ$ travels back over all of the $\bit[']{0}$s that were waiting to borrow.
-In the case of $\zero$, the bits are returned to their original $\bit{0}$ state because no borrow was possible;
-in the case of $\succ$, a borrow was performed and so the bits are set to $\bit{1}$:
-\begin{align*}
-  &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
-  &\succ \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ} \,.
-\end{align*}
-
-
-% According to the following rewrite rules, a $\dec$ propogates up the counter past any $\bit{0}$s until it reaches an $\eps$ or the right-most $\bit{1}$.
-% At this point, the $\dec$ is replaced with either $\zero$ or $\succ$, respectively.
-% \begin{align*}
-%   &\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \\
-%   &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
-%   &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ}
-% \end{align*}
-% Then the $\zero$ or $\succ$ traveles back down the counter
-% \begin{align*}
-%   &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
-%   &\succ \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \succ}
-% \end{align*}
-
-
-For example, the counter $\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$ can be rewritten as
-\begin{align*}
-  \MoveEqLeft[0.5]
-  \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
-    &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
-    &\trans \eps \fuse \mathul{\bit{0} \fuse \succ} \fuse \bit[']{0} \\
-    &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \succ \\
-    &\ntrans
-\end{align*}
-% \begin{center}
-%   \begin{tikzpicture}
-%   [
-%     baseline, every node/.append style = {anchor = base},
-%     start chain, node distance = 1.5em, 
-%     every node/.append style = {on chain, join},
-%     every join/.append style = {->}
-%   ]
-%     \node {$\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$};
-%     \node {$\eps \fuse \bit{1} \fuse \dec \fuse \bit[']{0}$};
-%     \node {$\eps \fuse \bit{0} \fuse \succ \fuse \bit[']{0}$};
-%     \node {$\eps \fuse \bit{0} \fuse \bit{1} \fuse \succ$};
-%   \end{tikzpicture}%
-%   ,
-% \end{center}
-at which point no more rewrites are possible.
-
-
-\begin{align*}
-  \MoveEqLeft[0.5]
-  \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \\
-    &\trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0}
-\end{align*}
-
-
-% c <- dec <- d =
-% { case d of
-%     eps => wait d;
-%            d' <- eps;
-%            c <- zero <- d'
-%   | bit0 => d' <- dec <- d
-%             c <- bit0' <- d'
-%   | bit1 => d' <- bit0 <- d
-%             c <- succ <- d' }
-
-% c <- zero <- d =
-% { case c of
-%     bit0' => d' <- bit0 <- d
-%              c <- zero <- d' }
-
-% Cntr = +{ eps: 1 , bit0: Cntr , bit1: Cntr }
-% Cntr' = &{ bit0': Cntr' }
-
-% bit0 : {Cntr |- Cntr}
-% dec : {Cntr |- Cntr'}
-% zero : {Cntr |- Cntr'}
-% bit0' : {Cntr' |- Cntr'}
-
-
-\begin{align*}
-  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
-  &\bit{0} \fuse \dec \lrimp \monad[auto]{
-                               \dec \fuse \parens[auto, align=c@{\,}l]{
-                                                & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
-                                          \with & (\succ \limp \monad{\bit{1} \fuse \succ})}} \\
-  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \succ}
-\end{align*}
 
 \NewPredicate{\epsq}[eps{?}]{0}%
 \NewPredicate{\yes}{0}%
@@ -1493,10 +1551,190 @@ c <- dec () <- d =
 
 \subsubsection{Technical details}\label{sec:technical-details}
 
+\NewDocumentCommand{\sig}{}{\Sigma}
+
 \begin{alignat*}{3}
   &\text{Negative Propositions} &\quad&& A^- &::= A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+} \\
   &\text{Positive Propositions} &&& A^+ &::= p^+ \mid A^+ \fuse B^+ \mid \one \mid A^-
 \end{alignat*}
+
+
+\NewDocumentCommand{\pseq}{}{\Vdash}
+\NewDocumentCommand{\pof}{m}{#1}
+\NewDocumentCommand{\pfuse}{m m}{#1 \fuse #2}
+\NewDocumentCommand{\pone}{}{\one}
+
+\NewDocumentCommand{\spof}{m}{#1}
+\NewDocumentCommand{\spnil}{}{\mathsf{nil}}
+\NewDocumentCommand{\sprapp}{m}{#1}
+\NewDocumentCommand{\splapp}{m}{#1}
+\ExplSyntaxOn
+\NewDocumentCommand{\sppi}{t1 t2 m}{
+  \IfBooleanTF {#1}
+    { \IfBooleanTF {#2}
+        { ERROR }
+        { \sppi_i:n {#3} } }
+    { \IfBooleanTF {#2}
+        { \sppi_ii:n {#3} }
+        { ERROR } }
+}
+
+\cs_new:Npn \sppi_i:n #1 { \pi\sb{1}; #1 }
+\cs_new:Npn \sppi_ii:n #1 { \pi\sb{2}; #1 }
+\ExplSyntaxOff
+
+\begin{alignat*}{3}
+  &\text{Patterns} &\quad&& p &::= x \mid \pfuse{p_1}{p_2} \mid \pone \\
+  &\text{Substitutions} &&& \theta &::= \cdot \mid y/x, \theta \mid N/x, \theta \\
+  &\text{Spines} &&& S &::= \sprapp{V ; S} \mid \splapp{V ; S} \mid \sppi1{S} \mid \sppi2{S} \mid \spnil \\
+\end{alignat*}
+
+\NewDocumentCommand{\lfoc}{m}{[#1]}
+\NewDocumentCommand{\rfoc}{m}{[#1]}
+
+\NewDocumentCommand{\tof}{m}{#1}
+\NewDocumentCommand{\rlam}{m}{\lambda #1}
+\NewDocumentCommand{\llam}{m}{\lambda #1}
+\NewDocumentCommand{\pair}{m}{\langle #1 \rangle}
+\ExplSyntaxOn
+\NewDocumentCommand{\tlet}{>{\SplitArgument{1}{in}}m}
+  { \tlet:nn #1 }
+\cs_new:Npn \tlet:nn #1#2 { \{\mathsf{let}\;#1\;\mathsf{in}\;#2\} }
+\ExplSyntaxOff
+
+\NewDocumentCommand{\aof}{m}{#1}
+\ExplSyntaxOn
+\NewDocumentCommand{\atm}{>{\SplitArgument{1}{.}}m}
+  { \atm:nn #1 }
+\cs_new:Npn \atm:nn #1#2 { #1 \cdot #2 }
+\ExplSyntaxOff
+
+\NewDocumentCommand{\trof}{m}{#1}
+\NewDocumentCommand{\tre}{}{\mathord{\diamond}}
+\NewDocumentCommand{\trseq}{m}{#1}
+
+\NewDocumentCommand{\stof}{m}{#1}
+\ExplSyntaxOn
+\NewDocumentCommand{\step}{>{\SplitArgument{1}{<-}}m}
+  { \step:nn #1 }
+\cs_new:Npn \step:nn #1#2 { #1 \leftarrow #2 }
+\ExplSyntaxOff
+
+\NewDocumentCommand{\vof}{m}{#1}
+
+
+\ExplSyntaxOn
+\NewDocumentCommand{\susp}{t+ t- m}{
+  \IfBooleanTF {#1}
+    { \IfBooleanTF {#2}
+        { ERROR }
+        { \susp_pos:n {#3} } }
+    { \IfBooleanTF {#2}
+        { \susp_neg:n {#3} }
+        { ERROR } }
+}
+
+\cs_new:Npn \susp_pos:n #1 { \susp_neut:n {#1} }
+\cs_new:Npn \susp_neg:n #1 { \susp_neut:n {#1} }
+\cs_new:Npn \susp_neut:n #1 { \langle #1 \rangle }
+\ExplSyntaxOff
+
+\begin{mathpar}
+  \infer{\omatch{x{:}A^-} \seq \aof{\atm{x . S} : \susp-{C^-}}}{
+    \ofill{\lfoc{A^-}} \seq S : \susp-{C^-}}
+  \and
+  \infer{\omatch{\octxe} \seq \aof{\atm{c . S} : \susp-{C^-}}}{
+    c{:}A^- \in \sig &
+    \ofill{\lfoc{A^-}} \seq S : \susp-{C^-}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\omatch{\lfoc{A^+ \rimp B^-}, \octx} \seq \spof{\sprapp{V;S} : \susp-{C^-}}}{
+    \octx \seq \vof{V : \rfoc{A^+}} &
+    \ofill{\lfoc{B^-}} \seq \spof{S : \susp-{C^-}}}
+  \and
+  \infer{\omatch{\octx, \lfoc{A^+ \limp B^-}} \seq \spof{\splapp{V;S} : \susp-{C^-}}}{
+    \octx \seq \vof{V : \rfoc{A^+}} &
+    \ofill{\lfoc{B^-}} \seq \spof{S : \susp-{C^-}}}
+  \and
+  \infer{\omatch{\lfoc{A^- \with B^-}} \seq \spof{\sppi1{S} : \susp-{C^-}}}{
+    \ofill{\lfoc{A^-}} \seq \spof{S : \susp-{C^-}}}
+  \and
+  \infer{\omatch{\lfoc{A^- \with B^-}} \seq \spof{\sppi2{S} : \susp-{C^-}}}{
+    \ofill{\lfoc{B^-}} \seq \spof{S : \susp-{C^-}}}
+  \and
+  \infer{\omatch{\lfoc{\monad{A^+}}} \seq \spof{\spnil : \susp-{\monad{A^+}}}}{
+    }
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{x{:}\susp+{p^+} \pseq \pof{x : p^+}}{
+    }
+  \and
+  \infer{\octx_1, \octx_2 \pseq \pof{\pfuse{p_1}{p_2} : A^+_1 \fuse A^+_2}}{
+    \octx_1 \pseq \pof{p_1 : A^+_1} &
+    \octx_2 \pseq \pof{p_2 : A^+_2}}
+  \and
+  \infer{\octxe \pseq \pof{\pone : \one}}{
+    }
+  \and
+  \infer{x{:}A^- \pseq \pof{x : A^-}}{
+    }
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\octxe \seq \cdot : \octxe}{
+    }
+  \and
+  \infer{y{:}\susp+{p^+}, \octx_0 \seq y/x, \theta : (x{:}\susp+{p^+}, \octx')}{
+    \octx_0 \seq \theta : \octx'}
+  \and
+  \infer{\octx, \octx_0 \seq N/x, \theta : (x{:}A^-, \octx')}{
+    \octx \seq N : A^- &
+    \octx_0 \seq \theta : \octx'}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\octx \seq \vof{\sigma(p) : \rfoc{A^+}}}{
+    \octx_A \pseq \pof{p : A^+} &
+    \octx \seq \sigma : \octx_A}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\octx \seq \tof{\rlam{p.N} : A^+ \rimp B^-}}{
+    \octx_A \pseq \pof{p : A^+} &
+    \octx, \octx_A \seq \tof{N : B^-}}
+  \and
+  \infer{\octx \seq \tof{\llam{p.N} : A^+ \limp B^-}}{
+    \octx_A \pseq \pof{p : A^+} &
+    \octx_A, \octx \seq \tof{N : B^-}}
+  \and
+  \infer{\octx \seq \tof{\pair{N_1, N_2} : A^-_1 \with A^-_2}}{
+    \octx \seq \tof{N_1 : A^-_1} &
+    \octx \seq \tof{N_2 : A^-_2}}
+  \and
+  \infer{\octx \seq \tof{\tlet{T in V} : \monad{A^+}}}{
+    \trof{T :: \octx \trans* \octx'} &
+    \octx' \seq \vof{V : \rfoc{A^+}}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\stof{\step{p <- R} :: \omatch{\octx} \trans \ofill{\octx_A}}}{
+    \octx \seq \aof{R : \susp-{\monad{A^+}}} &
+    \octx_A \pseq \pof{p : A^+}}
+  \\
+  \infer{\trof{\tre :: \octx \trans* \octx}}{
+    }
+  \and
+  \infer{\trof{\trseq{T ; T'} :: \octx \trans* \octx''}}{
+    \trof{T :: \octx \trans* \octx'} &
+    \trof{T' :: \octx' \trans* \octx''}}
+  \and
+  \infer{\trof{S :: \octx \trans* \octx'}}{
+    \trof{S :: \octx \trans \octx'}}
+\end{mathpar}
+
+
 
 
 
@@ -1524,29 +1762,22 @@ I would argue that it should not be weakly fair because, with $c_1 : p \rimp \mo
 
 
 
-\NewDocumentCommand{\lfoc}{m}{[#1]}
-\NewDocumentCommand{\rfoc}{m}{[#1]}
 
 \NewDocumentCommand{\hole}{}{\square}
-\NewDocumentCommand{\pseq}{}{\Vdash}
 \NewDocumentCommand{\pval}{o m}{%
   \IfValueT{#1}{#1 :} \rfoc{#2}}
 \NewDocumentCommand{\vfuse}{m m}{#1 \fuse #2}
 \NewDocumentCommand{\vone}{}{\one}
 \NewDocumentCommand{\npat}{o m m}{%
   \IfValueT{#1}{#1 :} \lfoc{#2} \mathrel{>} #3}
-\NewDocumentCommand{\susp}{m}{\langle#1\rangle}
-\NewDocumentCommand{\suspp}{m}{\susp{#1}}
-\NewDocumentCommand{\suspn}{m}{\susp{#1}}
 \NewDocumentCommand{\pappr}{m m}{#1;#2}
 \NewDocumentCommand{\pappl}{m m}{#1;#2}
 \NewDocumentCommand{\pfst}{m}{\pi_1;#1}
 \NewDocumentCommand{\psnd}{m}{\pi_2;#1}
 \NewDocumentCommand{\pnil}{}{\text{\textsc{nil}}}
+\NewDocumentCommand{\suspp}{m}{\susp+{#1}}
+\NewDocumentCommand{\suspn}{m}{\susp-{#1}}
 
-\NewDocumentCommand{\atm}{m m}{#1 \cdot #2}
-\NewDocumentCommand{\rlam}{m m}{\lambda #1.#2}
-\NewDocumentCommand{\llam}{m m}{\lambda #1.#2}
 \NewDocumentCommand{\apair}{m m}{\langle #1, #2\rangle}
 
 \begin{alignat*}{3}
