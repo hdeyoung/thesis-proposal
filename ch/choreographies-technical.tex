@@ -1,0 +1,74 @@
+% arara: pdflatex
+% arara: biber
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[
+  class=../hdeyoung-proposal,
+  crop=false
+]{standalone}
+
+\usepackage{ordered-logic}
+\usepackage{basic-atoms}
+
+\NewDocumentCommand{\chor}{}{X}
+\NewDocumentCommand{\spec}{}{\Sigma}
+
+\NewDocumentCommand{\erasemsg}{m}{#1^{e}}
+
+\NewDocumentCommand{\trans}{t* t+ o}{%
+  \longrightarrow
+  \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+  \IfValueT{#3}{_{#3}}%
+}
+
+% \cs_new_protected:Nn \trans: {
+%   \peek_meaning:nTF {*}
+%     { \@@_trans_star: }
+%     { \peek_meaning:nTF {+}
+%         { \@@_trans_plus: }
+%    \longrightarrow
+%   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+%   \IfValueT{#3}{_{#3}}%
+% }
+
+\begin{document}
+
+\subsection{Choreographies, formally}\label{sec:chor-formal}
+
+Hopefully the preceding examples have given some intuition for what counts as a choreography.
+To make the definition precise, we need only formalize the locality and specification-preserving properties.
+
+We use the forward-chaining ordered logic programming language described in \cref{??}, with a few restrictions.
+
+
+\subsubsection{Locality}\label{sec:locality}
+
+Each clause must have the form $U^+ \lrimp \monad{A^+}$, where $U^+$ is an \vocab{uncurried local premise} that adheres to the following grammar:
+\begin{alignat*}{2}
+  A^- &::= L^+ \limp \monad{A^+} \mid R^+ \rimp \monad{A^+} \mid A^-_1 \with A^-_2 \\
+  A^+ &::= \p^+ \mid \p[->]^+ \mid \p[<-]^+ \mid A^+_1 \fuse A^+_2 \mid \one \mid A^- \\
+  U^+ &::= L^+ \fuse U^+ \mid \p^+ \mid U^+ \fuse R^+ \\
+  L^+ &::= \p[->]^+ \mid L^+_1 \fuse L^+_2 \mid \one \\
+  R^+ &::= \p[<-]^+ \mid R^+_1 \fuse R^+_2 \mid \one
+\end{alignat*}
+The grammar is a bit complicated, but the idea behind it is simple and matches the intuition behind locality:
+an uncurried local premise $U^+$ contains exactly one process atom $\p^+$ that receives right-directed messages, $\p[->]^+$, from its left and left-directed messages, $\p[<-]^+$, from its right.
+
+At the expense of a more complicated grammar, we could allow curried clauses, such as $\p[_1, ->]^+ \lrimp \p[_2, ->]^+ \limp \p^+ \rimp \p[_3, <-]^+ \rimp \monad{A^+}$.
+Uncurrying clauses would not seem to place a large burden on the programmer, for it is easy enough to write $\q[->]^+ \fuse \p[->]^+ \fuse \rr^+ \fuse \s[<-]^+ \lrimp \monad{A^+}$, and this detail is anyway orthogonal to what follows.
+
+\subsubsection{Specification-preserving}\label{sec:spec-pres}
+
+\begin{definition}[Specification-preserving]
+  An ordered logic program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if:
+  \begin{enumerate}
+  \item for each step $\octx \trans[\spec] \octx'$ in the specification $\spec$, there is a non-empty trace $\octx \trans+[\chor] \octx'$ in the program $\chor$; and
+  \item for each step $\octx \trans[\chor] \octx'$ in the program $\chor$, either $\erasemsg{(\octx)} = \erasemsg{(\octx')}$ or there is a step $\erasemsg{(\octx)} \trans[\spec] \erasemsg{(\octx')}$ in the specification $\spec$.
+  \end{enumerate}
+\end{definition}
+
+\end{document}
+
+%%% Local Variables:
+%%% TeX-master: "choreographies"
+%%% End:

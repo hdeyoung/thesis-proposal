@@ -1,0 +1,589 @@
+% arara: pdflatex
+% arara: biber
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[
+  class=../hdeyoung-proposal,
+  crop=false
+]{standalone}
+
+\usepackage{ordered-logic}
+\usepackage{binary-counter}
+\usepackage{proof}
+\usepackage{tikz}
+
+\NewDocumentCommand{\trans}{t* t+ o}{%
+  \longrightarrow
+  \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+  \IfValueT{#3}{_{#3}}%
+}
+\NewDocumentCommand{\ntrans}{}{
+  \longarrownot\trans
+}
+
+\DeclareAcronym{CLF}{
+  short = CLF,
+  long = the concurrent logical framework
+}
+
+\NewPredicate{\Cntr}[Cntr][font = \mathit]{0}
+\NewPredicate{\cntr}[Cntr]{0}
+
+\NewPredicate{\coin}{0}
+\NewPredicate{\heads}{0}
+\NewPredicate{\tails}{0}
+\NewPredicate{\win}{0}
+\NewPredicate{\loss}{0}
+
+\begin{document}
+
+\subsection{Example: Binary counter}\label{sec:exampl-binary-count-5}
+
+Using an ordered logic program, we can specify an incrementable binary counter.
+% Here we give an ordered logic program for an incrementable binary counter.
+% We can implement an incrementable binary counter as an ordered logic program.
+% From the perspective of string rewriting, atomic propositions are letters, and ordered conjunctions of these atoms are strings.
+% 
+% % In the string rewriting terminology, atomic propositions correspond to letters; ordered conjunctions of these atoms correspond to strings; and ordered implications correspond to string rewriting rules.
+% In the string rewriting terminology, atomic propositions correspond to letters, and ordered conjunctions of these atoms correspond to strings.
+% % Using a focused proof search strategy~\autocite{Andreoli:JLC92}, ordered implications correspond to string rewriting rules.
+The counter is represented as a string of $\bit{0}$ and $\bit{1}$ atoms terminated at the most significant end by an $\eps$.
+For instance, the ordered conjunction $\eps \fuse \bit{1} \fuse \bit{0}$ is a string that represents a counter with value $2$.
+%
+Increment instructions are represented by $\inc$ atoms at the counter's least significant end. 
+% Also interspersed are $\inc$ atoms, each of which serves as an increment instruction sent to the counter given by the more significant bits.
+Thus, $\eps \fuse \bit{1} \fuse \inc$ represents a counter with value $1$ that has been instructed to increment once.
+
+Operationally, increments are described by the program's three clauses, the first of which is
+\begin{equation*}
+  \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+  \,.
+\end{equation*}
+From a string rewriting perspective, this implication is a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$.%
+% From a string rewriting perspective, this implication is interpreted as a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$.%
+\footnote{This interpretation is justified because, logically, implications transform one resource into another.  This will be explained in more detail in \cref{??}.}
+%  in the sense that the following bottom-up rule
+% % This clause allows the string $\bit{1} \fuse \inc$ to be rewritten as $\inc \fuse \bit{0}$, in the sense that the rule
+% is admissible whenever this clause is part of the persistent context, $\uctx$.
+% \begin{equation*}
+%   \infer{\uctx ; \omatch{\bit{1} \fuse \inc} \seq C \lax}{
+%     \uctx ; \ofill{\inc \fuse \bit{0}} \seq C \lax}
+% \end{equation*}}
+%
+% Just as this implication transforms 
+% When this proposition is part of the persistent context $\uctx$, the rule
+% \begin{equation*}
+%   \infer{\uctx ; \omatch{\bit{1} \fuse \inc} \seq C \lax}{
+%     \uctx ; \ofill{\inc \fuse \bit{0}} \seq C \lax}
+%   \,.
+% \end{equation*}
+% is admissible.
+% Read bottom-up, this rule serves to rewrite the (sub)string $\bit{1} \fuse \inc$ as the string $\inc \fuse \bit{0}$.
+%
+By rewriting $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, this clause serves to carry the $\inc$ up past any $\bit{1}$s that may exist at the counter's least significant end.
+
+Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carry is resolved by one of the other two program clauses:
+\begin{align*}
+  &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+  &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \,.
+\end{align*}
+By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, this second clause ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
+By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third clause ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
+
+For example, the counter $\eps \fuse \bit{1} \fuse \inc$ can be maximally rewritten as
+\ExplSyntaxOn
+\NewDocumentCommand{\mathul}{m}{
+  \mathpalette\mathul:nn{#1}
+}
+\cs_new:Npn \mathul:nn #1#2 {
+  \tikz [baseline] {
+    \node (pr) [anchor = base, inner~sep = 0em] {$#1#2$};
+    \draw [overlay, ultra~thick, gray]
+      ([yshift=-0.3em]pr.base~west) -- ([yshift=-0.3em]pr.base~east);
+  }
+}
+\ExplSyntaxOff
+\begin{equation*}
+  \eps \fuse \mathul{\bit{1} \fuse \inc}
+    \trans \mathul{\eps \fuse \inc} \fuse \bit{0}
+    \trans \eps \fuse \bit{1} \fuse \bit{0}
+    \ntrans
+  \text{\,,}
+\end{equation*}
+where at each step the sites available for rewriting are underlined.
+This trace computes $1 + 1 = 2$ in binary representation.
+More generally, the above clauses adequately specify an increment operation:
+string $S$ represents a counter with value $N$ if and only if $S \fuse \inc \trans+ S' \ntrans$ for some string $S'$ that represents a counter of value $N + 1$, where $\trans+$ denotes the transitive closure of the rewriting relation $\trans$.
+
+\subsection{Concurrency}\label{sec:concurrency-1}
+
+Some strings contain more than one rewrite site.
+% several disjoint substrings that are amenable to rewriting.
+% If these sites are disjoint, the rewrites can be thought of as happening concurrently.
+For instance, the following binary counter has two $\inc$s in flight, which give rise to two disjoint rewrite sites.
+\begin{equation*}
+  \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+\end{equation*}
+The rewrites in this example can be interleaved in two ways: either
+% there are two interleavings of these rewrites: either
+\begin{align*}
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+     \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \inc}
+     \trans \eps \fuse \bit{1} \fuse \bit{1}
+     \ntrans \\
+  %
+  \shortintertext{or}
+  %
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+     \trans \mathul{\eps \fuse \inc} \fuse \bit{1}
+     \trans \eps \fuse \bit{1} \fuse \bit{1}
+     \ntrans
+   \,.
+\end{align*}
+
+However, because these two rewrites are independent, they should be considered morally concurrent.
+Rather than giving a truly concurrent semantics for string rewriting, we can treat different interleavings of independent steps as indistinguishable.
+Then, because we can't observe which rewrite occurred first, the two rewrites appear to happen concurrently.
+This is the idea of \vocab{concurrent equality} from {CLF}~\autocite{Watkins+:CMU02} that gives a pretense to true concurrency, borrowed for ordered logic programming.
+
+
+\subsubsection{Infinite traces and fairness}
+
+\NewPredicate{\incs}{0}%
+Thus far, all traces have been finite, but this is not necessarily so.
+Consider adding an atom, $\incs$, that generates a stream of $\inc$ atoms:
+\begin{equation*}
+  \incs \lrimp \monad{\inc \fuse \incs}
+  \,.
+\end{equation*}
+Among the infinite traces now possible is
+% Beginning from $\eps \fuse \incs$, there are now infinite trace
+\begin{equation*}
+  \eps \fuse \mathul{\incs}
+    \trans \mathul{\eps \fuse \inc} \fuse \mathul{\incs}
+    \trans \dotsb
+    \trans \mathul{\eps \fuse \inc} \fuse \inc \fuse \dotsb \fuse \inc \fuse \mathul{\incs}
+    \trans \dotsb
+  \,.
+\end{equation*}
+
+Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$, instead always choosing to rewrite $\incs$.
+Because of its\fxnote{\ \st{scheduling}} bias against rewriting $\eps \fuse \inc$, we say that the trace is \vocab{(weakly) process-unfair}.
+
+Process unfairness is fundamentally at odds with true concurrency.
+Because true concurrency allows multiple independent events to occur simultaneously, one event cannot preclude another independent event;
+in the above example, for instance, rewriting the $\incs$ atom would not preclude rewriting the independent $\eps \fuse \inc$ substring.
+Therefore, to maintain the pretense of true concurrency, we must require all traces to be (weakly) process-fair.
+
+
+% Transition unfairness is fundamentally at odds with true concurrency
+% because true concurrency allows multiple independent events to occur simultaneously;
+% the occurrence of one event cannot preclude another independent event from occurring at the same time.
+% To maintain the pretense of true concurrency, 
+
+% In the above example, $\eps \fuse \inc$ and $\incs$ are independent rewrite sites
+
+% In the above example, $\eps \fuse \inc$ and $\incs$ are independent rewrite sites.
+% % ; if they are truly concurrent, the rewrite of $\eps \fuse \inc$ should eventually occur.
+% To maintain any pretense of true concurrency, the rewrite of $\eps \fuse \inc$ should eventually occur since true concurrency would allow multiple independent events to occur simultaneously.
+
+
+
+% However, by treating different interleavings of independent steps as indistinguishable, these two rewrites happen concurrently.
+
+
+
+
+% For instance, notice that this binary counter specification allows multiple $\inc$s to be in flight at once, each of which is amenable to rewriting.
+
+
+
+% Sometimes several disjoint substrings are amenable to rewriting.
+
+
+% Different interleavings of independent steps are indistinguishable.
+
+% String rewriting (and therefore ordered logic programming) gives rise to 
+
+
+% The counter $\eps \fuse \inc \bit{0} \fuse \inc$ has two $\inc$s in flight, which can be rewritten independently.
+
+
+% Rewrites of disjoint substrings can be thought of as happening concurrently.
+
+% Notice that we can also allow multiple $\inc$s to be in flight at once, and that independent rewrites can thought of as happening concurrently.
+% For instance, the counter $\eps \fuse \inc \fuse \bit{0} \fuse \inc$ has two $\inc$s in flight, and they give rise to independent rewrites.
+% \begin{center}
+%   \begin{tikzpicture}
+%     \matrix [matrix of math nodes, column sep = 1.5em]
+%     {
+%       % First row
+%       & |(inc-1-2)| \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \inc} & \\
+%       % Second row
+%       |(inc-2-1)| \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
+%         && |(inc-2-3)| \eps \fuse \bit{1} \fuse \bit{1} \\
+%       % Third row
+%       & |(inc-3-2)| \mathul{\eps \fuse \inc} \fuse \bit{1} & \\
+%     };
+
+%     \begin{scope}
+%     [ start chain, every join/.style={->} ]
+%       \chainin (inc-2-1);
+%       \begin{scope}[start branch=inc-1-2]
+%         \chainin (inc-1-2) [join];
+%       \end{scope}
+%       \begin{scope}[start branch=inc-3-2]
+%         \chainin (inc-3-2) [join];
+%       \end{scope}
+%       \chainin (inc-2-3) [join = with inc-1-2, join = with inc-3-2];
+%     \end{scope}
+%   \end{tikzpicture}
+% \end{center}
+
+
+\subsection{Committed choice}\label{sec:committed-choice}
+
+% In our forward-chaining ordered logic programming language, we assume a \vocab{committed-choice} semantics, meaning that when multiple rewritings are possible at a given site the choice is never reconsidered.
+In forward-chaining ordered logic programming, we assume a \vocab{committed-choice} semantics, meaning that when several rewritings are possible at a given site, one is chosen and that choice is never reconsidered.
+
+Committed choice does not clearly arise in the binary counter example;
+instead, consider a single-player game in which the player wins if a
+% each of two coin tosses land heads.
+coin toss lands heads.
+As an forward-chaining ordered logic program, this game is specified
+\begin{align*}
+  &\coin \lrimp \monad{\heads} \\
+  &\coin \lrimp \monad{\tails} \\
+  &\heads \lrimp \monad{\win} \\
+  &\tails \lrimp \monad{\loss}
+  \,.
+\end{align*}
+The first two clauses specify that a $\coin$ may land either $\heads$ or $\tails$, and the remaining clauses specify the winning condition.
+
+% One way in which the starting string $\coin \fuse \coin$ of two coins can be maximally rewritten is
+One way in which the starting string can be maximally rewritten is
+\begin{equation*}
+  \mathul{\coin}
+    \trans \mathul{\tails}
+    \trans \loss
+    \ntrans
+  \,.
+\end{equation*}
+Here the $\coin$ lands $\tails$, resulting in a $\loss$.
+To get a $\win$, we'd like to somehow take back the toss and have it instead land $\heads$.
+% Here the first $\coin$ lands $\tails$ and the second $\coin$ lands $\heads$, resulting in a $\loss$.
+% To get a $\win$, we'd like to somehow take back the first toss and have it instead land $\heads$.
+This violation of the game's rules is just what the committed-choice semantics proscribes: once the coin is tossed, we must commit to that toss's outcome.
+
+
+
+\subsection{Example: Binary counter with decrements}\label{sec:exampl-binary-count-3}
+
+Returning to the binary counter, its also possible \dots
+
+To reiterate some of the points made above, \dots
+
+It's also possible to add support for decrements to the above ordered logic program.
+Like increments, a decrement instruction is represented by a $\dec$ atom at the counter's least significant end.
+To perform the decrement, a $\dec$ begins propagating up the counter.
+As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$s to indicate that they are waiting to borrow from their more significant neighbors:
+\begin{equation*}
+  \bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \,.
+\end{equation*}
+Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\dec$ is replaced with either $\zero$ or $\suc$, respectively, to show whether the borrow was possible; in the case of $\bit{1}$, the borrow is also effected:
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc} \,.
+\end{align*}
+Then the $\zero$ or $\suc$ travels back over all of the $\bit[']{0}$s that were waiting to borrow.
+In the case of $\zero$, the bits are returned to their original $\bit{0}$ state because no borrow was possible;
+in the case of $\suc$, a borrow was performed and so the bits are set to $\bit{1}$:
+\begin{align*}
+  &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+  &\suc \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \suc} \,.
+\end{align*}
+
+
+% According to the following rewrite rules, a $\dec$ propogates up the counter past any $\bit{0}$s until it reaches an $\eps$ or the right-most $\bit{1}$.
+% At this point, the $\dec$ is replaced with either $\zero$ or $\suc$, respectively.
+% \begin{align*}
+%   &\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \\
+%   &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+%   &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc}
+% \end{align*}
+% Then the $\zero$ or $\suc$ traveles back down the counter
+% \begin{align*}
+%   &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+%   &\suc \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \suc}
+% \end{align*}
+
+
+For example, the counter $\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$ can be maximally rewritten as
+\begin{align*}
+  \MoveEqLeft[0.5]
+  \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
+    &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+    &\trans \eps \fuse \mathul{\bit{0} \fuse \suc} \fuse \bit[']{0} \\
+    &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \suc \\
+    &\ntrans
+\end{align*}
+Once again, there are possibilities for concurrency.
+For example, the following two traces are indistinguishable because they differ only in the order of independent rewrites:
+\begin{align*}
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+  %
+  \shortintertext{and}
+  %
+  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0}
+\end{align*}
+This justifies treating those two rewrites as concurrent.
+
+
+% C ::= eps | C * bit0 | C * bit1 | C * inc
+
+
+% c <- dec <- d =
+% { case d of
+%     eps => wait d;
+%            d' <- eps;
+%            c <- zero <- d'
+%   | bit0 => d' <- dec <- d
+%             c <- bit0' <- d'
+%   | bit1 => d' <- bit0 <- d
+%             c <- succ <- d' }
+
+% c <- zero <- d =
+% { case c of
+%     bit0' => d' <- bit0 <- d
+%              c <- zero <- d' }
+
+% Cntr = +{ eps: 1 , bit0: Cntr , bit1: Cntr }
+% Cntr' = &{ bit0': Cntr' }
+
+% bit0 : {Cntr |- Cntr}
+% dec : {Cntr |- Cntr'}
+% zero : {Cntr |- Cntr'}
+% bit0' : {Cntr' |- Cntr'}
+
+
+\begin{align*}
+  &\eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+  &\bit{0} \fuse \dec \lrimp \monad[auto]{
+                               \dec \fuse \parens[auto, align=c@{\,}l]{
+                                                & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+                                          \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
+  &\bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc}
+\end{align*}
+
+
+
+\subsection{Adequacy and generative invariants}\label{sec:gener-invar}
+
+Thus far, we have used ordered logic programs to specify concurrent systems, whereas the non-modal fragment of ordered logic was originally developed by \textcite{Lambek:AMM58} to describe sentence structure.
+However, these two modes of use of ordered logic are not as different as they might first appear.
+
+In our running example of an incrementable binary counter, the counter is represented as a string of $\bit{0}$, $\bit{1}$, and $\inc$ atoms terminated at the most significant end by an $\eps$.
+More precisely, a string is a well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the context-free grammar
+\begin{gather*}
+  \Cntr ::= \eps \mid \Cntr \fuse \bit{0} \mid \Cntr \fuse \bit{1} \mid \Cntr \fuse \inc
+  \,,
+%
+\intertext{which is an abbreviated notation for four distinct productions:}
+%
+  \begin{aligned}
+    &\Cntr \to \eps \\
+    &\Cntr \to \Cntr \fuse \bit{0} \\
+    &\Cntr \to \Cntr \fuse \bit{1} \\
+    &\Cntr \to \Cntr \fuse \inc
+    \,.
+  \end{aligned}
+\end{gather*}
+
+Building on \citeauthor{Lambek:AMM58}'s work, the same context-free grammar can be described in ordered logic using \vocab{generative signatures}~\autocite{Simmons:CMU12}.
+Each production in the grammar corresponds to a clause, with the $\Cntr$ nonterminal represented as the atomic proposition $\cntr$:
+\begin{equation*}
+  \begin{aligned}
+    &\cntr \lrimp \monad{\eps} \\
+    &\cntr \lrimp \monad{\cntr \fuse \bit{0}} \\
+    &\cntr \lrimp \monad{\cntr \fuse \bit{1}} \\
+    &\cntr \lrimp \monad{\cntr \fuse \inc}
+    \,.
+  \end{aligned}
+\end{equation*}
+Then, just as all well-formed binary counters are generated from the $\Cntr$ nonterminal according to the above productions, so are all binary counters generated as maximal rewritings of the $\cntr$ atom according to these clauses.
+% Just as a string is well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the above context-free grammar, so too is a string well-formed if it can be generated by maximally rewriting the $\cntr$ atom.
+For example, $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter because it is a maximal rewriting of $\cntr$:
+\begin{equation*}
+  \mathul{\cntr}
+    \trans \mathul{\cntr} \fuse \inc
+    \trans \mathul{\cntr} \fuse \bit{1} \fuse \inc
+    \trans \eps \fuse \bit{1} \fuse \inc
+    \ntrans
+  \,.
+\end{equation*}
+Note that 
+
+\begingroup
+  \RenewPredicate{\cntr}[Cntr]{1}%
+Generative signatures in fact generalize context-free grammars.
+One example is to augment $\cntr{}$ with a natural number, effectively \wc{giving}[\st{creating}] a countably infinite family of nonterminals.
+Thus, a binary counter is well-formed \emph{and} represents value $N$ if it is a maximal rewriting of $\cntr{N}$ according to the first-order ordered logic program
+\begin{equation*}
+  \begin{aligned}
+    &\cntr{0} \lrimp \monad{\eps} \\
+    &\cntr{(2N)} \lrimp \monad{\cntr{N} \fuse \bit{0}} \\
+    &\cntr{(2N{+}1)} \lrimp \monad{\cntr{N} \fuse \bit{1}} \\
+    &\cntr{(N{+}1)} \lrimp \monad{\cntr{N} \fuse \inc}
+    \,.
+  \end{aligned}
+\end{equation*}
+
+This generative signature allows us to formally state (and prove) adequacy of the incrementable binary counter program:
+\begin{definition}
+  A string is \vocab{quiescent} if $S \ntrans$.
+  A string $S$ is a \vocab{well-formed counter} if $\cntr{} \trans+ S \ntrans$.
+  A string $S$ \vocab{represents} natural number $N$ if $\cntr{N} \trans+ S \ntrans$.
+\end{definition}
+
+\begin{theorem}[Preservation]
+  For every well-formed counter $S$ such that $S \trans S'$, the string $S'$ is also a well-formed counter.
+\end{theorem}
+\begin{theorem}[Adequacy of counters]
+  \mbox{}
+  \begin{enumerate}
+  \item For every natural number $N$, there is a unique well-formed counter $S$ such that
+%     \item $\cntr{} \trans+ S \ntrans$;
+ $S$ represents $N$ and % $\cntr{N} \trans+ S \ntrans$
+ $S$ is quiescent.% $S \ntrans$.
+%  \item For every string $S$ such that $\cntr{} \trans+ S \ntrans$, there is a unique natural number $N$ such that $\cntr{N} \trans+ S \ntrans$.
+  \item For every well-formed counter $S$, there is a unique natural number $N$ such that $S$ represents $N$.
+  \end{enumerate}
+\end{theorem}
+\begin{theorem}[Adequacy of $\inc$]\mbox{}
+  \begin{enumerate}
+  \item If $N + 1 = N'$, then there exist well-formed counters $S$ and unique $S'$ such that string $S$ represents $N$, string $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$.
+  \item For all well-formed counters $S$ and $S'$ such that $S \fuse \inc \trans+ S' \ntrans$, there exist unique natural numbers $N$ and $N'$ such that string $S$ represents $N$, string $S'$ represents $N'$, and $N + 1 = N'$.
+  \end{enumerate}
+\end{theorem}
+
+\begin{theorem}[Adequacy of $\inc$]
+  $\cntr{N} \trans+ S \ntrans$ if and only if $S \fuse \inc \trans+ S' \ntrans$ and $\cntr{(N{+}1)} \trans+ S' \ntrans$.
+  \begin{itemize}
+  \item If $\cntr{N} \trans+ S \ntrans$ and $S \fuse \inc \trans+ S' \ntrans$, then $\cntr{(N{+}1)} \trans+ S' \ntrans$.
+  \item If $\cntr{N} \trans+ S \ntrans$, then $S \fuse \inc \trans+ S' \ntrans$.
+  \end{itemize}
+\end{theorem}
+\endgroup
+
+% stype C = &{ inc: C, dec: C', halt: X }
+%   and C' = +{ zero: C, succ: C }
+% eps : {C <- X}, bit0 : {C <- C}, bit1 : {C <- C}, inc : {C <- C},
+% dec : {C' <- C}, zero : {C' <- C}, succ : {C' <- C}, bit0' : {C' <- C'},
+% halt : {X <- C}
+% 
+%  C ::= X * eps | C * bit0 | C * bit1 | C * inc
+% C' ::= C * dec | C * zero | C * succ | C' * bit0'
+%  X ::= C * halt
+
+% stype C = &{ inc: C, dec: C' }
+%   and C' = +{ zero: C-, succ: C- }
+% bit0 : {C- <- C-} /\ {C <- C}, ...
+% 
+% C- ::= eps | C- * bit0 | C- * bit1
+%  C ::= eps | C * bit0 | C * bit1 | C * inc
+% C' ::= C * dec | C- * zero | C- * succ | C' * bit0'
+
+
+
+
+% \subsubsection{String rewriting rules as ordered implications.}
+
+% Using a focused proof search strategy~\autocite{Andreoli:JLC92}, ordered implications correspond to string rewriting rules.
+
+
+% \subsection{Example: Binary counter}\label{sec:exampl-binary-count-4}
+
+% As a running example, we can implement a binary counter that supports increments.
+% The counter is represented as a string of $\bit{0}$ and $\bit{1}$ letters terminated at the most significant end by an $\eps$.
+% So, for instance, the ordered conjunction, or string, $\eps \fuse \bit{1} \fuse \bit{0}$ represents a counter with value $2$.
+% Also interspersed are $\inc$ atoms, each of which serves as an increment instruction sent to the counter given by the more significant bits.
+% Thus, $\eps \fuse \bit{1} \fuse \inc$ represents a counter with value $1$ that has been sent an increment instruction.
+
+% Operationally, increments are described by three ordered implications that correspond to string rewriting rules; the first of these is
+% \begin{equation*}
+%   \bit{1} \fuse \inc \rimp \monad{\inc \fuse \bit{0}} \,.
+% \end{equation*}
+% By rewriting the string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, this rule carries the $\inc$ up past any $\bit{1}$s at the counter's least significant end.
+% Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carry is resolved:
+% \begin{align*}
+%   &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+%   &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \,.
+% \end{align*}
+% By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second rule ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
+% By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third rule ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
+
+
+
+% When this proposition is part of the persistent context $\uctx$, the following rule is derivable:
+% \begin{equation*}
+%   \infer{\uctx ; \omatch{\bit{1}, \inc} \seq J}{
+%     \uctx ; \ofill{\inc, \bit{0}} \seq J}
+%   \,.
+% \end{equation*}
+% Read bottom-up, this derived rule rewrites part of the ordered context so that $\bit{1}, \inc$ becomes $\inc, \bit{0}$.
+
+
+% % \begin{equation*}
+% %   \infer[\lab{copy}]{\uctx ; \omatch{\bit{1}, \inc} \seq J}{
+% %     \infer[\llab{{\rimp}}]{\uctx ; \ofill{\bit{1}, \inc, (\bit{1} \fuse \inc \rimp \inc \fuse \bit{0})} \seq J}{
+% %       \infer[\rlab{{\fuse}}]{\uctx ; \bit{1}, \inc \seq \bit{1} \fuse \inc}{
+% %         \infer[\lab{id}]{\uctx ; \bit{1} \seq \bit{1}}{
+% %           } &
+% %         \infer[\lab{id}]{\uctx ; \inc \seq \inc}{
+% %           }} &
+% %       \infer[\llab{{\fuse}}]{\uctx ; \ofill{\inc \fuse \bit{0}} \seq J}{
+% %         \uctx ; \ofill{\inc, \bit{0}} \seq J}}}
+% % \end{equation*}
+
+
+
+
+% \subsection{Example: Binary counter}\label{sec:exampl-binary-count-2}
+
+% As an example of an ordered logic program, we can implement a binary counter that supports increments.
+% Similarly to the process implementation from \cref{sec:exampl-binary-count}, the counter is represented as a list of $\bit{0}$ and $\bit{1}$s terminated at the most significant end by an $\eps$.
+% Here, however, the $\bit{}$s and $\eps$ are not processes, but rather atomic propositions (or, in string rewriting terminology, letters).
+% For instance, the ordered conjunction (or string) $\eps \fuse \bit{1} \fuse \bit{0}$ represents a counter with value $2$.
+
+% % An increment instruction is represented by an $\inc$ atom at the counter's least significant end.
+% % There are three rewrite rules that describe the increment operation:
+% % \begin{align*}
+% %   &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+% %   &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \\
+% %   &\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+% % \end{align*}
+% % By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the first rule introduces $\bit{1}$ as a new most significant bit, and thereby serves to increment an $\eps$.
+% % % By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$ and thereby introducing $\bit{1}$ as a new most significant bit, the first rule serves to increment $\eps$s.
+% % Likewise, the second rule serves to increment a counter whose least significant bit is $\bit{0}$, by rewriting $\bit{0} \fuse \inc$ as $\bit{1}$ and thereby flipping $\bit{0}$.
+% % % Likewise, by rewriting $\bit{0} \fuse \inc$ as $\bit{1}$ and thereby flipping $\bit{0}$, the second rule serves to increment a counter whose least significant bit is $\bit{0}$.
+% % Finally, by rewriting $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, the third rule flips $\bit{1}$ and propogates a carry to the more significant bits, thereby serving to increment a counter whose least significant bit is $\bit{1}$.
+
+% An increment instruction is represented by an $\inc$ atom at the counter's least significant end.
+% There are three rewrite rules that describe increments, the first of which is
+% \begin{equation*}
+%   \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}} \,.
+% \end{equation*}
+% By rewriting $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, this rule carries the $\inc$ up past any $\bit{1}$s at the counter's least significant end.
+% Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carry is resolved:
+% \begin{align*}
+%   &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \\
+%   &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \,.
+% \end{align*}
+% By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second rule ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
+% By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third rule ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
+
+\end{document}
+
+%%% Local Variables:
+%%% TeX-master: "ordered-lp"
+%%% End:

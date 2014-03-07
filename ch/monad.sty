@@ -1,0 +1,91 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {monad}
+  {2014/02/24}
+  {0.1}
+  {Monad macro}
+
+\RequirePackage{xparse}
+
+\RequirePackage{amsmath}
+\RequirePackage{mathtools}
+
+\keys_define:nn { monad } { 
+  size .choice: ,
+  size / none .code:n = { \tl_clear:N \l_monad_size_tl } ,
+  size / auto .code:n = {
+    \tl_set:Nn \l_monad_size_tl { * }
+    \keys_set:nn { monad } { split = false }
+  } ,
+  size .choice_code:n = {
+    \tl_set:Nf \l_monad_size_tl
+      { \exp_not:c { \tl_use:N \l_keys_choice_tl } }
+
+    \tl_put_left:Nn  \l_monad_size_tl { [ }
+    \tl_put_right:Nn \l_monad_size_tl { ] }
+  } ,
+  size .generate_choices:n = { big , Big , bigg , Bigg } ,
+  size .value_required: ,
+  %
+  split .bool_set:N = \l_monad_split_bool ,
+  split .default:n  = true ,
+  split .initial:n  = true ,
+  % 
+  align .tl_set:N        = \l_monad_align_tl ,
+  align .value_required: ,
+  align .initial:n       = l ,
+  % 
+  defaults .meta:n = { align = l , split , size = none } ,
+}
+
+\clist_map_inline:nn { auto , big , Big , bigg , Bigg } {
+  \keys_define:nn { monad } {
+    #1 .meta:n = { size = #1 }
+  }
+}
+
+
+\cs_new_protected:Npn \monad_monad_delims:Nn #1#2
+  { #1 #2 }
+\cs_generate_variant:Nn \monad_monad_delims:Nn { NV }
+
+\cs_new_protected:Npn \monad_monad_beginarray:nn #1#2
+  { \begin{array} [#1] { @{} #2 @{} } }
+\cs_generate_variant:Nn \monad_monad_beginarray:nn { nV }
+
+\cs_new_protected:Npn \monad_monad_endarray:
+  { \end{array} }
+
+
+\cs_new_protected:Npn \monad_monad_aux:Nnn #1#2#3 {
+  \group_begin:
+    \keys_set:nn { monad } { defaults, #2 }
+
+    \bool_if:NTF \l_monad_split_bool
+      {
+        \monad_monad_delims:NV #1 \l_monad_size_tl
+          {
+            \monad_monad_beginarray:nV {t} \l_monad_align_tl
+              #3
+          }
+          \monad_monad_endarray:
+      }
+      {
+        \monad_monad_delims:NV #1 \l_monad_size_tl
+          {
+            \monad_monad_beginarray:nV {c} \l_monad_align_tl
+              #3
+            \monad_monad_endarray:
+          }
+      }
+  \group_end:
+}
+
+
+\DeclarePairedDelimiter \monad_braces:w {\lbrace} {\rbrace}
+\NewDocumentCommand \monad { O{} m }
+  { \monad_monad_aux:Nnn \monad_braces:w {#1} {#2} }
+
+\DeclarePairedDelimiter \monad_parens:w {\lparen} {\rparen}
+\NewDocumentCommand \parens { O{} m }
+  { \monad_monad_aux:Nnn \monad_parens:w {#1} {#2} }

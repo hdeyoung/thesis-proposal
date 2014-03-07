@@ -1,0 +1,28 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {binary-counter}
+  {2014/02/19}
+  {0.1}
+  {Binary counter propositions}
+
+\RequirePackage{predicates}
+
+\NewPredicate {\num} {1}
+\NewPredicate {\inc} {0}
+
+\NewPredicate {\eps} [ {\smash[b]{\mathsf{eps}}} ] {0}
+
+\exp_args:Nc \NewPredicate { bit0 } [ bit\sb{0} ] {0}
+\exp_args:Nc \NewPredicate { bit1 } [ bit\sb{1} ] {0}
+\NewPredicate {\bitp} [ bit ] {0}
+\NewDocumentCommand \bit { O{} m O{} }
+  {
+    \tl_if_empty:nTF {#2}
+      { \bitp }
+      { \use:c { bit#2 } }
+    [#1,#3]
+  }
+
+\NewPredicate {\dec} {0}
+\NewPredicate {\zero} {0}
+\NewPredicate {\suc} [ succ ] {0}

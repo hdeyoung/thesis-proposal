@@ -1,0 +1,42 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {ordered-logic}
+  {2014/02/19}
+  {0.1}
+  {Ordered logic macros}
+
+\RequirePackage{amsmath}
+
+\PassOptionsToPackage{heavycircles}{stmaryrd}
+\RequirePackage{stmaryrd}
+
+\RequirePackage{monad}
+
+\NewDocumentCommand{\fuse}{}{\bullet}
+\NewDocumentCommand{\esuf}{}{\circ}
+\NewDocumentCommand{\one}{}{\mathord{\mathbf{1}}}
+\NewDocumentCommand{\with}{}{\mathbin{\binampersand}}
+
+\NewDocumentCommand{\rimp}{}{\mathbin{\twoheadrightarrow}}
+\NewDocumentCommand{\limp}{}{\mathbin{\rightarrowtail}}
+\NewDocumentCommand{\lrimp}{}{\mathbin{\rightarrowtriangle}}
+
+\NewDocumentCommand{\bang}{}{\mathord{\text{!}}}
+\NewDocumentCommand{\gnab}{}{\mathord{\text{!`}}}
+
+\NewDocumentCommand{\octx}{}{\Omega}
+\NewDocumentCommand{\octxe}{}{\cdot}
+
+\NewDocumentCommand{\omatch}{O{} m}{\Theta#1\lbrace#2\rbrace}
+\NewDocumentCommand{\ofill}{O{} m}{\Theta#1\lbrace#2\rbrace}
+
+\NewDocumentCommand{\uctx}{}{\Gamma}
+\NewDocumentCommand{\seq}{}{\vdash}
+\NewDocumentCommand{\lax}{}{%
+  \relax\ifnum\lastnodetype>0\mskip\medmuskip\fi
+  \text{\normalfont\textsf{lax}}%
+}
+
+\NewDocumentCommand{\subst}{>{\SplitArgument{1}{/}}m m}{%
+  \subst:nnn #1 {#2} }
+\cs_new:Npn \subst:nnn #1#2#3 { [#1/#2]#3 }

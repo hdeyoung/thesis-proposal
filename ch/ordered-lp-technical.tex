@@ -1,0 +1,153 @@
+% arara: pdflatex
+% arara: biber
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[
+  class=../hdeyoung-proposal,
+  crop=false
+]{standalone}
+
+\usepackage{ordered-logic}
+\usepackage{basic-atoms}
+\usepackage{ordered-lp-terms}
+\usepackage{proof}
+\usepackage{mathpartir}
+
+\NewDocumentCommand{\tctx}{}{\Psi}
+\NewDocumentCommand{\tctxe}{}{\cdot}
+
+% \NewDocumentCommand{\trans}{t* t+ o}{%
+%   \longrightarrow
+%   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+%   \IfValueT{#3}{_{#3}}%
+% }
+% \NewDocumentCommand{\ntrans}{}{
+%   \longarrownot\trans
+% }
+
+\begin{document}
+
+\subsection{Technical details}\label{sec:technical-details}
+
+\begin{alignat*}{2}
+  &\text{Negative propositions}\quad & A^- &::= \forall a{:}\tau. A^- \mid A^+ \rimp B^- \mid A^+ \limp B^- \mid A^-_1 \with A^-_2 \mid \monad{A^+} \\
+  &\text{Positive propositions}      & A^+ &::= \p^+ \mid A^+ \fuse B^+ \mid \one \mid \exists a{:}\tau. A^+ \mid A^-
+\end{alignat*}
+
+\begin{alignat*}{2}
+  &\text{Normal terms}\quad & N &::= \tlam{a.N} \mid \rlam{p.N} \mid \llam{p.N} \mid \pair{N_1, N_2} \mid \lett{T in V} \\
+  &\text{Atomic terms}\quad & R &::= \atm{c . S} \mid \atm{x . S} \\
+  &\text{Spines} & S &::= \tapp{t ; S} \mid \rapp{V ; S} \mid \lapp{V ; S} \mid \fst{S} \mid \snd{S} \mid \snil \\
+  &\text{Values} & V &::= x \mid \vfuse{V_1}{V_2} \mid \vone \mid \vexists{t.V} \mid N \\
+  &\text{Patterns} & p &::= x \mid \pfuse{p_1}{p_2} \mid \pone \mid \pexists{a.p} \\
+  &\text{Traces} & T &::= \tstep{p <- R} \mid \tnil \mid \tseq{T_1 ; T_2}
+\end{alignat*}
+
+\begin{mathpar}
+  \infer{\tctx ; \octx \seq \nof{\tlam{a.N} : \forall a{:}\tau.A^-}}{
+    \tctx, a{:}\tau ; \octx \seq \nof{N : A^-}}
+  \and
+  \infer{\tctx ; \octx \seq \nof{\rlam{p.N} : A^+ \rimp B^-}}{
+    \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+} &
+    \tctx, \tctx_{A^+} ; \octx, \octx_{A^+} \seq \nof{N : B^-}}
+  \and
+  \infer{\tctx ; \octx \seq \nof{\llam{p.N} : A^+ \limp B^-}}{
+    \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+} &
+    \tctx, \tctx_{A^+} ; \octx_{A^+}, \octx \seq \nof{N : B^-}}
+  \and
+  \infer{\tctx ; \octx \seq \nof{\pair{N_1 , N_2} : A^-_1 \with A^-_2}}{
+    \tctx ; \octx \seq \nof{N_1 : A^-_1} &
+    \tctx ; \octx \seq \nof{N_2 : A^-_2}}
+  \and
+  \infer{\tctx ; \octx \seq \nof{\lett{T in V} : \monad{A^+}}}{
+    \tof{T :: (\tctx ; \octx) \trans* (\tctx' ; \octx')} &
+    \tctx' ; \octx' \seq \vof{V : [A^+]}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\tctx ; \omatch{x{:}A^-} \seq \aof{\atm{x . S} : \susp-{C^-}}}{
+    \tctx ; \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}
+  \and
+  \infer{\tctx ; \omatch{\octxe} \seq \aof{\atm{c . S} : \susp-{C^-}}}{
+    c{:}A^- \in \sig &
+    \tctx ; \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\tctx ; \omatch{\lfoc{A^-}} \seq \sof{\snil : \susp-{A^-}}}{
+    }
+  \and
+  \infer{\tctx ; \omatch{\lfoc{\forall a{:}\tau.A^-}} \seq \sof{\tapp{t ; S} : \susp-{C^-}}}{
+    \tctx \seq t : \tau &
+    \tctx ; \ofill{\lfoc{\subst{t/a}{A^-}}} \seq \sof{S : \susp-{C^-}}}
+  \and
+  \infer{\tctx ; \omatch{\lfoc{A^+ \rimp B^-}, \octx} \seq \sof{\rapp{V ; S} : \susp-{C^-}}}{
+    \tctx ; \octx \seq \vof{V : \rfoc{A^+}} &
+    \tctx ; \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
+  \and
+  \infer{\tctx ; \omatch{\octx, \lfoc{A^+ \limp B^-}} \seq \sof{\lapp{V ; S} : \susp-{C^-}}}{
+    \tctx ; \octx \seq \vof{V : \rfoc{A^+}} &
+    \tctx ; \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
+  \and
+  \infer{\tctx ; \omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\fst{S} : \susp-{C^-}}}{
+    \tctx ; \ofill{\lfoc{A^-_1}} \seq \sof{S : \susp-{C^-}}}
+  \and
+  \infer{\tctx ; \omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\snd{S} : \susp-{C^-}}}{
+    \tctx ; \ofill{\lfoc{A^-_2}} \seq \sof{S : \susp-{C^-}}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\tctxe ; x{:}\susp+{\p^+} \pseq \pof{x : \p^+}}{
+    }
+  \and
+  \infer{\tctx_1, \tctx_2 ; \octx_1, \octx_2 \pseq \pof{\pfuse{p_1}{p_2} : A^+_1 \fuse A^+_2}}{
+    \tctx_1 ; \octx_1 \pseq \pof{p_1 : A^+_1} &
+    \tctx_2 ; \octx_2 \pseq \pof{p_2 : A^+_2}}
+  \and
+  \infer{\tctxe ; \octxe \pseq \pof{\pone : \one}}{
+    }
+  \and
+  \infer{\tctx, a{:}\tau ; \octx \pseq \pof{\pexists{a.p} : \exists a{:}\tau.A^+}}{
+    \tctx ; \octx \pseq \pof{p : A^+}}
+  \and
+  \infer{\tctxe ; x{:}A^- \pseq \pof{x : A^-}}{
+    }
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\tctx ; x{:}\susp+{\p^+} \seq \vof{x : \rfoc{\p^+}}}{
+    }
+  \and
+  \infer{\tctx ; \octx_1, \octx_2 \seq \vof{\vfuse{V_1}{V_2} : \rfoc{A^+_1 \fuse A^+_2}}}{
+    \tctx ; \octx_1 \seq \vof{V_1 : \rfoc{A^+_1}} &
+    \tctx ; \octx_2 \seq \vof{V_2 : \rfoc{A^+_2}}}
+  \and
+  \infer{\tctx ; \octxe \seq \vof{\vone : \rfoc{\one}}}{
+    }
+  \and
+  \infer{\tctx ; \octx \seq \vof{\vexists{t.V} : \rfoc{\exists a{:}\tau.A^+}}}{
+    \tctx \seq t : \tau &
+    \tctx ; \octx \seq \vof{V : \rfoc{\subst{t/a}{A^+}}}}
+  \and
+  \infer{\tctx ; \octx \seq \vof{N : \rfoc{A^-}}}{
+    \tctx ; \octx \seq \nof{N : A^-}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\tof{\tstep{p <- R} :: (\tctx ; \omatch{\octx}) \trans* (\tctx, \tctx_{A^+} ; \ofill{\octx_{A^+}})}}{
+    \tctx ; \octx \seq \aof{R : \susp-{\monad{A^+}}} &
+    \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+}}
+  \and
+  \infer{\tof{\tnil :: (\tctx ; \octx) \trans* (\tctx ; \octx)}}{
+    }
+  \and
+  \infer{\tof{\tseq{T_1 ; T_2} :: (\tctx ; \octx) \trans* (\tctx'' ; \octx'')}}{
+    \tof{T_1 :: (\tctx ; \octx) \trans* (\tctx' ; \octx')} &
+    \tof{T_2 :: (\tctx' ; \octx') \trans* (\tctx'' ; \octx'')}}
+\end{mathpar}
+
+\end{document}
+
+%%% Local Variables:
+%%% TeX-master: "ordered-lp"
+%%% End:

@@ -1,0 +1,140 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {ordered-lp-terms}
+  {2014/03/05}
+  {0.1}
+  {Ordered Logic Programming}
+
+\RequirePackage{xparse}
+
+\RequirePackage{amsmath}
+
+\RequirePackage{monad}
+\RequirePackage{ordered-logic}
+
+
+%% Normal terms
+
+\NewDocumentCommand \tlam { >{ \SplitArgument {1} {.} } m }
+  { \lam:Nnn { } #1 }
+\NewDocumentCommand \rlam { >{ \SplitArgument {1} {.} } m }
+  { \lam:Nnn r #1 }
+\NewDocumentCommand \llam { >{ \SplitArgument {1} {.} } m }
+  { \lam:Nnn l #1 }
+\cs_new:Npn \lam:Nnn #1#2#3 { \lambda^{#1} #2.#3 }
+
+\NewDocumentCommand \pair { >{ \SplitArgument {1} {,} } m }
+  { \pair:nn #1 }
+\cs_new:Npn \pair:nn #1#2 { \langle #1 , #2 \rangle }
+
+\NewDocumentCommand \lett { >{ \SplitArgument {1} {in} } m }
+  { \lett:nn #1 }
+\cs_new:Npn \lett:nn #1#2 {
+  \lbrace
+    \mathsf{let} \mskip 4mu plus 2mu minus 4mu
+    #1 \mathbin{\mathsf{in}} #2
+  \rbrace
+}
+
+\NewDocumentCommand \nof { m } { \nof:n {#1} }
+\cs_new:Npn \nof:n #1 { #1 }
+
+
+%% Atomic terms
+
+\NewDocumentCommand \atm { >{ \SplitArgument {1} {.} } m }
+  { \atm:nn #1 }
+\cs_new:Npn \atm:nn #1#2 { #1 \cdot #2 }
+
+\NewDocumentCommand \aof { m } { \aof:n {#1} }
+\cs_new:Npn \aof:n #1 { #1 }
+
+
+%% Spines
+
+\NewDocumentCommand \tapp { >{ \SplitArgument {1} {;} } m }
+  { \app:nn #1 }
+\NewDocumentCommand \rapp { >{ \SplitArgument {1} {;} } m }
+  { \app:nn #1 }
+\NewDocumentCommand \lapp { >{ \SplitArgument {1} {;} } m }
+  { \app:nn #1 }
+\cs_new:Npn \app:nn #1#2 { #1 ; #2 }
+
+\NewDocumentCommand \fst { m } { \proj:Nn 1 {#1} }
+\NewDocumentCommand \snd { m } { \proj:Nn 2 {#1} }
+\cs_new:Npn \proj:Nn #1#2 { \pi\sb{#1} ; #2 }
+
+\NewDocumentCommand \snil { } { \snil: }
+\cs_new:Npn \snil: { \mathsf{nil} }
+
+\NewDocumentCommand \sof { m } { \sof:n {#1} }
+\cs_new:Npn \sof:n #1 { #1 }
+
+
+%% Traces
+
+\NewDocumentCommand \tstep { >{ \SplitArgument {1} {<-} } m }
+  { \tstep:nn #1 }
+\cs_new:Npn \tstep:nn #1#2 { \monad {#1} \leftarrow #2 }
+
+\NewDocumentCommand \tnil { } { \tnil: }
+\cs_new:Npn \tnil: { \diamond }
+
+\NewDocumentCommand \tseq { >{ \SplitArgument {1} {;} } m }
+  { \tseq:nn #1 }
+\cs_new:Npn \tseq:nn #1#2 { #1 ; #2 }
+
+\NewDocumentCommand \tof { m } { \tof:n {#1} }
+\cs_new:Npn \tof:n #1 { #1 }
+
+
+%% Values
+
+\NewDocumentCommand \vfuse { m m }
+  { \vfuse:nn {#1} {#2} }
+\cs_new:Npn \vfuse:nn #1#2 { #1 \fuse #2 }
+
+\NewDocumentCommand \vone { } { \vone: }
+\cs_new:Npn \vone: { \one }
+
+\NewDocumentCommand \vexists { >{ \SplitArgument {1} {.} } m }
+  { \vexists:nn #1 }
+\cs_new:Npn \vexists:nn #1#2 { #1.#2 }
+
+\NewDocumentCommand \vof { m } { \vof:n {#1} }
+\cs_new:Npn \vof:n #1 { #1 }
+
+
+%% Patterns
+
+\NewDocumentCommand \pfuse { m m }
+  { \pfuse:nn {#1} {#2} }
+\cs_new:Npn \pfuse:nn #1#2 { #1 \fuse #2 }
+
+\NewDocumentCommand \pone { } { \pone: }
+\cs_new:Npn \pone: { \one }
+
+\NewDocumentCommand \pexists { >{ \SplitArgument {1} {.} } m }
+  { \pexists:nn #1 }
+\cs_new:Npn \pexists:nn #1#2 { #1.#2 }
+
+\NewDocumentCommand \pof { m } { \pof:n {#1} }
+\cs_new:Npn \pof:n #1 { #1 }
+
+\NewDocumentCommand \pseq { } { \pseq: }
+\cs_new:Npn \pseq: { \Vdash }
+
+
+%% Focusing
+
+\NewDocumentCommand \lfoc { m } { \lfoc:n {#1} }
+\cs_new:Npn \lfoc:n #1 { [#1] }
+
+\NewDocumentCommand \rfoc { m } { \rfoc:n {#1} }
+\cs_new:Npn \rfoc:n #1 { [#1] }
+
+\NewDocumentCommand \susp { m m } { \susp:Nn #1 {#2} }
+\cs_new:Npn \susp:Nn #1#2 { \langle #2 \rangle }
+
+\NewDocumentCommand \sig { } { \sig: }
+\cs_new:Npn \sig: { \Sigma }
