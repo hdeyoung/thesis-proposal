@@ -1,6 +1,6 @@
 \ProvidesClass{hdeyoung-proposal}
 
-\LoadClassWithOptions{article}
+\LoadClass{article}
 
 
 %% TEXT FONTS
@@ -32,8 +32,10 @@
 \RequirePackage{newtxmath}
 \useosf
 
+\theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}{Corollary}
+\newtheorem*{falseclaim}{False claim}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 

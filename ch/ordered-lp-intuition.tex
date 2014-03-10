@@ -12,10 +12,14 @@
 \usepackage{proof}
 \usepackage{tikz}
 
-\NewDocumentCommand{\trans}{t* t+ o}{%
+\NewDocumentCommand{\trans}{t* t+ o o}{%
   \longrightarrow
   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
-  \IfValueT{#3}{_{#3}}%
+  \IfNoValueTF{#4}{%
+    \IfValueT{#3}{_{#3}}%
+  }{%
+    ^{#3}_{#4}%
+  }%
 }
 \NewDocumentCommand{\ntrans}{}{
   \longarrownot\trans
@@ -54,14 +58,18 @@ Increment instructions are represented by $\inc$ atoms at the counter's least si
 % Also interspersed are $\inc$ atoms, each of which serves as an increment instruction sent to the counter given by the more significant bits.
 Thus, $\eps \fuse \bit{1} \fuse \inc$ represents a counter with value $1$ that has been instructed to increment once.
 
-Operationally, increments are described by the program's three clauses, the first of which is
+% Operationally, increments are described by the program's three clauses, the first of which is
+Operationally, increments are described by three clauses, which together constitute the program, or \vocab{signature}, $\sig_{\inc}$.
+The first of these clauses is
 \begin{equation*}
   \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
   \,.
 \end{equation*}
-From a string rewriting perspective, this implication is a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$.%
-% From a string rewriting perspective, this implication is interpreted as a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$.%
-\footnote{This interpretation is justified because, logically, implications transform one resource into another.  This will be explained in more detail in \cref{??}.}
+From a string rewriting perspective, this implication is a\fxnote{\ \st{rewriting}} rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$%
+% \footnote{This interpretation is justified because, logically, implications transform one resource into another.  This will be explained in more detail in \cref{??}.}
+, an interpretation which is justified logically because implications are transformations.%
+\footnote{See \cref{??} for technical justification.}
+% % From a string rewriting perspective, this implication is interpreted as a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$.%
 %  in the sense that the following bottom-up rule
 % % This clause allows the string $\bit{1} \fuse \inc$ to be rewritten as $\inc \fuse \bit{0}$, in the sense that the rule
 % is admissible whenever this clause is part of the persistent context, $\uctx$.
@@ -90,7 +98,9 @@ Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carr
 By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, this second clause ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
 By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third clause ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
 
-For example, the counter $\eps \fuse \bit{1} \fuse \inc$ can be maximally rewritten as
+For example, under the $\sig_{\inc}$ signature, the counter $\eps \fuse \bit{1} \fuse \inc$ can be maximally rewritten as in the trace
+% For example, the counter $\eps \fuse \bit{1} \fuse \inc$ can be maximally rewritten as
+% For example, under the signature $\sig_{\inc}$ consisting of these three clauses, the counter $\eps \fuse \bit{1} \fuse \inc$ can be maximally rewritten as in the trace
 \ExplSyntaxOn
 \NewDocumentCommand{\mathul}{m}{
   \mathpalette\mathul:nn{#1}
@@ -105,15 +115,18 @@ For example, the counter $\eps \fuse \bit{1} \fuse \inc$ can be maximally rewrit
 \ExplSyntaxOff
 \begin{equation*}
   \eps \fuse \mathul{\bit{1} \fuse \inc}
-    \trans \mathul{\eps \fuse \inc} \fuse \bit{0}
-    \trans \eps \fuse \bit{1} \fuse \bit{0}
-    \ntrans
+    \trans[\sig_{\inc}] \mathul{\eps \fuse \inc} \fuse \bit{0}
+    \trans[\sig_{\inc}] \eps \fuse \bit{1} \fuse \bit{0}
+    \ntrans[\sig_{\inc}]
   \text{\,,}
 \end{equation*}
-where at each step the sites available for rewriting are underlined.
+where at each step the sites available for rewriting have been underlined.%
+\footnote{For precision, the rewriting relation, $\trans$, is indexed by the signature of clauses that may contribute to the rewriting, such as $\sig_{\inc}$ in $\trans[\sig_{\inc}]$ here.
+% To improve readability, however, 
+We will frequently omit the index when it is clear from the context.}
 This trace computes $1 + 1 = 2$ in binary representation.
-More generally, the above clauses adequately specify an increment operation:
-string $S$ represents a counter with value $N$ if and only if $S \fuse \inc \trans+ S' \ntrans$ for some string $S'$ that represents a counter of value $N + 1$, where $\trans+$ denotes the transitive closure of the rewriting relation $\trans$.
+More generally, the clauses adequately specify an increment operation, as will be described further in \cref{sec:gener-invar}.
+% string $S$ represents a counter with value $N$ if and only if $S \fuse \inc \trans+ S' \ntrans$ for some string $S'$ that represents a counter of value $N + 1$, where $\trans+$ denotes the transitive closure of the rewriting relation $\trans$.
 
 \subsection{Concurrency}\label{sec:concurrency-1}
 
@@ -144,10 +157,10 @@ The rewrites in this example can be interleaved in two ways: either
 However, because these two rewrites are independent, they should be considered morally concurrent.
 Rather than giving a truly concurrent semantics for string rewriting, we can treat different interleavings of independent steps as indistinguishable.
 Then, because we can't observe which rewrite occurred first, the two rewrites appear to happen concurrently.
-This is the idea of \vocab{concurrent equality} from {CLF}~\autocite{Watkins+:CMU02} that gives a pretense to true concurrency, borrowed for ordered logic programming.
+This is the idea of \vocab{concurrent equality} from {CLF}~\autocite{Watkins+:CMU02}, borrowed for ordered logic programming, which justifies the adoption of true concurrency as an abstraction.
 
 
-\subsubsection{Infinite traces and fairness}
+\subsection{Infinite traces and fairness}
 
 \NewPredicate{\incs}{0}%
 Thus far, all traces have been finite, but this is not necessarily so.
@@ -167,13 +180,13 @@ Among the infinite traces now possible is
   \,.
 \end{equation*}
 
-Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$, instead always choosing to rewrite $\incs$.
+Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$ substring, instead always choosing to rewrite $\incs$.
 Because of its\fxnote{\ \st{scheduling}} bias against rewriting $\eps \fuse \inc$, we say that the trace is \vocab{(weakly) process-unfair}.
 
 Process unfairness is fundamentally at odds with true concurrency.
 Because true concurrency allows multiple independent events to occur simultaneously, one event cannot preclude another independent event;
 in the above example, for instance, rewriting the $\incs$ atom would not preclude rewriting the independent $\eps \fuse \inc$ substring.
-Therefore, to maintain the pretense of true concurrency, we must require all traces to be (weakly) process-fair.
+Therefore, to maintain the pretense of true concurrency, we must require all traces to be process-fair.
 
 
 % Transition unfairness is fundamentally at odds with true concurrency
@@ -246,11 +259,11 @@ Therefore, to maintain the pretense of true concurrency, we must require all tra
 % In our forward-chaining ordered logic programming language, we assume a \vocab{committed-choice} semantics, meaning that when multiple rewritings are possible at a given site the choice is never reconsidered.
 In forward-chaining ordered logic programming, we assume a \vocab{committed-choice} semantics, meaning that when several rewritings are possible at a given site, one is chosen and that choice is never reconsidered.
 
-Committed choice does not clearly arise in the binary counter example;
+Committed choice is not readily apparent in the binary counter example;
 instead, consider a single-player game in which the player wins if a
 % each of two coin tosses land heads.
 coin toss lands heads.
-As an forward-chaining ordered logic program, this game is specified
+As a forward-chaining ordered logic program, this game is specified by the signature, $\sig_{\coin}$, consisting of the four clauses:
 \begin{align*}
   &\coin \lrimp \monad{\heads} \\
   &\coin \lrimp \monad{\tails} \\
@@ -261,7 +274,7 @@ As an forward-chaining ordered logic program, this game is specified
 The first two clauses specify that a $\coin$ may land either $\heads$ or $\tails$, and the remaining clauses specify the winning condition.
 
 % One way in which the starting string $\coin \fuse \coin$ of two coins can be maximally rewritten is
-One way in which the starting string can be maximally rewritten is
+One way in which the starting string, $\coin$, can be maximally rewritten is
 \begin{equation*}
   \mathul{\coin}
     \trans \mathul{\tails}
@@ -382,13 +395,13 @@ This justifies treating those two rewrites as concurrent.
 Thus far, we have used ordered logic programs to specify concurrent systems, whereas the non-modal fragment of ordered logic was originally developed by \textcite{Lambek:AMM58} to describe sentence structure.
 However, these two modes of use of ordered logic are not as different as they might first appear.
 
-In our running example of an incrementable binary counter, the counter is represented as a string of $\bit{0}$, $\bit{1}$, and $\inc$ atoms terminated at the most significant end by an $\eps$.
+Recall that, in our running example of an incrementable binary counter, the counter is represented as a string of $\bit{0}$, $\bit{1}$, and $\inc$ atoms terminated at the most significant end by an $\eps$.
 More precisely, a string is a well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the context-free grammar
 \begin{gather*}
   \Cntr ::= \eps \mid \Cntr \fuse \bit{0} \mid \Cntr \fuse \bit{1} \mid \Cntr \fuse \inc
   \,,
 %
-\intertext{which is an abbreviated notation for four distinct productions:}
+\intertext{which is just an abbreviated notation for four distinct productions:}
 %
   \begin{aligned}
     &\Cntr \to \eps \\
@@ -400,7 +413,7 @@ More precisely, a string is a well-formed binary counter if it can be generated 
 \end{gather*}
 
 Building on \citeauthor{Lambek:AMM58}'s work, the same context-free grammar can be described in ordered logic using \vocab{generative signatures}~\autocite{Simmons:CMU12}.
-Each production in the grammar corresponds to a clause, with the $\Cntr$ nonterminal represented as the atomic proposition $\cntr$:
+Each production in the grammar becomes a clause, with the atomic proposition $\cntr$ acting as the nonterminal:
 \begin{equation*}
   \begin{aligned}
     &\cntr \lrimp \monad{\eps} \\
@@ -410,69 +423,118 @@ Each production in the grammar corresponds to a clause, with the $\Cntr$ nonterm
     \,.
   \end{aligned}
 \end{equation*}
-Then, just as all well-formed binary counters are generated from the $\Cntr$ nonterminal according to the above productions, so are all binary counters generated as maximal rewritings of the $\cntr$ atom according to these clauses.
-% Just as a string is well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the above context-free grammar, so too is a string well-formed if it can be generated by maximally rewriting the $\cntr$ atom.
-For example, $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter because it is a maximal rewriting of $\cntr$:
+A string $S$ is then a \vocab{well-formed binary counter} whenever $\cntr \trans+[\sig_{\cntr}] S \ntrans[][\sig_{\cntr}]$, that is, whenever $S$ is a maximal rewriting of $\cntr$ under these clauses.%
+\footnote{%
+The relation $\trans+[\sig]$ is the transitive, but not reflexive, closure of $\trans[\sig]$;
+and $\trans*[\sig]$ is the reflexive, transitive closure of $\trans[\sig]$.
+}
+For example, the maximal trace
 \begin{equation*}
   \mathul{\cntr}
-    \trans \mathul{\cntr} \fuse \inc
-    \trans \mathul{\cntr} \fuse \bit{1} \fuse \inc
-    \trans \eps \fuse \bit{1} \fuse \inc
-    \ntrans
+    \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \inc
+    \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \bit{1} \fuse \inc
+    \trans[\sig_{\cntr}] \eps \fuse \bit{1} \fuse \inc
+    \ntrans[\sig_{\cntr}]
   \,.
 \end{equation*}
-Note that 
+witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter.
+Note how important the choice of signature is: if we also allowed increment clauses from $\sig_{\inc}$ here, this trace would no longer be maximal.
+
+% Then, just as all well-formed binary counters are generated from the $\Cntr$ nonterminal according to the above productions, so are all binary counters generated as maximal rewritings of the $\cntr$ atom according to these clauses.
+% % Just as a string is well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the above context-free grammar, so too is a string well-formed if it can be generated by maximally rewriting the $\cntr$ atom.
+% For example, $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter because it is a maximal rewriting of $\cntr$ under the above clauses:
+% \begin{equation*}
+%   \mathul{\cntr}
+%     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \inc
+%     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \bit{1} \fuse \inc
+%     \trans[\sig_{\cntr}] \eps \fuse \bit{1} \fuse \inc
+%     \ntrans[\sig_{\cntr}]
+%   \,.
+% \end{equation*}
+% % Note that restricting to the $\sig_{\cntr}$ signature---and not $\sig_{\inc}$---
+% Note that this trace is maximal because only clauses from $\sig_{\cntr}$ are permitted; if .
 
 \begingroup
   \RenewPredicate{\cntr}[Cntr]{1}%
 Generative signatures in fact generalize context-free grammars.
-One example is to augment $\cntr{}$ with a natural number, effectively \wc{giving}[\st{creating}] a countably infinite family of nonterminals.
-Thus, a binary counter is well-formed \emph{and} represents value $N$ if it is a maximal rewriting of $\cntr{N}$ according to the first-order ordered logic program
+An example generalization is to predicate $\cntr{}$ on a natural number (and renaming it $\cntr[_R]{}$), effectively giving a countably infinite family of nonterminals.
+We say that $S$ \vocab{represents} $N$ if it is a maximal rewriting of $\cntr[_R]{N}$ under the signature $\sig_{\cntr[_R]{}}$ consisting of the first-order clauses
+% Thus, a binary counter is well-formed \emph{and} represents $N$ if it is a maximal rewriting of $\cntr{N}$ according to the first-order ordered logic program
 \begin{equation*}
   \begin{aligned}
-    &\cntr{0} \lrimp \monad{\eps} \\
-    &\cntr{(2N)} \lrimp \monad{\cntr{N} \fuse \bit{0}} \\
-    &\cntr{(2N{+}1)} \lrimp \monad{\cntr{N} \fuse \bit{1}} \\
-    &\cntr{(N{+}1)} \lrimp \monad{\cntr{N} \fuse \inc}
+    &\cntr[_R]{0} \lrimp \monad{\eps} \\
+    &\cntr[_R]{(2N)} \lrimp \monad{\cntr[_R]{N} \fuse \bit{0}} \\
+    &\cntr[_R]{(2N{+}1)} \lrimp \monad{\cntr[_R]{N} \fuse \bit{1}} \\
+    &\cntr[_R]{(N{+}1)} \lrimp \monad{\cntr[_R]{N} \fuse \inc}
     \,.
   \end{aligned}
 \end{equation*}
 
-This generative signature allows us to formally state (and prove) adequacy of the incrementable binary counter program:
-\begin{definition}
-  A string is \vocab{quiescent} if $S \ntrans$.
-  A string $S$ is a \vocab{well-formed counter} if $\cntr{} \trans+ S \ntrans$.
-  A string $S$ \vocab{represents} natural number $N$ if $\cntr{N} \trans+ S \ntrans$.
-\end{definition}
+This generative signature allows us to formally state (and prove) adequacy of the incrementable binary counter program.
+% \begin{definition}
+%   A string is \vocab{quiescent} if $S \ntrans$.
+%   A string $S$ is a \vocab{well-formed counter} if $\cntr{} \trans+ S \ntrans$.
+%   A string $S$ \vocab{represents} natural number $N$ if $\cntr{N} \trans+ S \ntrans$.
+% \end{definition}
 
-\begin{theorem}[Preservation]
-  For every well-formed counter $S$ such that $S \trans S'$, the string $S'$ is also a well-formed counter.
+\begin{theorem}[Preservation]\mbox{}
+  \begin{enumerate}[nosep]
+  \item For every well-formed counter $S$, if $S \trans[\sig_{\inc}] S'$, then $S'$ is a well-formed counter.
+  \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S \trans[\sig_{\inc}] S'$, then $S'$ also represents $N$.
+  \end{enumerate}
 \end{theorem}
+\begin{proof}
+  By induction on the structure of the maximal trace that generates $S$.
+\end{proof}
+
+\begin{theorem}[Progress]
+  \mbox{}
+  \begin{enumerate}[nosep]
+  \item For every well-formed counter $S$, if $S$ is $\inc$-free, then $S \ntrans[\sig_{\inc}]$.
+  \item For every well-formed counter $S$, either $S$ is $\inc$-free or $S \trans[\sig_{\inc}] S'$ for some $S'$.
+  \end{enumerate}
+\end{theorem}
+\begin{proof}
+  By induction on the structure of the maximal trace that generates $S$.
+\end{proof}
+
+\begin{theorem}[Termination]
+  For every well-formed counter $S$, there is a unique string $S'$ such that $S \trans*[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$.
+\end{theorem}
+\begin{proof}
+  By induction on the structure of the maximal trace that generates $S$.
+\end{proof}
+
 \begin{theorem}[Adequacy of counters]
   \mbox{}
-  \begin{enumerate}
-  \item For every natural number $N$, there is a unique well-formed counter $S$ such that
-%     \item $\cntr{} \trans+ S \ntrans$;
- $S$ represents $N$ and % $\cntr{N} \trans+ S \ntrans$
- $S$ is quiescent.% $S \ntrans$.
-%  \item For every string $S$ such that $\cntr{} \trans+ S \ntrans$, there is a unique natural number $N$ such that $\cntr{N} \trans+ S \ntrans$.
-  \item For every well-formed counter $S$, there is a unique natural number $N$ such that $S$ represents $N$.
+  \begin{enumerate}[nosep]
+  \item For each natural number $N$, there is a unique well-formed counter $S$ that represents $N$, is $\inc$-free, and has no leading $\bit{0}$s.
+  \item\label{item:cntr-adeq-value}
+    For each well-formed counter $S$, there is a unique natural number $N$ such that $S$ represents $N$.
   \end{enumerate}
 \end{theorem}
-\begin{theorem}[Adequacy of $\inc$]\mbox{}
-  \begin{enumerate}
-  \item If $N + 1 = N'$, then there exist well-formed counters $S$ and unique $S'$ such that string $S$ represents $N$, string $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$.
-  \item For all well-formed counters $S$ and $S'$ such that $S \fuse \inc \trans+ S' \ntrans$, there exist unique natural numbers $N$ and $N'$ such that string $S$ represents $N$, string $S'$ represents $N'$, and $N + 1 = N'$.
-  \end{enumerate}
-\end{theorem}
+\begin{proof}
+  Part~1 is by induction on $N$; part~\ref{item:cntr-adeq-value} is by induction on the structure of the maximal trace that generates $S$.
+\end{proof}
 
-\begin{theorem}[Adequacy of $\inc$]
-  $\cntr{N} \trans+ S \ntrans$ if and only if $S \fuse \inc \trans+ S' \ntrans$ and $\cntr{(N{+}1)} \trans+ S' \ntrans$.
-  \begin{itemize}
-  \item If $\cntr{N} \trans+ S \ntrans$ and $S \fuse \inc \trans+ S' \ntrans$, then $\cntr{(N{+}1)} \trans+ S' \ntrans$.
-  \item If $\cntr{N} \trans+ S \ntrans$, then $S \fuse \inc \trans+ S' \ntrans$.
-  \end{itemize}
-\end{theorem}
+
+\begin{corollary}[Adequacy of $\inc$]
+  For all natural numbers $N$ and $N'$ and every well-formed counter $S$, if $S$ represents $N$, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
+  % \begin{enumerate}
+  % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
+  % %
+  % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
+  % \end{enumerate}
+\end{corollary}
+
+\begin{falseclaim}
+  For all natural numbers $N$ and $N'$ and well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S'$ represents $N'$ and is $\inc$-free, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$.
+  % \begin{enumerate}
+  % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
+  % %
+  % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
+  % \end{enumerate}
+\end{falseclaim}
 \endgroup
 
 % stype C = &{ inc: C, dec: C', halt: X }
