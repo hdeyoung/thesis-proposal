@@ -1,0 +1,306 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+\begin{standaloneframe}
+  \frametitle{State}
+
+  % \begin{overprint}
+  % \onslide<+-+(2)>
+  %   \begin{equation*}
+  %     \begin{tikzpicture}
+  %       \graph [sill graph=0.5] {
+  %         / [coordinate]
+  %          ->
+  %         i1 / "\inc" [process]
+  %          ->
+  %         i0 / "\alt<-+>{\inc}{\bit{0}}" [process]
+  %          ->
+  %         b / "\alt<-.>{\bit{1}}{\inc}" [process]
+  %          ->
+  %         e / "\eps" [process];
+  %       };
+
+  %       \redex<+(-1)>[ultra thick em, alert]{(b) (i0)}
+  %     \end{tikzpicture}
+  %   \end{equation*}
+  %
+  \onslide<+->
+
+  \begingroup\Large
+    \begin{equation*}
+      \begin{tikzpicture}[baseline=(b.south)]
+        \graph [
+          sill graph=0.5,
+        ] {
+          / [coordinate]
+           ->
+          i1 / "\inc" [process]
+           ->
+          i0 / "\inc" [process]
+           ->
+          b / "\bit{1}" [process]
+           ->
+          e / "\eps" [process];
+        };
+
+        \redex<+->[ultra thick em]{(b) (i0)}
+        % \only<+>{} % hide redex before further slides
+
+        \visioncircle<+>{(e.east)}{(i0.west)}{{white}{0.85}}
+        \visioncircle<+>{(b.east)}{(i1.west)}{{white}{0.85}}
+
+
+        % \node [draw, draw opacity/.only=<-.(-1)>0, dotted, thick em, circle through={([xshift=.5\pgflinewidth]e.east)}, at={([xshift=.4\pgflinewidth]b)}] {};
+        % \fill<.> [overlay, fill=white, fill opacity=0.85]
+        %   let
+        %     \p1 = ($([xshift=.4\pgflinewidth]b) - (e.east)$),
+        %     \n1 = {veclen(\x1,\y1)}
+        %   in
+        %   % {[reset cm] (-16383.99999pt,-16383.99999pt) rectangle (16383.99999pt,16383.99999pt)}
+        %   (current bounding box.south west) rectangle (current bounding box.north east)
+        %   ([xshift=.4\pgflinewidth]b) circle [radius=\n1];
+
+        % % \fill [green]
+        % %   (b) circle [radius=0.2pt];
+        % % \fill [green]
+        % %   ([xshift=.4\pgflinewidth]b) circle [radius=0.2pt];
+        % % \draw [ultra thin, red]
+        % %   (b.north west) -- (b.south -| b.east) --
+        % %   (b.north -| b.east) -- (b.south west) -- cycle;
+
+        % % \begin{scope}[
+        % %   vision circle/.style={circle, draw, dotted, thick em},
+        % % ]
+        % %   \node [vision circle, transparent, opaque/.only=<.(-1)>, fit={(e.east) (i0.west)}, inner sep=0] {};
+          
+        % %   \node<.> [vision circle, fit={(b.east) (i1.west)}, inner sep=0] {};
+
+        % %   % \fill [clip]
+        % %   %   ($(e.east)!0.5!(i0.west)$)
+        % %   %   let \p1 = ($(i0.west) - (e.east)$) 
+        % %   %   in
+        % %   %     circle [radius={veclen(\x1,\y1)}];
+        % %   \redex [ultra thick em, green] {(b) (i0)}
+        % % \end{scope}
+      \end{tikzpicture}
+    \end{equation*}
+  \endgroup
+  % \end{overprint}
+
+  \setcounter{beamerpauses}{1}%
+  These transformations assume an omniscient coordinator.
+  \begin{itemize}
+  \item But concurrent processes must be locally executing!
+  \end{itemize}
+
+  %   Processes must be implemented locally,
+  % but the network transformations assume an omniscient coordinator!
+\end{standaloneframe}
+\end{document}
+
+
+\begin{standaloneframe}
+  \frametitle{}
+  \begingroup
+    \Large
+    \begin{equation*}
+      \begin{overprint}
+      \onslide<+-+(1)>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$\inc$" {message, name=i1}] % , .apply style/.only=<+->{near end}}]
+          / [coordinate]
+           -> ["$c_0$" channel, "$\inc$" {message, name=i0}] % , .apply style/.alt=<.->{somewhat near end}{somewhat near start}}]
+          b / "\bit{1}" [process]
+           -> ["$c_1$" channel]
+          e / "\eps" [process];
+        };
+        \draw [decoration={brace}, semithick em]
+          ([yshift=0.75em]i0.west) edge [decorate, "messages" font=\normalsize] ([yshift=0.75em]i1.east);
+        % (e.west |- i0.west) edge [decorate, "processes" font=\normalsize] (b.east |- i0.west);
+
+        \redex<+>[ultra thick em]{(b) (i0)}
+      \end{tikzpicture}
+      %
+      \onslide<+>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$\inc$" message] % , near end}]
+          / [coordinate]
+           -> ["$c_0$" channel]
+          b / "\bit{0}" [process]
+           -> ["$c_1$" channel, "$\inc$" message] % , somewhat near start}]
+          "\eps" [process];
+        };
+      \end{tikzpicture}
+      %
+      \onslide<+-+(1)>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           ->
+          / [coordinate]
+           -> ["$c_0$" channel, "$\inc$" {message, name=i1}]
+          b / "\bit{0}" [process]
+           -> ["$c_1$" channel, "$\inc$" {message, name=i0}]
+          e / "\eps" [process];
+        };
+        \redex<+>[ultra thick em, structure]{(e) (i0)}
+        \redex<.>[ultra thick em, example text.fg]{(b) (i1)}
+      \end{tikzpicture}
+      %
+      \onslide<+->
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          "\bit{1}" [process]
+           -> ["$c_1$" channel]
+          / "\bit{1}" [process]
+           -> ["$c_2$" channel]
+          "\eps" [process];
+        };
+      \end{tikzpicture}
+      \end{overprint}
+    \end{equation*}
+
+
+    \begin{equation*}
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          "\inc" [process]
+           -> ["$c_1$" channel]
+          i1 / "\inc" [process]
+           -> ["$c_2$" channel]
+          b / "\bit{1}" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+        };
+
+        \redex[ultra thick em]{(b) (i1)}
+      \end{tikzpicture}
+    \end{equation*}
+
+    \begin{equation*}
+      \begin{overprint}
+      \onslide<+>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           ->
+          i0 / "\inc" [process, transparent]
+           ->
+          i1 / "\inc" [process, transparent]
+           -> ["$c_2$" channel]
+          b / "\bit{1}" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+
+          (i0.east)
+           -> ["$\inc$" message]
+          (i0.west);
+
+          (i1.east)
+           -> ["$\inc$" message]
+          (i1.west);
+        };
+      \end{tikzpicture}
+      \onslide<+-+(1)>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          i0 / "\inc" [process, transparent]
+           ->
+          i1 / "\inc" [process, transparent]
+           -> ["$c_2$" channel, "$\inc$" {message, name=i1m}]
+          b / "\bit{1}" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+
+          (i0.east)
+           -> ["$\inc$" message]
+          (i0.west);
+
+          (i1.east)
+           ->
+          (i1.west);
+        };
+
+        \redex<+>[ultra thick em]{(b) (i1m)}
+      \end{tikzpicture}
+      \onslide<+>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          "\inc" [process]
+           ->
+          b / "\bit{0}" [process]
+           -> ["$c_2{=}c_1$" channel]
+          i1 / "\inc" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+        };
+      \end{tikzpicture}
+      \end{overprint}
+    \end{equation*}
+  \endgroup
+\end{standaloneframe}
+
+\begin{standaloneframe}
+  \frametitle{}
+
+  \begin{tikzpicture}
+    \graph [grow right sep=3em, nodes={align=flush center}] {
+      s / "string\\rewriting"
+       <->
+      g / "global\\processes"
+       -> [bend left]
+      l / "local\\processes"
+       -> [bend left]
+      { (s), (g) };
+    };
+    \draw [red, dotted] ($(g)!0.5!(l)!3em!90:(l)$) to ($(g)!0.5!(l)!3em!-90:(l)$);
+  \end{tikzpicture}
+\end{standaloneframe}
+\end{document}

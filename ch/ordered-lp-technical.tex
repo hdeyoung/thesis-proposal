@@ -13,6 +13,20 @@
 \usepackage{proof}
 \usepackage{mathpartir}
 
+\NewDocumentEnvironment{infers}{o O{}}%
+  {%
+    \noindent\IfValueT{#1}{\fbox{#1}#2}%
+    \begin{mathpar}\ignorespaces
+  }%
+  {\end{mathpar}\ignorespacesafterend}
+
+\NewDocumentCommand{\irlabel}{m m o}%
+  {{#2}\text{\textsc{#1}}\IfValueT{#3}{_{#3}}}
+\NewDocumentCommand{\rlab}{m o}%
+  {\IfValueTF{#2}{\irlabel{r}{#1}[#2]}{\irlabel{r}{#1}}}
+\NewDocumentCommand{\llab}{m o}%
+  {\IfValueTF{#2}{\irlabel{l}{#1}[#2]}{\irlabel{l}{#1}}}
+
 \NewDocumentCommand{\tctx}{}{\Psi}
 \NewDocumentCommand{\tctxe}{}{\cdot}
 
@@ -27,130 +41,217 @@
 
 \begin{document}
 
-\subsection{Technical details}\label{sec:technical-details}
+\subsection{Technical details}\label{sec:ordered-lp:technical}
+
+The previous \lcnamecrefs{sec:??} have hopefully served to provide intuition for forward-chaining ordered logic programming.
+In this \lcnamecref{sec:technical-details}, we review the technical details of this framework; 
+we generally follow the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}.
+
+\subsubsection{Propositions, terms, and traces}\label{sec:props-terms-traces}
+
+\paragraph{Propositions.}\label{sec:propositions}
+
+Propositions are polarized into \vocab{negative} and \vocab{positive} classes:
+\begin{alignat*}{2}
+  &\text{Negative propositions}\quad & A^- &::= \forall a{:}\tau. A^- \mid A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+} \\
+  &\text{Positive propositions}      & A^+ &::= \exists a{:}\tau. A^+ \mid A^+ \fuse B^+ \mid \one \mid \p^+ \mid A^-
+\end{alignat*}
+The negative propositions, $A^-$, are those whose right rules are invertible, whereas the positive propositions, $A^+$, are those whose left rules are invertible.
+As an example, the ordered implications $A^+ \rimp B^-$ and $A^+ \limp B^-$ are classified as negative because the $\rlab{\rimp}$ and $\rlab{\limp}$ rules are invertible.
+% For the fragment in which we are interested, the grammar of polarized propositions is
+
+A few additional comments on the polarized propositions are worthwhile.
+First, a lax modality, $\monad{A^+}$, allows positive propositions to be treated as negative ones, while still maintaining an explicit separation of the classes.
+% The lax modality gives logical force to 
+The lax modality will be responsible for typing traces (\cref{??}).
+Second, negative propositions can similiarly be treated as positive ones via the implicit inclusion $A^-$.
+Positive atomic propositions $\p^+$ stand in for arbitrary positive propositions. 
+
+\paragraph{Contexts.}\label{sec:contexts}
 
 \begin{alignat*}{2}
-  &\text{Negative propositions}\quad & A^- &::= \forall a{:}\tau. A^- \mid A^+ \rimp B^- \mid A^+ \limp B^- \mid A^-_1 \with A^-_2 \mid \monad{A^+} \\
-  &\text{Positive propositions}      & A^+ &::= \p^+ \mid A^+ \fuse B^+ \mid \one \mid \exists a{:}\tau. A^+ \mid A^-
+  &\text{Ordered contexts}\quad & \octx &::= \octxe \mid x{:}\susp+{\p^+} \mid x{:}A^- \mid \octx_1, \octx_2
 \end{alignat*}
 
+
+\paragraph{Terms.}\label{sec:terms}
+
+As previously alluded, a focused proof-search strategy~\autocite{Andreoli:JLC92} forms the basis of ordered logic programming.
+In this focused calculus, there are several forms of sequent%
+%---inversion sequents, right-focused sequents, and left-focused sequents---
+, each corresponding to a syntactic class of proof terms.
+
+\begin{figure}[!tbp]
+  \begin{infers}[Inversion: $\tctx ; \octx \seq \nof{N : A^-}$][ with $\octx$ stable]
+    \infer[\rlab{\forall}]{\tctx ; \octx \seq \nof{\tlam{a.N} : \forall a{:}\tau.A^-}}{
+      \tctx, a{:}\tau ; \octx \seq \nof{N : A^-}}
+    \and
+    \infer[\rlab{\rimp}]{\tctx ; \octx \seq \nof{\rlam{p.N} : A^+ \rimp B^-}}{
+      \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+} &
+      \tctx, \tctx_{A^+} ; \octx, \octx_{A^+} \seq \nof{N : B^-}}
+    \and
+    \infer[\rlab{\limp}]{\tctx ; \octx \seq \nof{\llam{p.N} : A^+ \limp B^-}}{
+      \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+} &
+      \tctx, \tctx_{A^+} ; \octx_{A^+}, \octx \seq \nof{N : B^-}}
+    \and
+    \infer[\rlab{\with}]{\tctx ; \octx \seq \nof{\pair{N_1 , N_2} : A^-_1 \with A^-_2}}{
+      \tctx ; \octx \seq \nof{N_1 : A^-_1} &
+      \tctx ; \octx \seq \nof{N_2 : A^-_2}}
+    \and
+    \infer[\rlab{\monad{}}]{\tctx ; \octx \seq \nof{\lett{T in V} : \monad{A^+}}}{
+      \tof{T :: (\tctx ; \octx) \trans* (\tctx' ; \octx')} &
+      \tctx' ; \octx' \seq \vof{V : [A^+]}}
+  \end{infers}
+  \caption{Normal terms\label{fig:normal-terms}}
+\end{figure}
+
+Normal terms $N$ are typed by inversion sequents, $\tctx ; \octx \seq \nof{N : A^-}$ (\cref{fig:normal-terms}).
+Inversion proceeds by eagerly applying right rules, which are invertible because the succedent $A^-$ is of negative polarity.
+Rather than \enquote{inlining} invertible left rules along the derivation's trunk, the focused calculus maintains the invariant that the ordered context $\octx$ in an inversion sequent $\tctx ; \octx \seq \nof{N : A^-}$ is stable.
+% the rules for inversion sequents maintain the invariant that the ordered context $\octx$ is stable.
+It's for this reason that the lambda abstractions $\rlam{p.N}$ and $\llam{p.N}$ bind patterns $p$ instead of single variables---the patterns ensure that the argument is fully left-inverted.
+% Among the normal terms are the lambda abstractions $\rlam{p.N}$ and $\llam{p.N}$, which are typed by the right rules for the ordered implications.
+% These abstractions bind patterns, $p$, instead of single variables because, rather than \enquote{inlining} left inversion along the derivation's trunk, this judgment's rules maintain the invariant that the ordered context $\octx$ is stable.
+
+Eventually, inversion terminates with a lax modality, $\monad{A^+}$, as the succedent.
+Forward-chaining to construct a trace $T$ begins here.
+
+\begin{figure}
+  \begin{infers}[$\tof{T :: (\tctx ; \octx) \trans* (\tctx' ; \octx')}$]
+    \infer{\tof{\tnil :: (\tctx ; \octx) \trans* (\tctx ; \octx)}}{
+      }
+    \and
+    \infer{\tof{\tstep{p <- R; T} :: (\tctx ; \omatch{\octx}) \trans* (\tctx' ; \octx')}}{
+      \tctx ; \octx \seq \aof{R : \susp-{\monad{A^+}}} &
+      \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+} &
+      \tof{T :: (\tctx, \tctx_{A^+} ; \ofill{\octx_{A^+}}) \trans* (\tctx' ; \octx')}}
+  \end{infers}
+  \caption{Traces\label{fig:traces}}
+\end{figure}
+
+Traces $T$ are possibly empty sequences of steps $\tstep{p <- R}$.
+
+
+
+\begin{figure}
+  \begin{infers}[Stable: $\tctx ; \octx \seq \aof{R : \susp-{C^-}}$]
+    \infer{\tctx ; \omatch{x{:}A^-} \seq \aof{\atm{x . S} : \susp-{C^-}}}{
+      \tctx ; \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}
+    \and
+    \infer{\tctx ; \omatch{\octxe} \seq \aof{\atm{c . S} : \susp-{C^-}}}{
+      c{:}A^- \in \sig &
+      \tctx ; \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}    
+  \end{infers}
+  \caption{Atomic terms\label{fig:atomic-terms}}
+\end{figure}
+
+Rather than introducing terms for individual left-invertible rules
+
+\begin{figure}[!t]
+  \begin{infers}[Left-focus: $\tctx ; \omatch{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}$]
+    \infer{\tctx ; \omatch{\lfoc{A^-}} \seq \sof{\snil : \susp-{A^-}}}{
+    }
+    \and
+    \infer{\tctx ; \omatch{\lfoc{\forall a{:}\tau.A^-}} \seq \sof{\tapp{t ; S} : \susp-{C^-}}}{
+      \tctx \seq t : \tau &
+      \tctx ; \ofill{\lfoc{\subst{t/a}{A^-}}} \seq \sof{S : \susp-{C^-}}}
+    \and
+    \infer{\tctx ; \omatch{\lfoc{A^+ \rimp B^-}, \octx} \seq \sof{\rapp{V ; S} : \susp-{C^-}}}{
+      \tctx ; \octx \seq \vof{V : \rfoc{A^+}} &
+      \tctx ; \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
+    \and
+    \infer{\tctx ; \omatch{\octx, \lfoc{A^+ \limp B^-}} \seq \sof{\lapp{V ; S} : \susp-{C^-}}}{
+      \tctx ; \octx \seq \vof{V : \rfoc{A^+}} &
+      \tctx ; \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
+    \and
+    \infer{\tctx ; \omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\fst{S} : \susp-{C^-}}}{
+      \tctx ; \ofill{\lfoc{A^-_1}} \seq \sof{S : \susp-{C^-}}}
+    \and
+    \infer{\tctx ; \omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\snd{S} : \susp-{C^-}}}{
+      \tctx ; \ofill{\lfoc{A^-_2}} \seq \sof{S : \susp-{C^-}}}    
+  \end{infers}
+  \caption{Spines}
+\end{figure}
+
+\begin{figure}
+  \begin{infers}[Right-focus: $\tctx ; \octx \seq \vof{V : \rfoc{A^+}}$]
+    \infer{\tctx ; x{:}\susp+{\p^+} \seq \vof{x : \rfoc{\p^+}}}{
+    }
+    \and
+    \infer{\tctx ; \octx_1, \octx_2 \seq \vof{\vfuse{V_1}{V_2} : \rfoc{A^+_1 \fuse A^+_2}}}{
+      \tctx ; \octx_1 \seq \vof{V_1 : \rfoc{A^+_1}} &
+      \tctx ; \octx_2 \seq \vof{V_2 : \rfoc{A^+_2}}}
+    \and
+    \infer{\tctx ; \octxe \seq \vof{\vone : \rfoc{\one}}}{
+    }
+    \and
+    \infer{\tctx ; \octx \seq \vof{\vexists{t.V} : \rfoc{\exists a{:}\tau.A^+}}}{
+      \tctx \seq t : \tau &
+      \tctx ; \octx \seq \vof{V : \rfoc{\subst{t/a}{A^+}}}}
+    \and
+    \infer{\tctx ; \octx \seq \vof{N : \rfoc{A^-}}}{
+      \tctx ; \octx \seq \nof{N : A^-}}
+  \end{infers}
+  \caption{Values}
+\end{figure}
+
+\begin{figure}
+  \begin{infers}[Pattern: $\tctx ; \octx \pseq \pof{p : A^+}$]
+    \infer{\tctxe ; x{:}\susp+{\p^+} \pseq \pof{x : \p^+}}{
+    }
+    \and
+    \infer{\tctx_1, \tctx_2 ; \octx_1, \octx_2 \pseq \pof{\pfuse{p_1}{p_2} : A^+_1 \fuse A^+_2}}{
+      \tctx_1 ; \octx_1 \pseq \pof{p_1 : A^+_1} &
+      \tctx_2 ; \octx_2 \pseq \pof{p_2 : A^+_2}}
+    \and
+    \infer{\tctxe ; \octxe \pseq \pof{\pone : \one}}{
+    }
+    \and
+    \infer{\tctx, a{:}\tau ; \octx \pseq \pof{\pexists{a.p} : \exists a{:}\tau.A^+}}{
+      \tctx ; \octx \pseq \pof{p : A^+}}
+    \and
+    \infer{\tctxe ; x{:}A^- \pseq \pof{x : A^-}}{
+    }
+  \end{infers}
+  \caption{Patterns}
+\end{figure}
+
+Traces $T$ are sequences of steps $\tstep{p <- R}$, where the atomic term $R$ specifies the transition's inputs and $p$ matchs the transition's outputs.   
 \begin{alignat*}{2}
   &\text{Normal terms}\quad & N &::= \tlam{a.N} \mid \rlam{p.N} \mid \llam{p.N} \mid \pair{N_1, N_2} \mid \lett{T in V} \\
   &\text{Atomic terms}\quad & R &::= \atm{c . S} \mid \atm{x . S} \\
   &\text{Spines} & S &::= \tapp{t ; S} \mid \rapp{V ; S} \mid \lapp{V ; S} \mid \fst{S} \mid \snd{S} \mid \snil \\
   &\text{Values} & V &::= x \mid \vfuse{V_1}{V_2} \mid \vone \mid \vexists{t.V} \mid N \\
   &\text{Patterns} & p &::= x \mid \pfuse{p_1}{p_2} \mid \pone \mid \pexists{a.p} \\
-  &\text{Traces} & T &::= \tstep{p <- R} \mid \tnil \mid \tseq{T_1 ; T_2}
+  &\text{Traces} & T &::= \tnil \mid \tstep{p <- R; T}
 \end{alignat*}
 
-\begin{mathpar}
-  \infer{\tctx ; \octx \seq \nof{\tlam{a.N} : \forall a{:}\tau.A^-}}{
-    \tctx, a{:}\tau ; \octx \seq \nof{N : A^-}}
-  \and
-  \infer{\tctx ; \octx \seq \nof{\rlam{p.N} : A^+ \rimp B^-}}{
-    \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+} &
-    \tctx, \tctx_{A^+} ; \octx, \octx_{A^+} \seq \nof{N : B^-}}
-  \and
-  \infer{\tctx ; \octx \seq \nof{\llam{p.N} : A^+ \limp B^-}}{
-    \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+} &
-    \tctx, \tctx_{A^+} ; \octx_{A^+}, \octx \seq \nof{N : B^-}}
-  \and
-  \infer{\tctx ; \octx \seq \nof{\pair{N_1 , N_2} : A^-_1 \with A^-_2}}{
-    \tctx ; \octx \seq \nof{N_1 : A^-_1} &
-    \tctx ; \octx \seq \nof{N_2 : A^-_2}}
-  \and
-  \infer{\tctx ; \octx \seq \nof{\lett{T in V} : \monad{A^+}}}{
-    \tof{T :: (\tctx ; \octx) \trans* (\tctx' ; \octx')} &
-    \tctx' ; \octx' \seq \vof{V : [A^+]}}
-\end{mathpar}
 
-\begin{mathpar}
-  \infer{\tctx ; \omatch{x{:}A^-} \seq \aof{\atm{x . S} : \susp-{C^-}}}{
-    \tctx ; \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}
-  \and
-  \infer{\tctx ; \omatch{\octxe} \seq \aof{\atm{c . S} : \susp-{C^-}}}{
-    c{:}A^- \in \sig &
-    \tctx ; \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}
-\end{mathpar}
 
-\begin{mathpar}
-  \infer{\tctx ; \omatch{\lfoc{A^-}} \seq \sof{\snil : \susp-{A^-}}}{
-    }
-  \and
-  \infer{\tctx ; \omatch{\lfoc{\forall a{:}\tau.A^-}} \seq \sof{\tapp{t ; S} : \susp-{C^-}}}{
-    \tctx \seq t : \tau &
-    \tctx ; \ofill{\lfoc{\subst{t/a}{A^-}}} \seq \sof{S : \susp-{C^-}}}
-  \and
-  \infer{\tctx ; \omatch{\lfoc{A^+ \rimp B^-}, \octx} \seq \sof{\rapp{V ; S} : \susp-{C^-}}}{
-    \tctx ; \octx \seq \vof{V : \rfoc{A^+}} &
-    \tctx ; \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
-  \and
-  \infer{\tctx ; \omatch{\octx, \lfoc{A^+ \limp B^-}} \seq \sof{\lapp{V ; S} : \susp-{C^-}}}{
-    \tctx ; \octx \seq \vof{V : \rfoc{A^+}} &
-    \tctx ; \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
-  \and
-  \infer{\tctx ; \omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\fst{S} : \susp-{C^-}}}{
-    \tctx ; \ofill{\lfoc{A^-_1}} \seq \sof{S : \susp-{C^-}}}
-  \and
-  \infer{\tctx ; \omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\snd{S} : \susp-{C^-}}}{
-    \tctx ; \ofill{\lfoc{A^-_2}} \seq \sof{S : \susp-{C^-}}}
-\end{mathpar}
+\subsubsection{Concurrent equality}\label{sec:concurrent-equality}
 
-\begin{mathpar}
-  \infer{\tctxe ; x{:}\susp+{\p^+} \pseq \pof{x : \p^+}}{
-    }
-  \and
-  \infer{\tctx_1, \tctx_2 ; \octx_1, \octx_2 \pseq \pof{\pfuse{p_1}{p_2} : A^+_1 \fuse A^+_2}}{
-    \tctx_1 ; \octx_1 \pseq \pof{p_1 : A^+_1} &
-    \tctx_2 ; \octx_2 \pseq \pof{p_2 : A^+_2}}
-  \and
-  \infer{\tctxe ; \octxe \pseq \pof{\pone : \one}}{
-    }
-  \and
-  \infer{\tctx, a{:}\tau ; \octx \pseq \pof{\pexists{a.p} : \exists a{:}\tau.A^+}}{
-    \tctx ; \octx \pseq \pof{p : A^+}}
-  \and
-  \infer{\tctxe ; x{:}A^- \pseq \pof{x : A^-}}{
-    }
-\end{mathpar}
 
-\begin{mathpar}
-  \infer{\tctx ; x{:}\susp+{\p^+} \seq \vof{x : \rfoc{\p^+}}}{
-    }
-  \and
-  \infer{\tctx ; \octx_1, \octx_2 \seq \vof{\vfuse{V_1}{V_2} : \rfoc{A^+_1 \fuse A^+_2}}}{
-    \tctx ; \octx_1 \seq \vof{V_1 : \rfoc{A^+_1}} &
-    \tctx ; \octx_2 \seq \vof{V_2 : \rfoc{A^+_2}}}
-  \and
-  \infer{\tctx ; \octxe \seq \vof{\vone : \rfoc{\one}}}{
-    }
-  \and
-  \infer{\tctx ; \octx \seq \vof{\vexists{t.V} : \rfoc{\exists a{:}\tau.A^+}}}{
-    \tctx \seq t : \tau &
-    \tctx ; \octx \seq \vof{V : \rfoc{\subst{t/a}{A^+}}}}
-  \and
-  \infer{\tctx ; \octx \seq \vof{N : \rfoc{A^-}}}{
-    \tctx ; \octx \seq \nof{N : A^-}}
-\end{mathpar}
 
-\begin{mathpar}
-  \infer{\tof{\tstep{p <- R} :: (\tctx ; \omatch{\octx}) \trans* (\tctx, \tctx_{A^+} ; \ofill{\octx_{A^+}})}}{
-    \tctx ; \octx \seq \aof{R : \susp-{\monad{A^+}}} &
-    \tctx_{A^+} ; \octx_{A^+} \pseq \pof{p : A^+}}
-  \and
-  \infer{\tof{\tnil :: (\tctx ; \octx) \trans* (\tctx ; \octx)}}{
-    }
-  \and
-  \infer{\tof{\tseq{T_1 ; T_2} :: (\tctx ; \octx) \trans* (\tctx'' ; \octx'')}}{
-    \tof{T_1 :: (\tctx ; \octx) \trans* (\tctx' ; \octx')} &
-    \tof{T_2 :: (\tctx' ; \octx') \trans* (\tctx'' ; \octx'')}}
-\end{mathpar}
+
 
 
 \subsubsection{Fairness}\label{sec:fairness}
 
+\NewDocumentCommand{\headpath}{m}{(#1)^p}
+A trace $\tof{T :: \octx_0 \trans[\omega][]}$ is unfair if there exist $i$ and $R'_i, R'_{i+1}, \dotsc$ such that:
+\begin{enumerate}[label=\alph*., ref=\alph*]
+\item for all $j \geq i$, there exist $p'_j$ and $\octx'_j$ such that $\tof{\tstep{p'_j <- R'_j} :: \octx_j \trans \octx'_j}$;
+\item $\headpath{R'_j} = \headpath{R'_{j+1}}$ for all $j \geq i$;
+\item $\headpath{R_j} \neq \headpath{R'_j}$ for all $j \geq i$.
+\end{enumerate}
+
+
 \begin{equation*}
-  \octx \seq \aof{R : \susp-{\monad{A^+}}}
+  \octx_j = \omatch[_j]{\octx_{R_j}}
+\end{equation*}
+
+\begin{equation*}
+  \octx_{R_j} \seq \aof{R_j : \susp-{\monad{A^+_j}}}
 \end{equation*}
 \end{document}
 

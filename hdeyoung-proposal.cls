@@ -1,4 +1,6 @@
+\RequirePackage{expl3}
 \ProvidesClass{hdeyoung-proposal}
+% {18-03-2014}{v0.1}{Proposal Document Class}
 
 \LoadClass{article}
 
@@ -25,18 +27,26 @@
 \RequirePackage{amssymb}
 % \RequirePackage{amsthm}
 
-\PassOptionsToPackage{amsthm}{ntheorem}
+\PassOptionsToPackage{amsthm,thmmarks}{ntheorem}
 \RequirePackage{ntheorem}
 
 \PassOptionsToPackage{libertine,bigdelims}{newtxmath}
 \RequirePackage{newtxmath}
 \useosf
 
+\ExplSyntaxOn
+  \cs_set_eq:NN \forall \forallAlt
+  \cs_set_eq:NN \exists \existsAlt
+  \cs_set_eq:NN \nexists \nexistsAlt
+\ExplSyntaxOff
+
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
 \newtheorem*{falseclaim}{False claim}
 \theoremstyle{definition}
+\theoremsymbol{\ensuremath{\Box}}
 \newtheorem{definition}{Definition}
 
 

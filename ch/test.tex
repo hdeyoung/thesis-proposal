@@ -1,0 +1,43 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[tikz]{standalone}
+\usetikzlibrary{quotes}
+
+\usepackage{expl3}
+
+\ExplSyntaxOn
+\dim_new:N \l_tikzcd_subscript_dim
+\box_new:N \l_tikzcd_sub_box
+
+\tikzset{
+  echo/.initial = {},
+  subscript/.code = {%
+    % Calculate width of #1
+    \hbox_gset:Nn \l_tmpa_box {#1}
+    \dim_gset:Nn \l_tikzcd_subscript_dim
+      { \box_wd:N \l_tmpa_box + 0.5\pgflinewidth }
+
+    \pgfkeysalso{/tikz/.cd,
+      shorten~>/.expand~twice = \dim_use:N \l_tikzcd_subscript_dim ,
+      edge~node = {node~[sloped, at~end, below~left, inner~sep = 0pt, draw=red]~{#1}}
+    }
+  }
+}
+\ExplSyntaxOff
+\begin{document}
+%\tikzset{thin, subscript=$\scriptstyle\Sigma$}
+\begin{tikzpicture}[%
+  superscript/.style 2 args={%
+    shorten >=#2,
+    "#1" {sloped, at end, above left, inner sep=0pt,
+          draw=red}
+  }
+]
+  \path
+    (0,0) node [draw=blue, name=a] {}
+    (1,0) node [draw=blue, name=b] {};
+%  \draw (a.north east) edge[->, superscript={x}{0.5em}] (b.north west);
+  \draw (a) edge[->, subscript=$xy$] (b);
+%  \draw (a.south east) edge[->, subscript={xyz}] (b.south west);
+\end{tikzpicture}
+\end{document}

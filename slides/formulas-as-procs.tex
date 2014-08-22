@@ -1,0 +1,774 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+\begin{standaloneframe}
+  \frametitle{Letters as processes}
+
+  \begingroup\Large
+  \begin{equation*}
+    \begin{tikzpicture}[remember picture]
+      \graph [
+        sill graph/.alt=<-+>{-0.3}{0.5},
+        /tikz/process/.append style/.only=<-+>{transparent, text opaque, text height=\heightof{$\bit{1}$}},
+        /utils/exec/.only=<+>,
+        edges/.only=<-+>{transparent},
+        /tikz/channel/.append style/.only={<-+,+(2)->{transparent}}, % + = 6 after this point
+        /utils/exec/.only=<+>,
+        /utils/exec/.only=<+>,
+      ] {
+        / [coordinate, transparent/.only={<-+,+(10)->}]
+         -> [transparent/.only={<-.,.(10)->}, "$c_0$" channel]
+        i0 / "\inc" [process, .apply style/.only={<-.,.(10)->{transparent, text transparent}}]
+         -> ["$c_1$" channel,
+             ellipse highlight/.only=<.(-1)>{([xshift=0.2em]i0.west) ($(i0.west)!0.6!(i1.east)$)}]
+        i1 / "\temporal<+(7)-+(8)>{\inc}{\bit{0}}{\bit{1}}" [process]
+         -> ["$c_2$" channel]
+        b / "\temporal<.(7)-.(8)>{\bit{1}}{\inc}{\bit{1}}" [process]
+         -> ["$c_3$" channel]
+        e / "\eps" [process]
+         -> ["$c_4$" channel,
+             .apply style/.temporal=<+>{}{ellipse highlight={([xshift=-0.2em]c') ($(c')!0.6!(e.west)$)}}{transparent}]
+        c' [coordinate];
+      };
+      %
+      \onslide<.(-7)>{
+        \draw [decoration={brace, mirror}, structure]
+          ([yshift=-0.25em]e.south west) edge [decorate] ([yshift=-0.25em]i1.south -| i1.east);
+      }
+      %
+      \addtocounter{beamerpauses}{4}
+      \redex<+>[ultra thick em]{(b) (i1)}
+      \only<+>{} % Show process state after first rewrite
+      \redex<+>[ultra thick em, structure]{(e) (b)}
+      \redex<.>[ultra thick em, example text.fg]{(i1) (i0)}
+    \end{tikzpicture}
+  \end{equation*}%
+  \endgroup
+  % 
+  % \vspace{\baselineskip}%
+  % 
+
+  \setcounter{beamerpauses}{3}%
+  What if letters are \tikzmarktext{proc}{processes}?  (cf.\ [Miller '92])
+    \tikz [remember picture, overlay] {
+      \draw<+> [structure]
+        (proc) edge [out=90, in=-90] ($(e.south west)!0.5!(i1.south -| i1.east)!0.5em!90:(e.south west)$);
+    }%
+  % \begin{itemize}
+  % \item<+-> letters are \tikzmarktext{proc}{processes}%
+  %   \addtocounter{beamerpauses}{2}%
+  %   \onslide<+->{, and}%
+  %   % \tikz [remember picture, overlay] {
+  %   %   \draw
+  %   %     [transparent, every edge/.append style={->, structure, shorten >=0.3333em, in=-90}]
+  %   %     (proc.mid east)
+  %   %       edge [out=7.5] (e)
+  %   %       edge [out=2.5] (b)
+  %   %       edge [out=-2.5] (i1)
+  %   %       edge [out=-7.5] (i0);
+  %   % }
+  % \item<.-> strings are \tikzmarktext{proc net}{linear process networks}?%
+  %   % \tikz [remember picture, overlay] {
+  %   %   \draw
+  %   %     [transparent, every edge/.append style={->, structure, shorten >=0.3333em, in=-90}]
+  %   %     (proc net.mid east)
+  %   %       edge [out=-10] (c-i0 mid)
+  %   %       edge [out=-5] (i0-i1 mid)
+  %   %       edge [out=0] (i1-b mid)
+  %   %       edge [out=5] (b-e mid)
+  %   %       edge [out=10] (e-c' mid);
+  %   % }
+  %   \addtocounter{beamerpauses}{7}
+  % \end{itemize}
+  % 
+  %
+  \begin{itemize}
+  \item<+-> Then strings are linear process networks, and 
+    \addtocounter{beamerpauses}{7}%
+  \item<+-> rewriting rules specify the valid network transformations.
+    \begin{itemize}
+    \item
+      % \begin{equation*}
+      $
+        \begin{tikzpicture}[baseline=(b.base)]
+          \graph [
+            sill graph/.alt=<+->{0.5}{-0.3},
+            /tikz/process/.append style/.only=<-.>{transparent, text opaque, text height=\heightof{$\bit{1}$}},
+            edges/.only=<-.>{transparent},
+          ] {
+            / [coordinate]
+             ->
+            "\inc" [process]
+             ->
+            b / "\bit{1}" [process]
+             ->
+            / [coordinate];
+          };
+        \end{tikzpicture}
+        %
+        \mathrel{\Alt<-.>[c]{\trans}{\trans*}}
+        %
+        \begin{tikzpicture}[baseline=(b.base)]
+          \graph [
+            sill graph/.alt=<.->{0.5}{-0.3},
+            /tikz/process/.append style/.only=<-.>{transparent, text opaque, text height=\heightof{$\bit{1}$}},
+            edges/.only=<-.>{transparent},
+            % /utils/exec/.only=<+>,
+          ] {
+            / [coordinate]
+             ->
+            b / "\bit{0}" [process]
+             ->
+            "\inc" [process]
+             ->
+            / [coordinate];
+          };
+        \end{tikzpicture}
+        % %
+        % \\
+        % %
+        % \vdots
+      $%
+      , etc.
+      % \end{equation*}
+    % \item<+-> \alert{Specifications, but \emph{not} implementations!}
+    % \item<+-> Indistinguishable interleavings of global transformations
+      % \addtocounter{beamerpauses}{4}
+    \end{itemize}
+    % \end{columns}}
+  \end{itemize}
+  % %
+  % \onslide<+->
+  % \vspace{0.5\baselineskip}%
+  % %
+  % \begin{center}
+  %   \alert{\Large An interpretation, but \emph{not} an implementation!}
+  % \end{center}
+\end{standaloneframe}
+\end{document}
+
+
+
+
+% \begin{standaloneframe}
+%   \frametitle{Toward a process interpretation}
+%   % \onslide<+->
+
+%   \begingroup\Large
+%   \begin{equation*}
+%     \begin{tikzpicture}[
+%       ellipse highlight/.style={
+%         append after command={
+%           node [ellipse, draw, overlay, alert, dashed, inner xsep=0, fit={####1}] {}
+%         }
+%       },
+%     ]
+%       \graph [
+%         sill graph/.alt=<-+>{-0.3}{0.5},
+%         /tikz/process/.append style/.only=<-+>{transparent, text opaque, text height=\heightof{$\bit{1}$}},
+%         /utils/exec/.only=<+>,
+%         edges/.only=<-+>{transparent},
+%         /tikz/channel/.append style/.only={<-+,+(2)->{transparent}},
+%         /utils/exec/.only=<+>,
+%         /utils/exec/.only=<+>,
+%       ] {
+%         / [coordinate, transparent/.only={<-+,+(11)->}]
+%          -> [transparent/.only={<-.,.(11)->}, "$c_0$" channel]
+%         i0 / "\inc" [process, .apply style/.only={<-.,.(11)->{transparent, text transparent}}]
+%          -> ["$c_1$" channel, ellipse highlight/.only=<.(-1)>{([xshift=0.2em]i0.west) ($(i0.west)!0.6!(i1.east)$)}]
+%         i1 / "\temporal<+(8)-+(9)>{\inc}{\bit{0}}{\bit{1}}" [process]
+%          -> ["$c_2$" channel]
+%         b / "\temporal<.(8)-.(9)>{\bit{1}}{\inc}{\bit{1}}" [process]
+%          -> ["$c_3$" channel]
+%         e / "\eps" [process]
+%          -> ["$c_4$" channel,
+%              .apply style/.temporal=<+>{}{ellipse highlight={([xshift=-0.2em]c') ($(c')!0.6!(e.west)$)}}{transparent}]
+%         c' [coordinate];
+%       };
+%       %
+%       \addtocounter{beamerpauses}{5}
+%       \redex<+>[very thick]{(b) (i1)}
+%       \only<+>{} % Show process state after first rewrite
+%       \redex<+>[very thick, structure]{(e) (b)}
+%       \redex<.>[very thick, example text.fg]{(i1) (i0)}
+%     \end{tikzpicture}
+%   \end{equation*}%
+%   \endgroup
+%   % 
+%   % \vspace{\baselineskip}%
+%   % 
+%   \setcounter{beamerpauses}{1}
+%   \begin{itemize}
+%   \item<+-> Letters as \tikzmarktext{proc}{processes}%
+%     % \tikz [remember picture, overlay] {
+%     %   \draw
+%     %     [transparent, every edge/.append style={->, structure, shorten >=0.3333em, in=-90}]
+%     %     (proc.mid east)
+%     %       edge [out=7.5] (e)
+%     %       edge [out=2.5] (b)
+%     %       edge [out=-2.5] (i1)
+%     %       edge [out=-7.5] (i0);
+%     % }
+%     \addtocounter{beamerpauses}{2}
+%   \item<+-> Strings as \tikzmarktext{proc net}{linear process networks}%
+%     % \tikz [remember picture, overlay] {
+%     %   \draw
+%     %     [transparent, every edge/.append style={->, structure, shorten >=0.3333em, in=-90}]
+%     %     (proc net.mid east)
+%     %       edge [out=-10] (c-i0 mid)
+%     %       edge [out=-5] (i0-i1 mid)
+%     %       edge [out=0] (i1-b mid)
+%     %       edge [out=5] (b-e mid)
+%     %       edge [out=10] (e-c' mid);
+%     % }
+%     \addtocounter{beamerpauses}{7}
+%   \item<+-> Rewriting rules as global process specifications
+%     \begin{itemize}
+%     \item
+%       % \begin{equation*}
+%       $
+%         \begin{tikzpicture}[baseline=(b.base)]
+%           \graph [
+%             sill graph/.alt=<+->{0.5}{-0.3},
+%             /tikz/process/.append style/.only=<-.>{transparent, text opaque, text height=\heightof{$\bit{1}$}},
+%             edges/.only=<-.>{transparent},
+%           ] {
+%             / [coordinate]
+%              ->
+%             "\inc" [process]
+%              ->
+%             b / "\bit{1}" [process]
+%              ->
+%             / [coordinate];
+%           };
+%         \end{tikzpicture}
+%         %
+%         \mathrel{\Alt<-.>[c]{\trans}{\trans*}}
+%         %
+%         \begin{tikzpicture}[baseline=(b.base)]
+%           \graph [
+%             sill graph/.alt=<.->{0.5}{-0.3},
+%             /tikz/process/.append style/.only=<-.>{transparent, text opaque, text height=\heightof{$\bit{1}$}},
+%             edges/.only=<-.>{transparent},
+%             /utils/exec/.only=<+>,
+%           ] {
+%             / [coordinate]
+%              ->
+%             b / "\bit{0}" [process]
+%              ->
+%             "\inc" [process]
+%              ->
+%             / [coordinate];
+%           };
+%         \end{tikzpicture}
+%         % %
+%         % \\
+%         % %
+%         % \vdots
+%       % \end{equation*}
+%       $%
+%       , etc.
+%     % \item<+-> \alert{Specifications, but \emph{not} implementations!}
+%     \end{itemize}
+%     % \end{columns}}
+%   \item<+-> Concurrency = indistinguishable interleavings of global transformations
+%   \end{itemize}
+%   % %
+%   % \onslide<+->
+%   % \vspace{0.5\baselineskip}%
+%   % %
+%   % \begin{center}
+%   %   \alert{\Large An interpretation, but \emph{not} an implementation!}
+%   % \end{center}
+% \end{standaloneframe}
+% \end{document}
+
+% \begin{standaloneframe}<1-10>
+%   \frametitle{Formulas as processes}
+% %  \clap{\smash{\rule[-3cm]{1pt}{3cm}}}\rule{\linewidth}{1pt}\clap{\smash{\rule[-3cm]{1pt}{3cm}}}
+% %
+%   \begin{itemize}
+%   \item Letters as processes
+%     \mbox{%
+%       \begin{columns}[totalwidth=\linewidth,b]
+%       \column{0.31\linewidth}
+%       \begin{equation*}
+%         \text{$\eps$, $\bit{0}$, $\bit{1}$, $\inc$}
+%         \clap{\rule{12cm}{0.2pt}}\clap{\rule[1ex]{12cm}{0.2pt}}
+%       \end{equation*}%
+%       % \colwidth
+      
+%       \column{0.69\linewidth}
+%       \begin{equation*}
+%         \text{%
+%         \raisebox{-1ex}{%
+%         \begin{tikzpicture}[baseline = (e.south)]
+%           \graph [sill graph=0.5] {
+%             e / "\eps" [process];
+%           };
+%         \end{tikzpicture},
+%         %
+%         \begin{tikzpicture}[baseline = (b.south)]
+%           \graph [sill graph=0.5] {
+%             b / "\bit{0}" [process];
+%           };
+%         \end{tikzpicture},
+%         %
+%         \begin{tikzpicture}[baseline = (b.south)]
+%           \graph [sill graph=0.5] {
+%             b / "\bit{1}" [process];
+%           };
+%         \end{tikzpicture},
+%         %
+%         \begin{tikzpicture}[baseline = (i.south)]
+%           \graph [sill graph=0.5] {
+%             i / "\inc" [process];
+%           };
+%         \end{tikzpicture}}}
+%           % \begin{tikzpicture}[baseline = (c.base)]
+%        %      \graph [sill graph=0.5] {
+%        %        c / [coordinate]
+%        %         ->
+%        %        "\eps" [process]
+%        %         ->
+%        %        / [coordinate];
+%        %      };
+%        %    \end{tikzpicture},
+%        %    %
+%        %    \begin{tikzpicture}[baseline = (c.base)]
+%        %      \graph [sill graph=0.5] {
+%        %        c / [coordinate]
+%        %         ->
+%        %        "\bit{01}" [process]
+%        %         ->
+%        %        / [coordinate];
+%        %      };
+%        %    \end{tikzpicture},
+%        %    %
+%        %    % \begin{tikzpicture}[baseline = (c.base)]
+%        %    %   \graph [sill graph=0.5] {
+%        %    %     c / [coordinate]
+%        %    %      ->
+%        %    %     "\bit{1}" [process]
+%        %    %      ->
+%        %    %     / [coordinate];
+%        %    %   };
+%        %    % \end{tikzpicture},
+%        %    %
+%        %    \\
+%        %    %
+%        %    \begin{tikzpicture}[baseline = (c.base)]
+%        %      \graph [sill graph=0.5] {
+%        %        c / [coordinate]
+%        %         ->
+%        %        "\bit{1}" [process]
+%        %         ->
+%        %        / [coordinate];
+%        %      };
+%        %    \end{tikzpicture}
+%     \end{equation*}%
+%     % \colwidth
+%   \end{columns}%
+%     }
+
+
+%   \item Strings as linear process networks
+% %
+% %    \rule{\linewidth}{1pt}
+% %
+% \mbox{%
+%   \begin{columns}[b,totalwidth=\linewidth]
+%   \column{0.26\linewidth}
+%   \begin{equation*}
+%     \eps \strcons \bit{1} \strcons \inc \strcons \inc
+%     \clap{\rule{12cm}{0.2pt}}\clap{\rule[1ex]{12cm}{0.2pt}}
+%   \end{equation*}%
+%   % \colwidth
+
+%   \column{0.74\linewidth}
+%   \begin{equation*}
+%     \alt<+>{
+%       \eps \strcons \bit{1} \strcons \inc \strcons \inc
+%     }{
+%       \begin{tikzpicture}[
+%         baseline = (b1.base),
+%       ]
+%         \graph [sill graph/.alt=<-+>{0.15}{0.5},
+%           process/.append style/.only=<-+>{transparent, text opacity=1, text height=\heightof{$\bit{1}$}},
+%           edges/.only=<-+>{transparent},
+%           /utils/exec/.only=<+>]
+%         {
+%           / [coordinate]
+%            ->
+%           / "\inc" [process]
+%            ->
+%           / "\inc" [process]
+%            ->
+%           b1 / "\bit{1}" [process]
+%            ->
+%           "\eps" [process]
+%            -> [.apply style/.temporal=<+>{}{alert}{transparent}]
+%           / [coordinate];
+%         };
+%         % \draw [overlay, help lines] (b1.text |- 0,-3) -- (b1.text |- 0,3);
+%         % \fill [overlay, green] (-4,1) circle [radius=1pt];
+%         % \draw [red, ultra thin, overlay] (current bounding box.north west) rectangle (current bounding box.south east);
+%       \end{tikzpicture}
+%     }
+%   \end{equation*}%
+%   % \colwidth
+%   \end{columns}}
+
+%   \item Rewriting rules as specifications
+%     \mbox{%
+%       \begin{columns}[totalwidth=\linewidth]
+%     \column{0.25\textwidth}
+%     \begin{equation*}
+%       \bit{1} \strcons \inc \trans \inc \strcons \bit{0}
+%       \clap{\rule{12cm}{0.2pt}}
+%     \end{equation*}
+
+%     \begin{equation*}
+%     \begin{tikzpicture}[
+%       baseline = (b1.base)
+%     ]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%          ->
+%         "\inc" [process]
+%          ->
+%         b1 / "\bit{1}" [process]
+%          ->
+%         / [coordinate];
+%       };
+%     \end{tikzpicture}
+%     %
+%     \trans
+%     %
+%     \begin{tikzpicture}[
+%       baseline = (b0.base)
+%     ]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%          ->
+%         b0 / "\bit{0}" [process]
+%          ->
+%         "\inc" [process]
+%          ->
+%         / [coordinate];
+%       };
+%     \end{tikzpicture}
+%   \end{equation*}
+% \end{columns}}
+% \end{itemize}
+
+
+%   \begin{columns}[b,onlytextwidth]
+%   \column{0.25\textwidth}
+%   \begin{equation*}
+%     \bit{1} \strcons \inc \trans \inc \strcons \bit{0}
+%     \clap{\rule{12cm}{0.2pt}}
+%   \end{equation*}
+
+%   \column{0.75\textwidth}
+%   \begin{equation*}
+%     \begin{tikzpicture}[
+%       baseline = (b1.base)
+%     ]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%          ->
+%         "\inc" [process]
+%          ->
+%         b1 / "\bit{1}" [process]
+%          ->
+%         / [coordinate];
+%       };
+%     \end{tikzpicture}
+%     %
+%     \trans
+%     %
+%     \begin{tikzpicture}[
+%       baseline = (b0.base)
+%     ]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%          ->
+%         b0 / "\bit{0}" [process]
+%          ->
+%         "\inc" [process]
+%          ->
+%         / [coordinate];
+%       };
+%     \end{tikzpicture}
+%   \end{equation*}
+%   \end{columns}
+
+
+%   \begin{center}
+%     \begin{tikzpicture}
+%       \graph [sill graph=0.5] {
+%         offer / "\mathord{\dotso}"
+%          ->
+%         P / "{P}" [process]
+%          ->
+%         use / "\mathord{\dotso}";
+%       };
+%       \path (use.west -| use.text)
+%         to ["use" {below=2em, anchor=base}] (P);
+%       \coordinate (otb) at ($(offer.text)!2!(offer.base)$);
+%       \path (P)
+%         to ["offer" {below=2em, anchor=base}] (offer.east -| otb);
+%     \end{tikzpicture}
+%   \end{center}
+
+%   \begin{center}
+%     \begin{tikzpicture}
+%       \graph [sill graph=0.5] {
+%         / [coordinate]
+%          ->
+%         P0 / "P_0" [process]
+%          ->
+%         P1 / "P_1" [process]
+%          ->
+%         / "\mathord{\dotso}"
+%          ->
+%         Pi / "P_i" [process]
+%          ->
+%         / "\mathord{\dotso}";
+%       };
+%     \end{tikzpicture}
+%   \end{center}
+
+%   \begin{itemize}
+%   \item Processes use and offer services.
+%   \item Connect processes in a linear network.
+%   \end{itemize}
+% \end{standaloneframe}
+
+% \begin{standaloneframe}<1-10>
+%   \frametitle{Test}
+
+%   x\alt<+-+(1)>{%
+%   \begin{tikzpicture}[
+%     baseline = (b.base),
+%     redex/.style = {draw, underline, inner xsep=0, fit=########1},
+%     redex/.append style = {very thick, overlay}
+%   ]
+%     \graph [sill graph=0.5]
+%     {
+%       c / [coordinate]
+%        ->
+%       s0 / "\inc" [process]
+%        ->
+%       s1 / "\inc" [process]
+%        ->
+%       b / "\bit{1}" [process]
+%        ->
+%       e / "\eps" [process];
+%     };
+%     \node [redex=(b) (s1), alert, transparent/.only=<-.>] {};
+%   \end{tikzpicture}%
+%   }{%
+%   \alt<-+(3)>{%
+%   \begin{tikzpicture}[
+%     baseline = (b.base),
+%     redex/.style = {draw, underline, inner xsep=0, fit=################1},
+%     redex/.append style = {very thick, overlay}
+%   ]
+%     \graph [sill graph=0.5]
+%     {
+%       c / [coordinate]
+%        ->
+%       s0 / "\inc" [process]
+%        ->
+%       b / "\bit{0}" [process]
+%        ->
+%       s1 / "\inc" [process]
+%        ->
+%       e / "\eps" [process];
+%     };
+%     \node [redex=(s1) (e), structure, transparent/.only=<-+>] {};
+%     \node [redex=(s0) (b), example text.fg, transparent/.only=<-+>] {};
+%   \end{tikzpicture}%
+%   }{%
+%   \begin{tikzpicture}[
+%     baseline = (b.base),
+%     redex/.style = {draw, underline, inner xsep=0, fit=################1},
+%     redex/.append style = {very thick, overlay}
+%   ]
+%     \graph [sill graph=0.5]
+%     {
+%       c / [coordinate]
+%        ->
+%       b0 / "\bit{1}" [process]
+%        ->
+%       b1 / "\bit{1}" [process]
+%        ->
+%       e / "\eps" [process];
+%     };
+%   \end{tikzpicture}%
+%   }%
+%   }
+
+%   \begin{equation*}
+%     x \bullet \tikz [baseline=(i.base)] { \node (i) [draw=red, ->, underline, inner xsep=0, inner ysep=0em] {$\mathsf{inc}$};
+%       \draw [blue] (current bounding box.south west) rectangle (current bounding box.north east); } \bullet y
+%   \end{equation*}
+% \end{standaloneframe}
+% \end{document}
+
+
+%   \begin{itemize}
+%   \item Letters as processes
+%     \begin{center}
+%       \begin{tikzpicture}
+%         \graph [sill graph=0.5] {
+%           / [coordinate]
+%            ->
+%           "\mathtt{S}_i" [process]
+%            ->
+%           "\dots"
+%            ->
+%           "\mathtt{S}_0" [process]
+%            ->
+%           / [coordinate];
+%         };
+%       \end{tikzpicture}
+%     \end{center}
+%   \end{itemize}
+% \end{standaloneframe}
+% \end{document}
+
+
+% \Large
+%   \begin{gather*}
+%     \alt<+>{\eps \strcons \bit{1} \strcons \inc}{
+%       %
+%     \begin{tikzpicture}[
+%       baseline=(b.base),
+%       % process/.append style={overlay},
+%     ]
+%       \graph [sill graph/.only/.list={<+>{-0.34}, <+->{0.5}},
+%         /tikz/process/.append style/.onlyrev = <+->{transparent, text opacity=1, text height=1.5ex},
+%         edges/.onlyrev = <+->{transparent},
+%         /tikz/channel/.append style/.onlyrev = <+->{transparent}
+%       ]
+%       {
+%         / [coordinate]
+%           -> ["$c_0$" channel]
+%         i / "\inc" [process]
+%           -> ["$c_1$" channel]
+%         b / "\bit{1}" [process]
+%           -> ["$c_2$" channel]
+%         e / "\eps" [process]
+%           -> [draw=none]
+%         / [coordinate];
+%       };
+%     \end{tikzpicture}}
+%     % \smash{\vphantom{X}}
+%   \end{gather*}
+
+%   % \column{0.5\textwidth}
+%   % String rewriting
+%   %   \begin{equation*}
+%   %     \eps \strcons \bit{1} \strcons \inc
+%   %     % \clap{\rule{24cm}{0.1pt}}
+%   %   \end{equation*}
+%   % \end{columns}
+
+% %  \rule{12cm}{\baselineskip}
+%   \begin{align*}
+%     % \Alt<-+>[c]{
+%     %   \bit{1} \strcons \inc
+%     %     \;\trans\;
+%     %   \inc \strcons \bit{0}
+%     % }{
+%       \begin{tikzpicture}[baseline=(b.base)]
+%         \graph [sill graph=0.5]
+%         {
+%           / [coordinate]
+%             -> % ["$c_0$" channel]
+%           i / "\inc" [process]
+%             -> % ["$c_1$" channel]
+%           b / "\bit{1}" [process]
+%             -> % ["$c_2$" channel]
+%           / [coordinate];
+%         };
+%       \end{tikzpicture}
+%       %
+%       \;&\trans\;
+%       %
+%       \begin{tikzpicture}[baseline=(b.base)]
+%         \graph [sill graph=0.5]
+%         {
+%           / [coordinate]
+%             -> % ["$c_0$" channel]
+%           b / "\bit{0}" [process]
+%             -> % ["$c_1$" channel]
+%           i / "\inc" [process]
+%             -> % ["$c_2$" channel]
+%           / [coordinate];
+%         };
+%       \end{tikzpicture}
+% %    }
+%     \\
+%     \begin{tikzpicture}[baseline=(e.base)]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%           -> % ["$c_0$" channel]
+%         "\inc" [process]
+%           -> % ["$c_1$" channel]
+%         e / "\eps" [process];
+%       };
+%     \end{tikzpicture}
+%     %
+%     \;&\trans\;
+%     %
+%     \begin{tikzpicture}[baseline=(e.base)]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%           -> % ["$c_0$" channel]
+%         "\bit{1}" [process]
+%           -> % ["$c_1$" channel]
+%         e / "\eps" [process];
+%       };
+%     \end{tikzpicture}    
+%     \\
+%     \begin{tikzpicture}[baseline=(b.base)]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%           -> % ["$c_0$" channel]
+%         "\inc" [process]
+%           -> % ["$c_1$" channel]
+%         b / "\bit{0}" [process];
+%       };
+%     \end{tikzpicture}
+%     %
+%     \;&\trans\;
+%     %
+%     \begin{tikzpicture}[baseline=(b.base)]
+%       \graph [sill graph=0.5]
+%       {
+%         / [coordinate]
+%           -> % ["$c_0$" channel]
+%         b / "\bit{1}" [process]
+%           -> % ["$c_1$" channel]
+%         / [coordinate];
+%       };
+%     \end{tikzpicture}    
+%   \end{align*}%
+% %  \rule{12cm}{\baselineskip}
+% \end{standaloneframe}
+
+% \end{document}

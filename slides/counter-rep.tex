@@ -1,0 +1,682 @@
+% arara: pdflatex
+% arara: pdflatex
+% arara: pdflatex
+\documentclass{beamer}%{standalone}
+\usepackage{beamerext-rev}
+
+\usepackage{expl3}
+\usepackage{xparse}
+
+\usepackage{array}
+
+\usepackage{mathtools}
+\usepackage{tikz}
+\usetikzlibrary{scopes,graphs,cd,shapes.misc,shapes.arrows,shapes.symbols,fit,positioning}
+% \usegdlibrary{trees}
+
+\NewDocumentCommand{\tikzmark}{m}{%
+  \tikz [remember picture, overlay, baseline]
+    { \coordinate (#1); }%
+}
+
+
+% \usepackage{../ch/binary-counter}
+\NewDocumentCommand{\eps}{}{\mathtt{e}}
+\NewDocumentCommand{\bit}{O{} m}{\mathtt{#2}#1}
+\NewDocumentCommand{\inc}{}{\mathtt{s}}
+\NewDocumentCommand{\prt}{}{\mathtt{p}}
+\NewDocumentCommand{\even}{}{\mathtt{ev}}
+\NewDocumentCommand{\odd}{}{\mathtt{o}}
+
+\NewDocumentCommand{\strcons}{}{\mskip\thinmuskip}
+
+\NewDocumentCommand{\cntr}{m}{\ulcorner#1\urcorner}
+\NewDocumentCommand{\cval}{m}{\llcorner#1\lrcorner}
+
+\NewDocumentCommand{\trans}{s}{\longrightarrow\IfBooleanT{#1}{^*}}
+
+\NewDocumentCommand{\vocab}{m}{\emph{#1}}
+
+% \ExplSyntaxOn
+% \NewDocumentCommand{\olpframe}{o m o}{
+  
+% }
+% \ExplSyntaxOff
+
+\ExplSyntaxOn
+\NewDocumentCommand{\mathul}{d<> O{} m}{
+  \IfValueTF {#1}
+    { \mathul:nnn {<#1>} {#2} {#3} }
+    { \mathul:nnn    { } {#2} {#3} }
+}
+
+\cs_new:Npn \mathul:nnn #1#2#3 {
+  \tikzmark { mathul~south~west }
+  #3
+  \tikzmark { mathul~south~east }
+  \tikz [remember~picture, overlay] {
+    \draw #1 [very~thick, color=structure, #2]
+      ([yshift=-0.25ex]mathul~south~west) -- ([yshift=-0.25ex]mathul~south~east);
+  }
+}
+\ExplSyntaxOff
+
+
+\makeatletter
+\tikzset{%
+  graphs/sill graph/.style = {
+    grow left sep=#1 * 2.5em, math nodes,
+    edges = {-, shorten <=-0.02em, shorten >=-0.02em},
+  },
+  graphs/sill graph/.default = 1,
+  graphs/sill linear graph/.style = {sill graph},
+  %
+  process/.style = {
+    rounded rectangle, rounded rectangle left arc=none,
+    minimum size=1.75em,
+    fill=structure!25, draw,
+    font=\LARGE, % text height=1.5ex
+  },
+  %
+  channel/.style = {
+    below right=0.2em and 0.05em, at end, sloped,
+    inner sep=0em,
+    overlay,
+    font=\small,
+%    draw
+  },
+  %
+  message@/.style n args = {3}{
+    signal, signal to=#1, signal pointer angle=105,
+    above=0.3em, midway, sloped,
+    inner xsep=#2, inner ysep=0.2em,
+    overlay,
+    font=\LARGE\hspace{#3},
+    fill=example text.fg!20, draw
+  },
+  message/.is choice,
+  message/left/.style = { message@={left}{0.1em}{-0.05em} },
+  message/right/.style = { message@={right}{0.05em}{0.05em} },
+  message/east/.style = { message=right },
+  message/west/.style = { message=left },
+  message/.default = left,
+  %
+  point/.style = {
+    circle, fill=red,
+    inner sep=0pt, outer sep=0pt,
+    minimum size=2pt
+  },
+  %
+  end point/.style = {
+    circle, fill,
+    inner sep=0, outer sep=0,
+    minimum size=4\pgflinewidth
+  }
+}
+
+\NewDocumentCommand{\drawredex}{m}{%
+  \node [draw=red, dashed, overlay, fit=#1] {};
+}
+\makeatother
+
+\tikzset{
+  every picture/.append style={thick}
+}
+
+\NewDocumentCommand{\tikzmarktext}{m m}{%
+  \tikz [remember picture, baseline] {
+    \node (#1) [inner sep=0em, outer sep=0.3333em, anchor=base]
+      {#2};
+  }%
+}
+
+\makeatletter
+\NewDocumentCommand{\cover}{}{%
+  \alt{\beamer@makecovered}{\beamer@fakeinvisible}%
+}
+\makeatother
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamercovered{transparent}
+
+\begin{document}
+
+\begin{frame}{Binary representation of natural numbers as strings}
+  % A \vocab{value} is a string of $\bit{0}$s and $\bit{1}$s beginning with an $\eps$, with no leading $\bit{0}$s.
+  % Represent a number by a string of $\bit{0}$s and $\bit{1}$s beginning with an $\eps$, with no leading $\bit{0}$s.
+  \structure{Representation:}
+  \begin{itemize}
+  \item<+-> String of $\bit{0}$s and $\bit{1}$s beginning with an $\eps$, with \tikzmarktext{leading0s}{\alert<.(3)>{no leading $\bit{0}$s.}}
+    % Make rhs visible as <.->
+    \begin{align*}
+      \eps \strcons \bit{1}
+        \uncover<+->{&= \cntr{1} \\}
+      \eps \strcons \bit{1} \strcons \bit{0}
+        \uncover<.->{&= \cntr{2} \\}
+      \mathllap{\eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0}}
+        \uncover<.->{&= \cntr{42}}
+    \end{align*}
+  % 
+  \item<+-> Adequately represent natural number $n$ by bit string $\cntr{n}$:
+  % \item<+-> More generally, adequately represent number $n$ by string $\cntr{n}$:
+    \begin{align*}
+      \hphantom{\eps \strcons \bit{1} \strcons \bit{0}} &\hphantom{= \cntr{42}} \\[-\baselineskip]
+      \cntr{0} &= \eps \\
+      \cntr{2n} &= \cntr{n} \strcons \bit{0}
+          \mathrlap{\text{ , \tikzmarktext{leading0s side}{\alert<.(1)>{if $2n > 0$}}%
+            \tikz [remember picture, overlay] {
+              \draw <.(1)> [alert]
+                (leading0s.south)
+                  edge [->, out=-90, in=20, in looseness=2] (leading0s side.east);
+          }}} \\
+      %
+      \mathllap{\cntr{2n+1}} &= \cntr{n} \strcons \bit{1}
+    \end{align*}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Incrementing binary numbers as string rewriting}
+  \fbox{%
+  \begin{columns}[T]
+  \column{0.42\linewidth}
+    \structure{Successor instructions:}
+    \begin{itemize}
+    \item<+->
+      $\cntr{n} \alert<+>{\strcons \inc}
+         \onslide<+->{\Alt<-.>[c]{{} \mathrel{\text{``$=$''}} {}}{{} \alert<.(1)>{\trans*} {}}
+       \cntr{n+1}}$
+    \end{itemize}
+  %
+  \column{0.5\linewidth}
+    \phantom{Successors:}
+    \begin{itemize}
+    \item<+-> Grade school arithmetic as string rewriting
+      \begin{description}
+      \item[Ends in $\bit{1}$?] % Flip the bit to $\bit{0}$ and carry the $\inc$.
+        \onslide<+->{$\bit{1} \strcons \inc  \trans  \inc \strcons \bit{0}$}
+      \item[Ends in $\bit{0}$?] % Flip the bit to $\bit{1}$.
+        \onslide<+->{$\bit{0} \strcons \inc  \trans  \bit{1} \phantom{\strcons \inc}$}
+      \item[Is $\eps$?] % Add a leading $\bit{1}$.
+        \onslide<+->{$\eps \strcons \inc  \trans  \eps \strcons \bit{1}$}
+      \end{description}
+    \end{itemize}
+  \end{columns}}
+
+  \onslide<+->
+  \structure{Example.}
+  \begin{equation*}
+    \Temporal<+->[r]{\cntr{1}}{\eps \strcons \bit{1}}{} \strcons \inc
+      \trans*
+    \Temporal<+->{\cntr{2}}{\eps \strcons \bit{1} \strcons \bit{0}}{}
+  \end{equation*}
+\end{frame}
+
+
+
+% \begin{frame}{Incrementing binary numbers by string rewriting}
+%   \begin{description}[]%\hspace{0.75em}]
+%   \item[Increments:]\mbox{}\\
+%     \begin{itemize}
+%     \item<+-> Grade school arithmetic as \alert<.(3)>{string rewriting}
+%       \begin{align*}
+%         \cntr{n} \alert<+>{\strcons \inc}
+%           \onslide<+->{&\Alt<-.>[c]{{} \mathrel{\text{``$=$''}} {}}{{} \alert<+>{\trans*} {}}
+%         \cntr{n+1} \\}
+%         %
+%         \onslide<+->{%
+%         \eps \strcons \bit{1} \strcons \inc
+%           &\trans*
+%         \eps \strcons \bit{1} \strcons \bit{0}}
+%       \end{align*}
+%     \end{itemize}
+%   \end{description}
+
+%   \begin{equation*}
+%     \eps \strcons \bit{1} \strcons \inc
+%       \trans*
+%     \eps \strcons \bit{1} \strcons \bit{0}
+%   \end{equation*}
+
+%   \begin{center}
+%     \begin{minipage}{0.5\linewidth}    
+%       \begin{description}
+%         % \setlength\labelsep{1cm}
+%       \item[\onslide<+,+(1)->{Ends in $\bit{1}$?}] % Flip the bit to $\bit{0}$ and carry the $\inc$.
+%         \onslide<.(1)->{$\bit{1} \strcons \inc  \trans  \inc \strcons \bit{0}$}
+%       \item[\onslide<+(-1),+(1)->{Ends in $\bit{0}$?}] % Flip the bit to $\bit{1}$.
+%         \onslide<.(1)->{$\bit{0} \strcons \inc  \trans  \bit{1} \phantom{\strcons \inc}$}
+%       \item[\onslide<+(-2),+(1)>{Is $\eps$?}] % Add a leading $\bit{1}$.
+%         \onslide<.(1)->{$\eps \strcons \inc  \trans  \eps \strcons \bit{1}$}
+%       \end{description}
+%     \end{minipage}
+%   \end{center}
+
+%   % \begin{center}
+%   %   \begin{minipage}{0.5\linewidth}    
+%   %     \begin{description}
+%   %       % \setlength\labelsep{1cm}
+%   %     \item[Ends in $\bit{1}$?] % Flip the bit to $\bit{0}$ and carry the $\inc$.
+%   %       $\bit{1} \strcons \inc  \trans  \inc \strcons \bit{0}$
+%   %     \item[Ends in $\bit{0}$?] % Flip the bit to $\bit{1}$.
+%   %       $\bit{0} \strcons \inc  \trans  \bit{1} \phantom{\strcons \inc}$
+%   %     \item[Is $\eps$?] % Add a leading $\bit{1}$.
+%   %       $\eps \strcons \inc  \trans  \eps \strcons \bit{1}$
+%   %     \end{description}
+%   %   \end{minipage}
+%   % \end{center}
+
+%   \onslide<1->
+%   \structure{Example}
+%   \begin{equation*}
+%     \cover<2-3>{\eps \strcons} \bit{1} \strcons \inc
+% %    \cover<+(1)-+(3)>{\eps \strcons} \bit{1} \strcons \inc
+%       % \visible<+(1)->{
+%       \trans
+%     % \uncover<.(3)->{\eps \strcons}} \visible<+(1)->{\inc \strcons \bit{0}}
+%     \eps \strcons \inc \strcons \bit{0}
+%       \trans
+%     \eps \strcons \bit{1} \strcons \bit{0}
+%   \end{equation*}
+% %  \onslide<+->
+%  % \onslide<+->
+
+%   % \begin{equation*}
+%   %   \uncover<+-+(2)>{\cntr{0} \strcons \inc}
+%   %     \visible<.(1)->{\uncover<-.(2)>{=} \eps \strcons \inc}
+%   %     \trans
+%   %     \visible<.(2)->{\eps \strcons \bit{1} \uncover<-.(2)>{=}}
+%   %     \uncover<.-.(2)>{\cntr{1}}
+%   % \end{equation*}
+
+%   % \pause
+
+%   % \begin{gather*}
+%   %   \cntr{2n} \strcons \inc
+%   %     = \cntr{n} \strcons \bit{0} \strcons \inc
+%   %   \trans
+%   %     \cntr{n} \strcons \bit{1}
+%   %     = \cntr{2n+1}
+%   %   %
+%   %   \\
+%   %   %
+%   %   \cntr{2n+1} \strcons \inc
+%   %     = \cntr{n} \strcons \bit{1} \strcons \inc
+%   %   \trans
+%   %     \cntr{n} \strcons \inc \strcons \bit{0}
+%   %   \trans*
+%   %     \cntr{n+1} \strcons \bit{0}
+%   %     = \cntr{2n+2}
+%   % \end{gather*}
+% \end{frame}
+
+% \begin{frame}{Incrementing binary numbers by string rewriting}
+%   % Allow increments, $\inc$, that are resolved by grade school addition (string rewriting):
+%   Increments, $\inc$, are resolved by grade school addition (string rewriting):
+%   \begin{equation*}
+%     \cntr{n} \strcons \inc  \trans*  \cntr{n+1}
+%   \end{equation*}
+
+%   \begin{center}
+%     \setlength\tabcolsep{0.5\tabcolsep}
+%     \begin{tabular}{@{}>{\color{structure}}rl>{\color{structure}}l@{}}
+%       \llap{The string either }ends in $\bit{1}$:& % Flip the bit to $\bit{0}$ and carry the $\inc$.
+%         $\bit{1} \strcons \inc  \trans  \inc \strcons \bit{0}$&; \\
+%       ends in $\bit{0}$:& % Flip the bit to $\bit{1}$.
+%         $\bit{0} \strcons \inc  \trans  \bit{1} \phantom{\strcons \inc}$&; or \\
+%       is $\eps$:& % Add a leading $\bit{1}$.
+%         $\eps \strcons \inc  \trans  \eps \strcons \bit{1}$&.
+%     \end{tabular}
+%   \end{center}
+
+% \onslide<1->
+%   \structure{Example}
+%   \begin{equation*}
+%     \cover<2-3>{\eps \strcons} \bit{1} \strcons \inc
+% %    \cover<+(1)-+(3)>{\eps \strcons} \bit{1} \strcons \inc
+%       % \visible<+(1)->{
+%       \trans
+%     % \uncover<.(3)->{\eps \strcons}} \visible<+(1)->{\inc \strcons \bit{0}}
+%     \eps \strcons \inc \strcons \bit{0}
+%       \trans
+%     \eps \strcons \bit{1} \strcons \bit{0}
+%   \end{equation*}
+% %  \onslide<+->
+%  % \onslide<+->
+
+%   % \begin{equation*}
+%   %   \uncover<+-+(2)>{\cntr{0} \strcons \inc}
+%   %     \visible<.(1)->{\uncover<-.(2)>{=} \eps \strcons \inc}
+%   %     \trans
+%   %     \visible<.(2)->{\eps \strcons \bit{1} \uncover<-.(2)>{=}}
+%   %     \uncover<.-.(2)>{\cntr{1}}
+%   % \end{equation*}
+
+%   % \pause
+
+%   % \begin{gather*}
+%   %   \cntr{2n} \strcons \inc
+%   %     = \cntr{n} \strcons \bit{0} \strcons \inc
+%   %   \trans
+%   %     \cntr{n} \strcons \bit{1}
+%   %     = \cntr{2n+1}
+%   %   %
+%   %   \\
+%   %   %
+%   %   \cntr{2n+1} \strcons \inc
+%   %     = \cntr{n} \strcons \bit{1} \strcons \inc
+%   %   \trans
+%   %     \cntr{n} \strcons \inc \strcons \bit{0}
+%   %   \trans*
+%   %     \cntr{n+1} \strcons \bit{0}
+%   %     = \cntr{2n+2}
+%   % \end{gather*}
+% \end{frame}
+
+
+\begin{frame}[fragile]{\emph{Concurrent} string rewriting}
+  \structure{Concurrency:}
+  \begin{itemize}
+  \item<+-> Several \alert<.(4)>{morally concurrent} successor instructions at once:
+    \begin{equation*}
+      \begin{tikzcd}[column sep=scriptsize, every cell/.append style={text height=1ex}, every arrow/.append style={line width=2 * rule_thickness}, /tikz/every node/.append style={}]
+        & &
+        |[alt=<.(5)->{text opacity=1}{text opacity=0}]|
+        \eps \strcons \bit{1} \strcons \mathul[example text.fg]{\bit{0} \strcons \inc}
+          \only<.(6)->{\ar[dr, example text.fg]}
+        \\
+        \eps \strcons \mathul<.(1)->[black]{\bit{1} \strcons \inc} \strcons \inc
+          \only<.(2)->{\ar[r, black]}
+        &
+        |[alt=<.(2)->{text opacity=1}{text opacity=0}]|
+        \mathul<.(3)->[alt=<.(4)>{alert}{structure}]{\eps \strcons \inc} \strcons \mathul<.(3)->[alt=<.(4)>{alert}{example text.fg}]{\bit{0} \strcons \inc}
+          \only<.(4)>{\ar[rr, dashed, alert]}
+          \only<.(5)->{\ar[ur, structure]}
+          \only<.(7)->{\ar[dr, example text.fg]}
+        & &
+        |[alt=<.(4)->{text opacity=1}{text opacity=0}]|
+        \eps \strcons \bit{1} \strcons \bit{1}
+        \\
+        & &
+        |[alt=<.(7)->{text opacity=1}{text opacity=0}]|
+        \mathul{\eps \strcons \inc} \strcons \bit{1}
+          \only<.(8)->{\ar[ur, structure]}
+      \end{tikzcd}
+    \end{equation*}
+    \addtocounter{beamerpauses}{8}
+  %
+  \item<+-> We require that interleavings of independent rewritings\\are indistinguishable, so that they appear to be concurrent.
+    \begin{itemize}
+    \item This diagram commutes, e.g.
+    \end{itemize}
+  \item<+-> Concurrency, but where are the processes and messages?
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{}
+  \begin{tikzpicture}[baseline]
+    \graph [sill graph=0.5] {
+      / [coordinate]
+        -> ["$c_0$" channel]
+      "\inc" [process]
+        -> ["$c_1$" channel]
+      / [coordinate];
+    };
+  \end{tikzpicture}
+  \begin{tikzpicture}[baseline]
+    \graph [sill graph=1.6] {
+      / [coordinate]
+        -> ["$c_1{=}c_0$" channel, "$\inc$" message]
+      / [coordinate];
+    };
+  \end{tikzpicture}
+
+  \begin{tikzpicture}
+    \graph [sill graph=0.5] {
+      / [coordinate]
+        ->
+      / [coordinate]
+        -> ["$c_0$" channel, "$\inc$" {message, at start}]
+      "\bit{1}" [process]
+        -> ["$c_1$" channel]
+      / [coordinate];
+    };
+  \end{tikzpicture}
+  \begin{tikzpicture}
+    \graph [sill graph=0.5] {
+      / [coordinate]
+        -> ["$c_0$" channel]
+      "\bit{0}" [process]
+        ->
+      / [coordinate]
+        -> ["$c_{0'}$" channel]
+      "\inc" [process]
+        -> ["$c_1$" channel]
+      / [coordinate];
+    };
+  \end{tikzpicture}
+
+  \begin{tikzpicture}
+    \graph [sill graph] {
+      / [coordinate]
+        -> ["$c_0$" channel, "$\inc$" message]
+      "\eps" [process];
+    };
+  \end{tikzpicture}
+  \begin{tikzpicture}
+    \graph [sill graph=0.5] {
+      / [coordinate]
+        -> ["$c_0$" channel]
+      "\bit{1}" [process]
+        ->
+      / [coordinate]
+        -> ["$c_1$" channel]
+      "\eps" [process];
+    };
+  \end{tikzpicture}
+
+  \begin{tikzpicture}
+    \graph [sill graph=0.5] {
+      / [coordinate]
+        ->
+      / [coordinate]
+        -> ["$c_0$" channel, "$\inc$" {message, at start}]
+      "\bit{0}" [process]
+        -> ["$c_1$" channel]
+      / [coordinate];
+    };
+  \end{tikzpicture}
+  \begin{tikzpicture}
+    \graph [sill graph=0.5] {
+      / [coordinate]
+        -> ["$c_0$" channel]
+      "\bit{1}" [process]
+        -> ["$c_1$" channel]
+      / [coordinate];
+    };
+  \end{tikzpicture}
+\end{frame}
+
+
+\begin{frame}{}
+  Letters are processes (formulas-as-processes)
+  % \begin{equation*}
+  %   \begin{tikzpicture}
+  %     \graph [sill graph,
+  %       tree layout, grow=left, level distance=0, level sep=2.5em] {
+  %       / [point]
+  %         ->["$c$" channel]
+  %       "\inc" [process]
+  %         -> {
+  %           / [point, > {"$d_0$" channel}] -> / [point] ,
+  %           / [point, > {"$d_1$" channel}] -> / [point]
+  %         };
+  %     };
+  %   \end{tikzpicture}
+  % \end{equation*}
+
+  \begin{equation*}
+    \begin{tikzpicture}[channel/.append style={below, at start}]
+      \graph [sill graph, grow left sep=1.25em] {
+        / [coordinate]
+          ->
+        / [point]
+          -> ["$c_0$" channel]
+        "\inc" [process]
+          ->
+        / [point]
+          -> ["$c_1$" channel]
+        "\bit{1}" [process]
+          ->
+        / [point]
+          -> ["$c_2$" channel]
+        "\eps" [process];
+      };
+    \end{tikzpicture}
+  \end{equation*}
+
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          -> ["$c_0$" {channel, name=c0}, "$\inc$" {message, name=inc}]
+        b1/"\bit{1}" [process]
+          -> ["$c_2$" channel]
+        "\eps" [process];
+      };
+      \node [overlay, fit=(b1) (c0) (inc), draw=red, dashed] {};
+    \end{tikzpicture}
+  \end{equation*}
+
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          -> ["$c_0$" channel]
+        "\bit{0}" [process]
+          -> ["$c_{1'}$" {channel, name=c1'}]
+        inc/"\inc" [process]
+          -> ["$c_2$" channel]
+        "\eps" [process];
+      };
+      \coordinate [left=0.9em of inc] (x);
+      \node [overlay, fit=(x) (c1') (inc), draw=red, dashed] {};
+    \end{tikzpicture}
+  \end{equation*}
+  
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          ->["$c_0$" channel]
+        "\bit{0}" [process]
+          -> ["$c_2$" channel, "$\inc$" message]
+        "\eps" [process];
+      };
+    \end{tikzpicture}
+  \end{equation*}
+
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          ->["$c_0$" channel]
+        "\bit{0}" [process]
+          -> ["$c_2$" channel]
+        "\bit{1}" [process]
+          -> ["$c_{2'}$" channel]
+        "\eps" [process];
+      };
+    \end{tikzpicture}
+  \end{equation*}
+
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          -> ["$\inc$" message]
+        / [coordinate]
+          -> ["$c_0$" channel, "$\inc$" message]
+        "\bit{1}" [process]
+          -> ["$c_2$" channel]
+        "\eps" [process];
+      };
+    \end{tikzpicture}
+  \qquad
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          -> ["$c_0$" channel, "$\inc$" {message, name=i0}]
+        b1/"\bit{1}" [process]
+          -> ["$c_2$" channel, "$\inc$" {message, name=i1}]
+        e/"\eps" [process];
+      };
+
+      \drawredex{(b1) (i0)}
+      \drawredex{(e) (i1)}
+    \end{tikzpicture}
+  \end{equation*}
+\end{frame}
+
+
+\begin{frame}{}
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          -> ["$c_0$" channel]
+        "\inc" [process]
+          -> ["$\bit{1}$" {message=right, near end}]
+        / [coordinate]
+          -> ["$c_1$" channel, "$\eps$" message=right]
+        / [end point];
+      };
+    \end{tikzpicture}
+  \end{equation*}
+
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph] {
+        / [coordinate]
+          -> ["$\bit{0}$" {message=right, near end}]
+        / [coordinate]
+          -> ["$\bit{1}$" {message=right, near end}]
+        / [coordinate]
+          -> ["$c_0$" channel, "$\eps$" message=right]
+        / [end point];
+      };
+    \end{tikzpicture}
+  \end{equation*}
+\end{frame}
+
+
+\begin{frame}{Picture}
+  \begin{tikzpicture}
+    \graph [
+      grow right sep=5em,
+      nodes = {text=structure},
+      edges = {thick, bend left}
+    ] {
+        olp/Specification -> chor/Choreography -> proc/Processes;
+        { [edges={bend right}] olp <-[dashed] chor <- proc };
+    };
+  \end{tikzpicture}
+\end{frame}
+
+
+\begin{frame}{Parity}
+  \begin{equation*}
+    \begin{lgathered}
+      \bit{0} \strcons \prt  \trans  \prt \strcons \bit[']{0} \\
+      \bit{1} \strcons \prt  \trans  \prt \strcons \bit[']{1} \\
+      \eps \strcons \prt  \trans  \eps \strcons \even \\
+      \even \strcons \bit[']{0}  \trans  \bit{0} \strcons \even \\
+      \even \strcons \bit[']{1}  \trans  \bit{1} \strcons \odd \\
+      \odd \strcons \bit[']{0}  \trans  \bit{0} \strcons \odd \\
+      \odd \strcons \bit[']{1}  \trans  \bit{1} \strcons \even
+    \end{lgathered}
+  \end{equation*}
+\end{frame}
+
+\end{document}

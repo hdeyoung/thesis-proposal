@@ -1,0 +1,50 @@
++ Title Page
+
++ Computation as deduction
+   - Computation as proof reduction
+      > Functional programming (ML, Haskell)
+   - Computation as proof search
+      > Logic programming (Prolog, Datalog)
+      > Generalization of multiset rewriting
+   - Picture of derivation "triangles"
+
++ Concurrent equality
+   - Picture of two interleavings of independent tasks
+   - Truly concurrent semantics from sequential semantics
+   - Revisit picture of derivation "triangles"
+
++ Thesis statement
+   - Session types bridge different notions of concurrency
+     that arise in computation-as-proof-reduction and
+     computation-as-proof-search interpretations of linear
+     logic.
+
++ There and back again
+   - Graph of proof search and proof reduction nodes with
+     choreography and SSOS edges.
+
++ Outline of talk
+   - Simpler one-dimensional case:
+      > Linear logic programming -> string rewriting
+      > Process trees -> process chains
+   - Proposed work to generalize to linear logic
+      > First-order data
+      > Channel names for tree structures
+
++ Running example: binary representation of natural numbers
+   - Picture of binary number with proof-search and proof-
+     reduction nodes
+
++ Binary representation of natural numbers
+   - Strings of 0s and 1s beginning with e
+   - Canonical representative of n is bit string [n], with
+     no leading 0s
+      > Show representatives of 1, 2, and 42 as examples
+      > Show representation function [ ]
+
++ Computing successors via string rewriting
+   - Go straight to e1ss example?
+   - Do concurrency on this same slide?
+   - Concurrency, but where are the processes?
+
++ 

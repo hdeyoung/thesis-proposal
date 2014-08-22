@@ -1,0 +1,31 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {linear-logic}
+  {2014/03/31}
+  {0.1}
+  {Linear logic macros}
+
+\RequirePackage{amsmath}
+
+\PassOptionsToPackage{heavycircles}{stmaryrd}
+\RequirePackage{stmaryrd}
+
+\RequirePackage{monad}
+
+
+\NewDocumentCommand{\tensor}{}{\otimes}
+\NewDocumentCommand{\one}{}{\mathord{\mathbf{1}}}
+\NewDocumentCommand{\with}{}{\mathbin{\binampersand}}
+\NewDocumentCommand{\llor}{}{\oplus}
+
+\NewDocumentCommand{\lolli}{}{\mathbin{\multimap}}
+
+\NewDocumentCommand{\bang}{}{\mathord{\text{!}}}
+
+\NewDocumentCommand{\lctx}{}{\Delta}
+\NewDocumentCommand{\lctxe}{}{\cdot}
+
+\NewDocumentCommand{\uctx}{}{\Gamma}
+\NewDocumentCommand{\seq}{}{\vdash}
+
+\NewDocumentCommand{\eq}{}{\mathbin{\doteq}}

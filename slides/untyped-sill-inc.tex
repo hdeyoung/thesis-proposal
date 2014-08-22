@@ -1,0 +1,98 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+\begin{standaloneframe}[fragile]
+  \frametitle{Message-passing processes}
+
+  \onslide<+->
+
+  \begin{verbatim}
+bit1 =
+  case recv_right of
+    s => send_left s;
+         bit0
+
+eps =
+  case recv_right of
+    s => eps and bit1
+
+bit0 =
+  case recv_right of
+    s => bit1
+  \end{verbatim}
+    \begin{itemize}
+    \item
+      $
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            -> ["$\inc$" message]
+           b / "\bit{1}" [process]
+            ->
+           / [coordinate];
+         };
+       \end{tikzpicture}
+       %
+       \trans
+       %
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            ->
+           b / "\bit{0}" [process]
+            -> ["$\inc$" message]
+           / [coordinate];
+         };
+       \end{tikzpicture}$
+    %
+    \item
+      $
+       \begin{tikzpicture}[baseline=(e.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            -> ["$\inc$" message]
+           e / "\eps" [process];
+         };
+       \end{tikzpicture}
+       %
+       \trans
+       %
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            ->
+           "\bit{1}" [process]
+            ->
+           "\eps" [process];
+         };
+       \end{tikzpicture}$
+    %
+    \item
+      $
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            -> ["$\inc$" message]
+           b / "\bit{0}" [process]
+            ->
+           / [coordinate];
+         };
+       \end{tikzpicture}
+       %
+       \trans
+       %
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            ->
+           "\bit{1}" [process]
+            ->
+           / [coordinate];
+         };
+       \end{tikzpicture}$
+    \end{itemize}
+\end{standaloneframe}
+\end{document}

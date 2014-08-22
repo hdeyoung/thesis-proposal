@@ -1,0 +1,86 @@
+% arara: lualatex
+\documentclass[tikz]{standalone}
+
+\usetikzlibrary{arrows.meta,graphs,quotes,shapes.misc,graphdrawing,scopes}
+\usegdlibrary{layered,trees}
+
+\newcommand*\eps{\mathsf{eps}}
+\newcommand*\bit[1]{\mathsf{#1}}
+\newcommand*\inc{\mathsf{inc}}
+\newcommand*\incm{\mathsf{inc}}
+
+\tikzset{%
+  process/.style = {%
+    draw,
+    rounded rectangle, rounded rectangle left arc=none,
+    text depth=0,
+    minimum size=0.75cm
+  },
+  %
+  message/.style = {%
+    auto, swap
+  },
+  %
+  channel/.style = {%
+    font=\scriptsize,
+    auto, sloped, very near end, anchor=north west,
+    inner sep=0.1667em
+  },
+  %
+  point/.style = {%
+    shape=rectangle,
+    inner sep=0, outer sep=0, minimum size=0.001pt, draw=red
+  },
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \graph [tree layout, grow=left, nodes={process}, math nodes, edges={-}] {
+      / [point]
+    ->["$c$" channel, "$\incm$" message]
+      / \bit{1}
+    ->["$d$" channel]
+      / [point];
+  };
+\end{tikzpicture}
+\begin{tikzpicture}
+  \graph [tree layout, grow=left, nodes={process}, math nodes, edges={-}] {
+      / [point]
+    ->["$c$" channel]
+      / \bit{0}
+    ->["$d$" channel, "$\incm$" message]
+      / [point];
+  };
+\end{tikzpicture}
+\begin{tikzpicture}
+  \graph [tree layout, grow=left, nodes={process}, math nodes, edges={-}] {
+      / [point]
+    ->["$c$" channel, "$\incm$" message]
+      / \eps;
+  };
+\end{tikzpicture}
+\begin{tikzpicture}
+  \graph [tree layout, grow=left, level distance=0, level sep=1cm, nodes={process}, math nodes, edges={-}] {
+      / [point]
+    ->["$c$" channel]
+      / \bit{1}
+    ->["$d$" channel]
+      / \eps;
+  };
+\end{tikzpicture}
+\begin{tikzpicture}
+  \graph [tree layout, grow=left, level distance=0, level sep=1cm, sibling distance=1.5cm,
+    nodes = {process}, math nodes,
+    edges = {-}
+  ]
+  {    
+    / [point] ->
+    / \mathsf{add} ->
+    {
+      / [point, > "$c_0$" channel] ->["$\incm$" {message, near end}, "$c_1$" channel]
+      1 ->["$c_2$" channel] / \eps,
+      / \bit{1} [> "$c_0$" channel] ->["$c_1$" channel] e
+    };
+  };
+\end{tikzpicture}
+\end{document}

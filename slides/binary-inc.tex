@@ -1,0 +1,143 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+
+\begin{standaloneframe}
+  \frametitle{%
+    \setcounter{beamerpauses}{2}%
+    Computing \tikzmarktext{succ title}{\alert<+>{successors}}
+      \tikz [remember picture, overlay] { \path<.> (succ title) edge [->, red, out=-80, in=100] (succ); }%
+    via \tikzmarktext{rew title}{\alert<+(1)>{string rewriting}}
+      \tikz [remember picture, overlay] { \path<.(1)> (rew title) edge [->, red, out=-90, in=90] (rew); }%
+  }
+  \onslide<+->
+  %
+  \begingroup\Large
+  \begin{equation*}
+    \cntr{n} \strcons \tikzmarktext{succ}{$\alert<+>{\inc}$}
+    \onslide<+->{
+      \mathrel{\alt<-+(-1)>%
+        {\makebox[\widthof{$\mathord{\trans*}$}]{\text{``$=$''}}}
+        {\alert<.>{\tikzmarktext{rew}{$\mathord{\trans}\mathrlap{^*}$}\phantom{^*}}}
+      }
+    \cntr{n+1}
+    }
+  \end{equation*}
+  \endgroup
+
+  \begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+  \begin{example}<+->
+    % \Large
+    $% \tikz[overlay,baseline]{\draw[help lines] (-12,0) -- (12,0);\draw[help lines] (-12,1ex) -- (12,1ex);}
+     \quad
+     \alt<-.(2)>{
+       %
+       \Alt<+->[r]{\eps \strcons \bit{1}}{\cntr{1}} \strcons \inc
+         \trans*
+       \Alt<+->{\eps \strcons \bit{1} \strcons \bit{0}}{\cntr{2}}
+       %
+     }{\addtocounter{beamerpauses}{3}
+       %
+       \makebox[\widthof{$\cntr{1} \strcons \inc$}][r]%
+         {$\eps \strcons \mathul<+-+(3)>[alert]{\bit{1} \strcons \inc}$}
+       \onslide<+->{
+         \trans
+         \addtocounter{beamerpauses}{2}
+         \alt<-+>
+           {\eps \strcons \onslide<+(-3)->{\inc \strcons \bit{0}}}
+           {\mathul<+-+(3)>[alert]{\eps \strcons \inc} \strcons \bit{0}}
+         % 
+         \onslide<+->{
+           \trans
+           \onslide<+->{\eps \strcons \bit{1}} \strcons \bit{0}
+         }
+       }
+       \addtocounter{beamerpauses}{-5}
+     }
+    $
+  \end{example}%
+  %
+  \column{0.5\textwidth}
+  \begin{block}<+->{Grade school arithmetic\vphantom{Example}}
+    \begin{description}
+    \item<.->[Ends in $\bit{1}$?] $\bit{1} \strcons \inc \trans \inc \strcons \bit{0}$
+    \item<+(4)->[Is $\eps$?] $\eps \strcons \inc \trans \eps \strcons \bit{1}$
+    \item<+(5)->[Ends in $\bit{0}$?] $\bit{0} \strcons \inc \trans \bit{1}$
+    \end{description}    
+  \end{block}
+  \end{columns}
+\end{standaloneframe}
+
+\end{document}
+
+
+
+\begin{standaloneframe}
+  \frametitle{Computing \alert<.(-2)>{successors} via \alert<.>{string rewriting}}
+  \onslide<+->
+  %
+  \begingroup\Large
+  \begin{equation*}
+    \cntr{n} \strcons \alert<+>{\inc}
+      \onslide<+->
+      \mathrel{\Alt<-.>[c]%
+        {\text{``$=$''}}
+        {\alert<.(1)>{\mathord{\trans*}}}
+      }
+    \cntr{n+1}
+    \onslide<+->
+  \end{equation*}
+  \endgroup
+  
+  \begin{example}<+-+(2),+(7)->
+    \quad$
+      \alt<-.(7)>{
+        \Alt<-.>[r]
+          {\cntr{1}}
+          {\eps \strcons \bit{1}}
+        \strcons \inc
+        %
+        \trans*
+        %
+        \Alt<-+>
+          {\cntr{2}}
+          {\eps \strcons \bit{1} \strcons \bit{0}}
+      }{
+        \addtocounter{beamerpauses}{7} % + = 9
+        \onslide<+->{
+          \alert<+-+(2)>{\eps \strcons}
+            \bit{1} \strcons \inc
+          % 
+          \onslide<+->{
+            \trans
+            % 
+            \alert<+(-1)-+>{\eps \strcons}
+              \onslide<+(-1)->{\inc \alert<+-+(2)>{\strcons \bit{0}}}
+            % 
+            \onslide<+->{
+              \trans
+              % 
+              \onslide<+->{\eps \strcons \bit{1}}
+              \alert<.(-1)-.>{\strcons \bit{0}}
+            }
+          }
+        }
+        \addtocounter{beamerpauses}{-15}
+      }
+    $
+  \end{example}
+
+  \begin{block}<+->{Grade school arithmetic}
+    \begin{description}
+    \item[Ends in $\bit{1}$?] \onslide<+->{$\bit{1} \strcons \inc \trans \inc \strcons \bit{0}$}
+    \item[Ends in $\bit{0}$?] \onslide<+->{$\bit{0} \strcons \inc \trans \bit{1}$}
+    \item[Is $\eps$?] \onslide<+->{$\eps \strcons \inc \trans \eps \strcons \bit{1}$}
+    \end{description}
+  \end{block}
+\end{standaloneframe}
+
+\end{document}

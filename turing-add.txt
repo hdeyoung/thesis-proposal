@@ -1,0 +1,67 @@
+stype Tape = +{ 0: Tape, 1: Tape, $: 1 }
+
+proc hd WRITE :: {Tape -| Tape} =
+{ caseR of
+    0 => 1 – (hd ERASE)
+  | 1 => 1 – (hd ERASE)
+  | $ => waitR; (hd WRITE) – 0 – $ }
+
+proc hd ERASE :: {Tape -| Tape} =
+{ caseR of
+    0 => 0 – (hd WRITE)
+  | 1 => 0 – (hd WRITE)
+  | $ => waitR; (hd ERASE) – 0 – $ }
+
+
+
+
+stype Tape = +{ 0: Tape, 1: Tape, $: 1 }
+stype Tape' true = &{ 0: Tape' false, 1: Tape' true }
+    | Tape' false = &{ 0: Tape, 1: Tape' false }
+
+
+proc 0 :: {Tape -| Tape} =
+{ selectL 0; <-> }
+
+proc 1 :: {Tape -| Tape} = ...
+
+proc $ :: {Tape -|} =
+{ selectL $; closeL }
+
+proc 0' true :: {Tape' false -| Tape' true} =
+{ selectR 0; <-> }
+
+proc 0' false :: {Tape -| Tape' false} =
+{ selectR 0; <-> }
+
+proc 1' :: {Tape' z? -| Tape' z?} =
+{ selectR 1; <-> }
+
+
+proc hd COPY :: {Tape -| Tape} =
+{ caseR of
+    0 => <->
+  | 1 => (0' false) – (hd (MVR false))
+  | $ => waitR; (hd COPY) – 0 – $ }
+
+proc hd (MVR z?) :: {Tape' z? -| Tape} =
+{ caseR of
+    0 => if z?
+         then (hd (MVL true)) – 1
+         else (0' true) – (hd (MVR true))
+  | 1 => (1' z?) – (hd (MVR z?))
+  | $ => waitR; (hd (MVR z?)) – 0 – $ }
+
+proc hd (MVL z?) :: {Tape' z? -| Tape} =
+{ caseL of
+    0 => if z?
+         then (hd (MVL false)) – 0
+         else 1 – (hd COPY)
+  | 1 => (hd (MVL z?)) – 1 }
+
+
+
+
+proc hd S =
+{ caseR of 
+    0 => (hd S') – 

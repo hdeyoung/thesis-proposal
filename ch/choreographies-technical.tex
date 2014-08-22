@@ -9,27 +9,18 @@
 
 \usepackage{ordered-logic}
 \usepackage{basic-atoms}
+\usepackage{tikz-cd}
 
 \NewDocumentCommand{\chor}{}{X}
 \NewDocumentCommand{\spec}{}{\Sigma}
 
-\NewDocumentCommand{\erasemsg}{m}{#1^{e}}
+\NewDocumentCommand{\erasemsg}{m}{(#1)^{e}}
 
 \NewDocumentCommand{\trans}{t* t+ o}{%
   \longrightarrow
   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
   \IfValueT{#3}{_{#3}}%
 }
-
-% \cs_new_protected:Nn \trans: {
-%   \peek_meaning:nTF {*}
-%     { \@@_trans_star: }
-%     { \peek_meaning:nTF {+}
-%         { \@@_trans_plus: }
-%    \longrightarrow
-%   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
-%   \IfValueT{#3}{_{#3}}%
-% }
 
 \begin{document}
 
@@ -38,35 +29,141 @@
 Hopefully the preceding examples have given some intuition for what counts as a choreography.
 To make the definition precise, we need only formalize the locality and specification-preserving properties.
 
-We use the forward-chaining ordered logic programming language described in \cref{??}, with a few restrictions.
+We use the forward-chaining ordered logic programming language described in \cref{sec:ordered-lp}, with a few restrictions.
+First, we confine ourselves to the purely propositional fragment of ordered logic programming.
+Second, to simplify the statement of locality, we require that each implication have exactly one premise: each implication has the form of $A^+ \rimp \monad{B^+}$, $A^+ \limp \monad{B^+}$, or $A^+ \lrimp \monad{B^+}$.
+These uncurried implications would not seem to place a large burden on the programmer, for it is easy enough to write $\p[_{\mathrm{2}}]^+ \fuse \p[_{\mathrm{1}}]^+ \fuse \p[_{\mathrm{3}}]^+ \lrimp \monad{B^+}$ in place of $\p[_{\mathrm{1}}]^+ \lrimp \p[_{\mathrm{2}}]^+ \limp \p[_{\mathrm{3}}]^+ \rimp \monad{B^+}$, for example.
+
+These restrictions can be lifted, but at the expense of complicating the presentation; because the restrictions are orthogonal to the main points of discussion, we therefore prefer the simplifying restrictions for the present.
+
+\begin{alignat*}{2}
+  &\text{Negative propositions}\quad & A^- &::= A^+ \rimp \monad{B^+} \mid A^+ \limp \monad{B^+} \mid A^- \with B^- \\
+  &\text{Positive propositions}      & A^+ &::= A^+ \fuse B^+ \mid \one \mid \p^+ \mid \p[->]^+ \mid \p[<-]^+ \mid A^-
+\end{alignat*}
+ 
 
 
 \subsubsection{Locality}\label{sec:locality}
 
-Each clause must have the form $U^+ \lrimp \monad{A^+}$, where $U^+$ is an \vocab{uncurried local premise} that adheres to the following grammar:
+\begin{definition}[Locality]
+  A clause $A^+ \lrimp \monad{B^+}$ is \emph{local} if its premise adheres to the grammar refinement $O^+$:
+  \begin{alignat*}{2}
+    O^+ &::= L^+ \fuse O^+ \mid \p^+ \mid O^+ \fuse R^+ \\
+    L^+ &::= \p[->]^+ \mid L^+_1 \fuse L^+_2 \mid \one \\
+    R^+ &::= \p[<-]^+ \mid R^+_1 \fuse R^+_2 \mid \one
+  \end{alignat*}
+  % Similarly, a right implication, $A^+ \rimp \monad{B^+}$, is local if its premise adheres to the grammar of $R^+$.
+  % Dually, a left implication, $A^+ \limp \monad{B^+}$, is local if its premise adheres to the grammar of $L^+$.
+\end{definition}
+
+
+A clause $A^+ \lrimp \monad{B^+}$ is \emph{local} if its premise adheres to the grammar refinement $O^+$:
 \begin{alignat*}{2}
-  A^- &::= L^+ \limp \monad{A^+} \mid R^+ \rimp \monad{A^+} \mid A^-_1 \with A^-_2 \\
-  A^+ &::= \p^+ \mid \p[->]^+ \mid \p[<-]^+ \mid A^+_1 \fuse A^+_2 \mid \one \mid A^- \\
-  U^+ &::= L^+ \fuse U^+ \mid \p^+ \mid U^+ \fuse R^+ \\
+  O^+ &::= L^+ \fuse O^+ \mid \p^+ \mid O^+ \fuse R^+ \\
   L^+ &::= \p[->]^+ \mid L^+_1 \fuse L^+_2 \mid \one \\
   R^+ &::= \p[<-]^+ \mid R^+_1 \fuse R^+_2 \mid \one
 \end{alignat*}
-The grammar is a bit complicated, but the idea behind it is simple and matches the intuition behind locality:
-an uncurried local premise $U^+$ contains exactly one process atom $\p^+$ that receives right-directed messages, $\p[->]^+$, from its left and left-directed messages, $\p[<-]^+$, from its right.
+The grammar may appear to be a bit complicated, but the idea behind it is simple enough and matches the intuition behind locality:
+a local premise $O^+$ contains exactly one process atom $\p^+$ that receives right-directed messages, $\p[->]^+$, from its left and left-directed messages, $\p[<-]^+$, from its right.
 
-At the expense of a more complicated grammar, we could allow curried clauses, such as $\p[_1, ->]^+ \lrimp \p[_2, ->]^+ \limp \p^+ \rimp \p[_3, <-]^+ \rimp \monad{A^+}$.
-Uncurrying clauses would not seem to place a large burden on the programmer, for it is easy enough to write $\q[->]^+ \fuse \p[->]^+ \fuse \rr^+ \fuse \s[<-]^+ \lrimp \monad{A^+}$, and this detail is anyway orthogonal to what follows.
+Similarly, a right implication, $A^+ \rimp \monad{B^+}$, is local if its premise adheres to the grammar of $R^+$.
+That is, right implications must receive only left-directed messages that are arriving at the implication's right-hand side.
+No process atom may appear in the premise because, as an ephemeral resource, the implication itself acts as the recipient process.
+Dually, a left implication, $A^+ \limp \monad{B^+}$, is local if its premise adhers to the grammar of $L^+$.
+
+
+% At the expense of a more complicated grammar, locality could be extended to implications with multiple premises.
+% , we could allow curried clauses, such as $\p[_1, ->]^+ \lrimp \p[_2, ->]^+ \limp \p^+ \rimp \p[_3, <-]^+ \rimp \monad{A^+}$.
+% Uncurrying clauses would not seem to place a large burden on the programmer, for it is easy enough to write $\q[->]^+ \fuse \p[->]^+ \fuse \rr^+ \fuse \s[<-]^+ \lrimp \monad{A^+}$, and this detail is anyway orthogonal to what follows.
 
 \subsubsection{Specification-preserving}\label{sec:spec-pres}
 
+To judge that an ordered logic program is specification-preserving, we rely on a notion of erasure that relates message atoms to process atoms.
+\begin{definition}[Message erasure]
+  For atomic propositions, the \vocab{message erasure} $\erasemsg{-}$ is given by
+  \begin{equation*}
+    \erasemsg{\p[->]^+} = \erasemsg{\p[<-]^+} = \erasemsg{\p^+} = \p^+
+    \,.
+  \end{equation*}
+  Message erasure of propositions and contexts, $\erasemsg{A^+}$, $\erasemsg{A^-}$, and $\erasemsg{\octx}$, is defined compositionally as the lifting of message erasure for atoms.
+\end{definition}
+For instance, the message erasure of $\inc[<-]$ is $\erasemsg{\inc[<-]} = \inc$, matching the intuition that the message $\inc[<-]$ serves to implement the specification's atom $\inc$ in the choreography from \cref{sec:chor-example-counter}.
+
+Using this definition, we can define the property of specification-preserving as follows:
 \begin{definition}[Specification-preserving]
   An ordered logic program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if:
   \begin{enumerate}
-  \item for each step $\octx \trans[\spec] \octx'$ in the specification $\spec$, there is a non-empty trace $\octx \trans+[\chor] \octx'$ in the program $\chor$; and
-  \item for each step $\octx \trans[\chor] \octx'$ in the program $\chor$, either $\erasemsg{(\octx)} = \erasemsg{(\octx')}$ or there is a step $\erasemsg{(\octx)} \trans[\spec] \erasemsg{(\octx')}$ in the specification $\spec$.
+  \item\label{defn:specification-preserving:completeness} for each step $\octx \trans[\spec] \octx'$ in the specification $\spec$, there is a non-empty trace $\octx \trans+[\chor] \octx'$ in the program $\chor$; and
+  \item\label{defn:specification-preserving:soundness} for each step $\octx \trans[\chor] \octx'$ in the program $\chor$, either $\erasemsg{\octx} = \erasemsg{\octx'}$ or there is a step $\erasemsg{\octx} \trans[\spec] \erasemsg{\octx'}$ in the specification $\spec$.
   \end{enumerate}
 \end{definition}
+Thus, to be specification-preserving for $\spec$, a choreography $\chor$ must be a sound and complete implementation of specification $\spec$:
+every step in $\spec$ must be reproducible by a non-empty trace in $\chor$ (part \labelcref{defn:specification-preserving:completeness}, completeness); and every step in $\chor$ must be either silent or its erasure reproducible by a single step in $\spec$ (part \labelcref{defn:specification-preserving:soundness}, soundness).
 
+% The first part of this definition requires the choreography $\chor$ to be a complete implementation of the specification $\spec$: every step in $\spec$ must be reproducible by a trace in $\chor$.
+% The second part requires $\chor$ to be a sound implementation of $\spec$: every step in $\chor$ must be either silent or reproducible by a single step in $\spec$.
+
+\tikzcdset{arrow style=math font}
+\tikzset{subscript/.style={shorten >=0.5em, "\ensuremath{#1}" {inner sep=0pt, sloped, at end, below right}}}
+
+As an example, the object-oriented choreography for the binary counter, given in \cref{sec:chor-example-counter}, is indeed specification-preserving.
+\begin{equation*}
+  \begin{tikzcd}
+    \omatch{\bit{1}, \inc}
+      \arrow[rr, subscript=\spec]
+      \arrow[dr, start anchor=south east, end anchor=north west, subscript=\chor]
+      &
+      & \ofill{\inc, \bit{0}} \\
+    & \ofill{\bit{1}, \inc[<-]} \arrow[ur, start anchor=north east, end anchor=south west, subscript=\chor] &
+  \end{tikzcd}
+\end{equation*}
+
+\begin{equation*}
+  \begin{tikzcd}
+    \omatch{\bit{1}, \inc[<-]}  \rar[subscript=\chor]  \dar[dash, "\erasemsg{-}" {below, sloped}]
+      & \ofill{\inc, \bit{0}}   \dar[dash, "\erasemsg{-}"' {above, sloped}] \\
+    \ofill[^e]{\bit{1}, \inc}   \rar[subscript=\spec]
+      & \ofill[^e]{\inc, \bit{0}}
+  \end{tikzcd}
+\end{equation*}
+\begin{gather*}
+  \begin{lgathered}
+    \omatch{\bit{1}, \inc} \trans[\spec] \ofill{\inc, \bit{0}} \\
+    \ofill{\bit{1}, \inc} \trans[\chor] \ofill{\bit{1}, \inc[<-]} \trans[\chor] \ofill{\inc, \bit{0}}
+  \end{lgathered}
+  \\
+  \begin{lgathered}
+    \omatch{\eps, \inc} \trans[\spec] \ofill{\eps, \bit{1}} \\
+    \ofill{\eps, \inc} \trans[\chor] \ofill{\eps, \inc[<-]} \trans[\chor] \ofill{\eps, \bit{1}}
+  \end{lgathered}
+  \\
+  \begin{lgathered}
+    \omatch{\bit{0}, \inc} \trans[\spec] \ofill{\bit{1}} \\
+    \ofill{\bit{0}, \inc} \trans[\chor] \ofill{\bit{0}, \inc[<-]} \trans[\chor] \ofill{\bit{1}}
+  \end{lgathered}
+\end{gather*}
+
+\begin{gather*}
+  \begin{lgathered}
+    \omatch{\inc} \trans[\chor] \ofill{\inc[<-]} \\
+    \erasemsg{\ofill{\inc}} = \ofill[^e]{\inc} = \erasemsg{\ofill{\inc[<-]}}
+  \end{lgathered}
+  \\
+  \begin{lgathered}
+    \omatch{\bit{1}, \inc[<-]} \trans[\chor] \ofill{\inc, \bit{0}} \\
+    \erasemsg{\ofill{\bit{1}, \inc[<-]}} = \ofill[^e]{\bit{1}, \inc} \trans[\spec] \ofill[^e]{\inc, \bit{0}} = \erasemsg{\ofill{\inc, \bit{0}}}
+  \end{lgathered}
+  \\
+  \begin{lgathered}
+    \omatch{\eps, \inc[<-]} \trans[\chor] \ofill{\eps, \bit{1}} \\
+    \ofill{\eps, \inc} \trans[\spec] \ofill{\eps, \bit{1}}
+  \end{lgathered}
+  \\
+  \begin{lgathered}
+    \omatch{\bit{0}, \inc[<-]} \trans[\chor] \ofill{\bit{1}} \\
+    \ofill{\bit{0}, \inc} \trans[\spec] \ofill{\bit{1}}
+  \end{lgathered}
+\end{gather*}
 \end{document}
 
 %%% Local Variables:

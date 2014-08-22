@@ -1,0 +1,55 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+
+\begin{standaloneframe}[fragile]
+  \frametitle{\emph{Concurrent} string rewriting}
+  %
+  \structure{Concurrency:}
+  \begin{itemize}
+  \item<+-> Several \alert<.(4)>{concurrent} successor instructions at once:\\[0.5em]
+    \begingroup\Large
+      \begin{tikzcd}[%
+        column sep=scriptsize,
+        every cell/.append style={text height=1ex},
+        arrow style=tikz, every arrow/.append style={line width=1.5 * rule_thickness}
+      ]
+        & &
+        |[alt=<.(5)->{text opacity=1}{text opacity=0}]|
+        \eps \strcons \bit{1} \strcons \mathul[example text.fg]{\bit{0} \strcons \inc}
+          \only<.(6)->{\ar[dr, example text.fg]}
+        \\
+        \eps \strcons \mathul<.(1)->[black]{\bit{1} \strcons \inc} \strcons \inc
+          \only<.(2)->{\ar[r, black]}
+        &
+        |[alt=<.(2)->{text opacity=1}{text opacity=0}]|
+        \mathul<.(3)->[alt=<.(4)>{alert}{structure}]{\eps \strcons \inc} \strcons \mathul<.(3)->[alt=<.(4)>{alert}{example text.fg}]{\bit{0} \strcons \inc}
+          \only<.(4)>{\ar[rr, dashed, alert]}
+          \only<.(5)->{\ar[ur, structure]}
+          \only<.(7)->{\ar[dr, example text.fg]}
+        & &
+        |[alt=<.(4)->{text opacity=1}{text opacity=0}]|
+        \eps \strcons \bit{1} \strcons \bit{1}
+        \\
+        & &
+        |[alt=<.(7)->{text opacity=1}{text opacity=0}]|
+        \mathul{\eps \strcons \inc} \strcons \bit{1}
+          \only<.(8)->{\ar[ur, structure]}
+      \end{tikzcd}
+    % \end{center}
+    \endgroup
+    \addtocounter{beamerpauses}{8}
+  %
+  \item<+-> % We require that
+    Interleavings of \emph{independent} rewritings are indistinguishable, so that they appear to be truly concurrent.
+    \begin{itemize}
+    \item \emph{Concurrent equality} [CLF]: This diagram commutes.
+    \end{itemize}
+  % \item<+-> Concurrency, but where are the processes and messages?
+  \end{itemize}
+\end{standaloneframe}
+
+\end{document}

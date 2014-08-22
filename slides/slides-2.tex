@@ -1,0 +1,654 @@
+% arara: pdflatex
+\documentclass{beamer}
+\usepackage{my-proposal-talk}
+
+\usepackage{lmodern}
+\usepackage{fancyvrb}
+
+\NewDocumentCommand{\fuse}{}{\bullet}
+\NewDocumentCommand{\lrimp}{}{\twoheadrightarrow}
+\NewDocumentCommand{\monad}{m}{\{#1\}}
+
+\renewcommand*{\inc}{\color{structure}\mathtt{s}\color{black}}
+\renewcommand*{\eps}{\color{structure}\mathtt{e}\color{black}}
+\renewcommand*{\bit}[1]{\color{structure}\mathtt{#1}\color{black}}
+
+\NewDocumentCommand \val { m }{ \llcorner #1 \lrcorner }
+% \renewcommand*{\cntr}[1]{\ulcorner\color{example text.fg}#1\color{black}\urcorner}
+
+\NewDocumentCommand \circtask { O{} m }{%
+  \tikz { \fill [#1] (#2/2,#2/2) circle [radius={#2/2}]; }%
+}
+\NewDocumentCommand \sqtask { O{} m }{%
+  \tikz { \fill [#1] (0,0) rectangle ++(#2,#2); }%
+}
+\NewDocumentCommand \tritask { O{} m }{%
+  \tikz { \fill [#1]
+            let \n1 = { 2*#2/sqrt(3) }
+            in (0:0) -- ++(60:\n1) -- ++(-60:\n1) -- cycle; }%
+}
+
+\NewDocumentCommand \showcolumnwidth { }{%
+  \tikz { \draw [|-|] (0,0) -- (\linewidth,0); }%
+}
+
+\usetikzlibrary{patterns}
+
+\NewDocumentCommand \exec { m }{%
+  \mathop{\mathsf{exec}} #1
+}
+
+\NewDocumentCommand \msg { m }{%
+  \mathop{\mathsf{msg}} #1
+}
+
+\NewDocumentCommand \nats { m }{%
+  \mathord{\!}\mathop{\mathsf{nats}}#1
+}
+
+
+
+% Presentation metadata
+\title{Session-typed concurrent logic programming}
+\author[DeYoung]{Henry DeYoung}
+\institute[Carnegie Mellon]{%
+  Computer Science Department\\Carnegie Mellon University}
+\date{\today}
+\titlegraphic{\textcolor{gray}{\rule{12em}{9em}}}
+
+
+
+\begin{document}
+
+\colorlet{exampletext}{example text.fg}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Computation and deduction}
+
+  \vspace*{-8ex}
+
+  \begingroup\Huge
+    \begin{equation*}
+      \Gamma \vdash A
+    \end{equation*}%
+  \endgroup
+
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+    \begin{tikzcd}[arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=real east, end anchor=real west}, /tikz/nodes={inner xsep=0}]
+      \begin{tikzpicture}[scale=0.75]
+        \fill [gray] (0:0) -- ++(60:2) -- ++(0:-2) -- cycle;
+        \clip (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+        \fill [structure] (-60:-1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+        \fill [example text.fg] (60:1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+      \end{tikzpicture}
+      \rar[structure] &
+      \begin{tikzpicture}[scale=0.75]
+        \fill [gray] (0:0) -- ++(60:2) -- ++(0:-2) -- cycle;
+        \clip (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+        \fill [example text.fg] (60:1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+      \end{tikzpicture}
+    \end{tikzcd}
+    \structure{Computation as proof reduction}
+    \begin{itemize}
+    \item Functional programming
+    \item Types --- preservation and progress properties
+    \end{itemize}
+
+  \column{0.55\textwidth}
+    \begin{tikzcd}[arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=real east, end anchor=real west}, /tikz/nodes={inner xsep=0}]
+      \begin{tikzpicture}[scale=0.75]
+        % \fill [gray] (0:0) -- ++(60:1.45) -- ++(0:-1.45) -- cycle;
+        \fill [example text.fg] (-60:-2) -- ++(-60:0.5) -- (60:1.5) -- ++(60:0.5) -- cycle;
+        \path (-60:-2.55 -| -60:-2.05) -- ++(2.05,0) -- (60:2.05) -- ++(-2.05, 0) -- cycle;
+      \end{tikzpicture}
+      \rar[structure] &
+      \begin{tikzpicture}[scale=0.75]
+        % \fill [gray] (0:0) -- ++(60:1.45) -- ++(0:-1.45) -- cycle;
+        \fill [example text.fg] (-60:-2) -- ++(-60:0.5) -- (60:1.5) -- ++(60:0.5) -- cycle;
+        \fill [structure] (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+      \end{tikzpicture}
+    \end{tikzcd}
+    \structure{Computation as proof construction}
+    \begin{itemize}
+    \item Committed choice bottom-up logic programming
+    \item Only minimal types --- can get stuck
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{\emph{Concurrent} proof reduction and proof construction}
+
+  \begin{columns}[b,onlytextwidth]
+  \column{0.3\textwidth}
+    \begin{center}
+      \fcolorbox{structure!30}{structure!10}{$
+        \begin{gathered}
+          \text{Tasks:} \\
+          \begin{tikzcd}[ampersand replacement=\&, row sep=1.5ex, column sep=1.8em, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=real east, end anchor=real west}, /tikz/nodes={inner ysep=0}]
+            \circtask[structure]{1.7ex}
+              \rar[structure] \&
+            \sqtask[gray]{1.7ex}
+            \\
+            \circtask[example text.fg]{1.7ex}
+              \rar[example text.fg] \&
+            \sqtask[gray]{1.7ex}
+          \end{tikzcd}
+        \end{gathered}
+      $}
+    \end{center}
+
+  \column{0.6\textwidth}
+    \begin{tikzcd}[row sep=2ex, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick}, /tikz/nodes={inner ysep=0}]
+      &
+      \sqtask[gray]{1.7ex} \, \circtask[example text.fg]{1.7ex}
+        \drar[example text.fg, start anchor=east, end anchor=north west] &
+      \\
+      \circtask[structure]{1.7ex} \, \circtask[example text.fg]{1.7ex}
+        \urar[structure, start anchor=north east, end anchor=west]
+        \drar[example text.fg, start anchor=south east, end anchor={[yshift=-axis_height]north west}]
+        \ar[rr, alert, dashed, dash phase=0.5em, start anchor=real east, end anchor=real west] &
+      &
+      \sqtask[gray]{1.7ex} \, \sqtask[gray]{1.7ex}
+      \\
+      &
+      \circtask[structure]{1.7ex} \, \sqtask[gray]{1.7ex}
+        \urar[structure, start anchor={[yshift=-axis_height]north east}, end anchor=south west] &
+    \end{tikzcd}
+  \end{columns}
+
+  \vspace*{3ex}
+
+  \setbeamerfont*{itemize/enumerate body}{size=\small}
+  \structure{Concurrent equality:} Interleavings of independent tasks are indistinguishable,
+  so that they appear to be truly concurrent.
+  \begin{itemize}
+  \item This diagram commutes.
+  \end{itemize}
+
+  \vspace*{1ex}
+
+  \begin{columns}[t,onlytextwidth]
+  \column{0.425\textwidth}
+    \structure{Concurrent proof reduction}
+    \begin{tikzcd}[row sep=0, every cell/.append style={rectangle, inner sep=0}, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=east, end anchor=west}]
+      & \drar[example text.fg, end anchor={[yshift=0.75ex]west}] & \\
+      \begin{tikzpicture}[scale=0.5]
+        \fill [gray] (0:0) -- ++(60:2) -- ++(0:-2) -- cycle;
+        \clip (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+        \fill [structure] (-60:-1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+        \fill [example text.fg] (60:1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+      \end{tikzpicture}
+      \urar[structure, start anchor={[yshift=0.75ex]east}] \drar[example text.fg, start anchor={[yshift=-0.75ex]east}] \ar[rr, alert, dashed] & &
+      \begin{tikzpicture}[scale=0.5]
+        \fill [gray] (0:0) -- ++(60:2) -- ++(0:-2) -- cycle;
+        \clip (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+        % \fill [example text.fg] (60:1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+      \end{tikzpicture}
+      \\
+      & \urar[structure, end anchor={[yshift=-0.75ex]west}] &
+    \end{tikzcd}
+    % \begin{tikzcd}[every cell/.append style={rectangle, inner xsep=0.15em, inner ysep=0.5em, draw}]
+    %   & \drar[example text.fg] & \\
+    %   {}
+    %     \urar[structure]
+    %     \drar[example text.fg]
+    %     \ar[rr, alert, dashed] & &
+    %   {}
+    %   \\
+    %   & \urar[structure] &
+    % \end{tikzcd}
+
+    \begin{itemize}
+    \item SILL: Proofs as processes
+    \end{itemize}
+
+    \showcolumnwidth
+
+  \column{0.5\textwidth}
+    \structure{Concurrent proof construction}
+    % \begin{tikzcd}[/tikz/nodes={draw}]
+    %   & \drar[example text.fg] & \\
+    %   {}
+    %     \urar[structure]
+    %     \drar[example text.fg]
+    %     \ar[rr, alert, dashed] & &
+    %   {}
+    %   \\
+    %   & \urar[structure] &
+    % \end{tikzcd}
+    %
+    \begin{tikzcd}[row sep=0, every cell/.append style={rectangle, inner sep=0}, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=east, end anchor=west}]
+      & \drar[example text.fg, end anchor={[yshift=0.75ex]west}] & \\
+      %
+      \begin{tikzpicture}[scale=0.5, baseline={(0:0 |- 60:1)}]
+        \fill [gray] (0:0) -- ++(60:1.45) -- ++(0:-1.45) -- cycle;
+        \path (0:0) -- ++(60:2) -- (60:2 |- 60:2.55) -- ++(0:-2) -- (-60:-2) -- cycle;
+      \end{tikzpicture}
+      \urar[structure, start anchor={[yshift=0.75ex]east}] \drar[example text.fg, start anchor={[yshift=-0.75ex]east}] \ar[rr, alert, dashed]
+      &&
+      \begin{tikzpicture}[scale=0.5, baseline={(0:0 |- 60:1)}]
+        \fill [gray] (0:0) -- ++(60:1.45) -- ++(0:-1.45) -- cycle;
+        \begin{scope}
+          \path [preaction={fill=structure}, clip] (-60:-2) -- ++(-60:0.5) -- (60:1.5) -- ++(60:0.5) -- cycle;
+          \fill [example text.fg] foreach \x in {0,0.4,0.8,1.2,1.6} { ($(-60:-2)+(\x,0)$) -- ++(0.2,0) -- ++(-60:0.5) -- ++(-0.2,0) -- cycle };
+        \end{scope}
+        \begin{scope}
+          \path [preaction={fill=example text.fg}, clip] (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+          \fill [structure] foreach \x in {0,0.4,0.8,1.2,1.6,2.0,2.4} { ($(-60:-2.55)+(\x,0)$) -- ++(0.2,0) -- ++(-60:0.5) -- ++(-0.2,0) -- cycle };
+        \end{scope}
+      \end{tikzpicture}
+      % \equiv
+      % \begin{tikzpicture}[scale=0.5, baseline={(0:0 |- 60:1)}]
+      %   \fill [gray] (0:0) -- ++(60:1.45) -- ++(0:-1.45) -- cycle;
+      %   \fill [example text.fg] (-60:-2) -- ++(-60:0.5) -- (60:1.5) -- ++(60:0.5) -- cycle;
+      %   \fill [structure] (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+      % \end{tikzpicture}
+      \\
+      & \urar[structure, end anchor={[yshift=-0.75ex]west}] &
+    \end{tikzcd}
+    
+    \begin{itemize}
+    \item CLF: Proofs as multiset rewriting traces
+    \end{itemize}
+
+    \showcolumnwidth
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}[plain,fragile]
+  \onslide<+->
+
+  \begin{center}
+    \begin{tikzcd}[column sep=6em, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=real east, end anchor=real west}]
+      \begin{tikzpicture}[scale=0.75]
+        \fill [gray] (0:0) -- ++(60:2) -- ++(0:-2) -- cycle;
+        \clip (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+        \fill [structure] (-60:-1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+        \fill [example text.fg] (60:1.35) -- ++(60:1.2) -- ++(0:-1.2) -- cycle;
+      \end{tikzpicture}
+      \rar[<->, "\text{\normalsize\alt<-.>{?}{session types}}"] &
+      \begin{tikzpicture}[scale=0.75]
+        \fill [gray] (0:0) -- ++(60:1.45) -- ++(0:-1.45) -- cycle;
+        \fill [example text.fg] (-60:-2) -- ++(-60:0.5) -- (60:1.5) -- ++(60:0.5) -- cycle;
+        \fill [structure] (-60:-2.55) -- ++(-60:0.5) -- (60:2.05) -- ++(60:0.5) -- cycle;
+      \end{tikzpicture}
+    \end{tikzcd}
+  \end{center}
+
+  \begin{center}
+    \begin{tikzpicture}
+      \graph [grow right sep] {
+        sr / "Multiset\\rewriting" [align=flush center]
+         -> [bend left]
+        c / "Choreography"
+         -> [bend left]
+        p / "Message-passing\\process" [align=flush center];
+
+        p -> [bend left] c -> [bend left] sr;
+      };
+
+      \coordinate (sr-c) at ($(sr.east)!0.5!(c.west)$);
+      \draw [dashed] ($(sr-c)!3em!90:(c)$) -- ($(sr-c)!3em!-90:(c)$);
+    \end{tikzpicture}
+  \end{center}
+
+  \begin{block}<+->{Thesis statement}
+    Session types bridge the different notions of concurrency that arise in proof-reduction and proof-construction interpretations of linear logic.
+    \begin{itemize}
+    \item Guarantees of session types thus apply to (a fragment of) logic programming!
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Representing natural numbers as binary strings}
+
+  \begin{itemize}
+  \item Strings of $\bit{0}$s and $\bit{1}$s beginning with an $\eps$.
+    \begin{equation*}
+      \!\begin{aligned}
+        \val{\eps \strcons \bit{1}} &= 1 \\
+        \val{\eps \strcons \bit{0} \strcons \bit{1}} &= 1 \\
+        % \val{\eps \strcons \bit{1} \strcons \bit{0}} &= 2 \\
+        \val{\eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0}} &= 42
+      \end{aligned}
+    \end{equation*}
+
+  \item $\cntr{n}$ is the canonical representation of $n$: no leading $\bit{0}$s.
+    % Canonical representative of $n$ is string $\cntr{n}$ with no leading $\bit{0}$s:
+    \begin{equation*}
+      \!\begin{aligned}
+        \cntr{0} &= \eps \\
+        \cntr{2n} &= \cntr{n} \strcons \bit{0} \text{, if $2n > 0$} \\
+        \mathllap{\cntr{2n+1}} &= \cntr{n} \strcons \bit{1}
+      \end{aligned}
+    \end{equation*}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Computing successors via string rewriting}
+
+  \begin{itemize}
+  \item $\inc$ means successor.   Grade school arithmetic as string rewriting:
+    % \begin{block}{Adequacy}
+      \begin{equation*}
+        \cntr{n} \strcons \inc \trans* \cntr{n+1}
+      \end{equation*}  
+    % \end{block}
+
+  % \item Grade school arithmetic as string rewriting:
+    \begin{minipage}{\linewidth}
+    \begin{columns}[T,totalwidth=\linewidth]
+    \column{0.5\linewidth}
+      \fcolorbox{structure!30}{structure!10}{%
+        \begin{minipage}{0.795\linewidth}
+          \begin{description}
+          \item[Ends in $\bit{1}$?] $\bit{1} \strcons \inc \trans \inc \strcons \bit{0}$
+          \item[Is $\eps$?] $\eps \strcons \inc \trans \eps \strcons \bit{1}$
+          \item[Ends in $\bit{0}$?] $\bit{0} \strcons \inc \trans \bit{1}$
+          \end{description}
+        \end{minipage}
+      }
+
+      \showcolumnwidth
+
+    \column{0.5\linewidth}
+      $\cntr{1} \strcons \inc \trans* \cntr{2}$\\
+      % \begin{equation*}
+        $\eps \strcons \bit{1} \strcons \inc
+          \trans
+        \eps \strcons \inc \strcons \bit{0}
+          \trans
+        \eps \strcons \bit{1} \strcons \bit{0}$
+      % \end{equation*}  
+
+      \showcolumnwidth
+
+    \end{columns}
+  \end{minipage}
+  % \fcolorbox{structure!30}{structure!10}{$
+  %   \!\begin{gathered}
+  %     \text{Grade school arithmetic:}\\
+  %     \!\begin{aligned}
+  %       \bit{1} \strcons \inc
+  %         &\trans \inc \strcons \bit{0} \\
+  %       % 
+  %       \eps \strcons \inc
+  %         &\trans \eps \strcons \bit{1} \\
+  %       % 
+  %       \bit{0} \strcons \inc
+  %         &\trans \bit{1}
+  %     \end{aligned}
+  %   \end{gathered}
+  % $}
+
+  \item Several \emph{concurrent} successor instructions at once:
+    \begin{equation*}
+      \begin{tikzcd}[every cell/.append style={shape=rectangle, inner sep=0.2em}]
+        & & \drar & \\
+        |[asymmetrical rectangle]|
+        \eps \strcons \bit{1} \strcons \inc \strcons \inc
+          \rar & |[asymmetrical rectangle]| \urar \drar \ar[rr,dashed] & & {} \\
+        & & \urar &
+      \end{tikzcd}
+    \end{equation*}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  Repeat circle diagram
+
+  Where are the processes hiding?
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Letters as processes}
+
+  \begin{equation*}
+    \eps \strcons \bit{1} \strcons \inc \strcons \inc \text{\quad picture}
+  \end{equation*}
+  \begin{itemize}
+  \item Letters as processes (cf.\ [Miller '92])
+  \item Strings as process chains
+  \item Rewriting rules as process transformations/specifications
+  \end{itemize}
+
+  This is not a local implementation; it assumes an omniscient coordinator.
+  \begin{itemize}
+  \item Iris picture here.
+  \item Above is closer to a one-dimensional cellular automaton.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Letters as messages \emph{and} processes}
+
+  \begin{equation*}
+    \eps \strcons \bit{1} \strcons \inc \strcons \inc \text{\quad picture}
+  \end{equation*}
+  \begin{itemize}
+  \item Some letters as processes and others as messages
+  \item Strings as chains of processes and messages
+  \item Rewriting rules as \emph{locally}-executing process implementations
+  \end{itemize}
+
+  Assignment of letters to process/message roles is a \emph{\textcolor{structure}{choreography}}
+\end{frame}
+
+
+\begin{frame}[plain]
+  Have we done anything but draw pictures?
+
+  Examples of ill-formed choreographies
+  \begin{itemize}
+  \item Two processes
+  \item Two messages
+  \item Two messages received -- doesn't happen atomically in standard process calculi
+  \item Message sent in premise; message received in conclusion
+  \end{itemize}
+
+  Locality: premise has one process and at most one message received, and conclusion has no messages received.
+
+  Bisimulation condition?
+\end{frame}
+
+
+\begin{frame}
+  repeat rewriting--choreography--process picture
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{A picture is worth a few lines of code}
+
+  \begin{columns}
+  \column{0.5\textwidth}
+  Picture of process reduction
+
+  \column{0.5\textwidth}
+    \begin{Verbatim}[gobble=4, commandchars=\\\{\}]
+    proc \textcolor{structure}{bit1} =
+      case (recvR ()) of
+        \textcolor{exampletext}{s} => sendL \textcolor{exampletext}{s}; \textcolor{structure}{bit0}
+    \end{Verbatim}
+
+    \begin{align*}
+      % \MoveEqLeft[0.5]
+      &\exec{\text{\Verb[commandchars=\\\{\}]+\textcolor{structure}{bit1}+}} \mskip\thickmuskip \msg{\text{\Verb[commandchars=\\\{\}]+\textcolor{exampletext}{s}+}} %\\[-0.5ex]
+        \trans {\exec{(\text{\Verb[commandchars=\\\{\}]+sendL \textcolor{exampletext}{s}; \textcolor{structure}{bit0}+})}} \\%[1ex]
+      %
+      % \MoveEqLeft[0.5]
+      &\exec{(\text{\Verb[commandchars=\\\{\}]+sendL \textcolor{exampletext}{s}; \textcolor{structure}{bit0}+})} %\\[-0.5ex]
+        \trans {\msg{\text{\Verb[commandchars=\\\{\}]+\textcolor{exampletext}{s}+}} \mskip\thickmuskip \exec{\text{\Verb[commandchars=\\\{\}]+\textcolor{structure}{bit0}+}}}
+    \end{align*}
+  \end{columns}
+
+  Process simulates choreography
+\end{frame}
+
+
+\begin{frame}
+  
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Sometimes several choreographies are possible}
+
+  Picture of $\eps \strcons \bit{1} \strcons \inc \strcons \inc$ under bits-as-messages choreography
+
+  \begin{verbatim}
+proc succ =
+{ caseL of
+    e => selectR 1; selectL e; closeR
+  | 0 => selectR 1; <->
+  | 1 => selectR 0; succ }
+  \end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+  \tiny
+  \begin{verbatim}
+stype Bit = &{ s: Bit , =: Bit , <: bool => Bit' , +: bool => Bit' }
+  and Bit' = +{ >: bool /\ Bit }
+
+proc eps :: |- Bit =
+{ caseR of
+    s => ...
+  | + => x <- recvR; selectR >; sendR x; eps -- + }
+
+proc bit b :: Bit |- Bit =
+{ caseR of
+    s => ...
+  | = => selectL <; sendL b; ='
+  | < => x <- recvR; selectL <; sendL x; bit' b
+  | + => x <- recvR;
+         (case b of
+            0 => selectR >; sendR x; +
+          | 1 => (case x of
+                    0 => selectR >; sendR 1; +
+                  | 1 => selectR >; sendR 0; selectL s; +)) }
+
+proc bit' b :: Bit' |- Bit' =
+{ caseL of
+    > => x <- recvL; selectR >; sendR x; bit b }
+
+proc =' :: Bit' |- Bit =
+{ caseL of
+    > => x <- recvL; selectL =; bit x }
+
+proc + :: Bit |- Bit =
+{ caseR of
+    < => x <- recvR; selectL +; sendL x; <->
+  | eq => <-> }
+  \end{verbatim}
+\end{frame}
+
+\end{document}
+
+% e 1 + 1 1 =
+% e 1 + 1 <1 ='
+% e 1 + <1 1' ='
+% e 1 +1 1' ='
+% e s + 0> 1' ='
+% e 1 + 1 0> ='
+% e 1 + 1 0> ='
+% e 1 + 1 = 0
+% e 1 + <1 =' 0
+% e 1 +1 =' 0
+% e s + 0> =' 0
+% e 1 + = 0 0
+% e 1 0 0
+
+% e + 1 =
+% e +1 ='
+% e + 1> =' 
+
+% 0 = -> <0 ='
+% b <0 -> <0 b'
+% + <0 -> +0
+% + <1 -> +1
+% b +0 -> b>
+% 0 +1 -> 1>
+% 1 +1 -> s 0>
+% b> 0' -> 0 b>
+% b> 1' -> 1 b>
+% b> =' -> = b
+% + = -> 
+% e +0 -> e 0>
+% e +1 -> e 1>
+
+
+
+
+% e B 1 + B a1 =  ->*  e B 1 + b1 B =  ->*  e B + b0 B =  ->* 
+
+% 0 =  ->  <0
+% 1 =  ->  <1
+% b <0  ->  <0 <b
+% b <1  ->  <1 <b
+% + <0  ->  +0
+% 
+
+% B + =
+% B 1 +0 B'  ->  B + B' = 1
+
+
+
+
+
+
+
+\begin{frame}
+  \frametitle{Title}
+
+  \begin{columns}[t,onlytextwidth]
+  \column{0.5\textwidth}
+    Concurrency as proof search
+    \begin{itemize}
+    \item CLF 
+    \end{itemize}
+
+  \column{0.5\textwidth}
+    Concurrency as proof reduction
+    \begin{itemize}
+    \item Session-typed $\pi$-calculus
+    \end{itemize}
+  \end{columns}
+
+  Circle diagram
+  \begin{center}
+    \begin{tikzpicture}
+      \graph [grow right sep=8em, nodes={draw,circle}] {
+        caps / "Concurrency\\as\\proof search" [align=flush center]
+        -> [bend left]
+        "Concurrency\\as\\proof reduction" [align=flush center]
+        -> [bend left]
+        (caps);
+      };
+    \end{tikzpicture}
+  \end{center}
+\end{frame}
+
+\begin{frame}[plain]
+  \begin{block}{Thesis statement}
+    Session types form a bridge between different notions of concurrency that arise in computational interpretations of linear logic: computation-as-proof-search and computation-as-proof-reduction.
+  \end{block}
+\end{frame}
+
+\end{document}

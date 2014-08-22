@@ -1,0 +1,29 @@
+% arara: pdflatex: { shell: yes }
+% arara: biber
+% arara: pdflatex: { shell: yes }
+% arara: pdflatex: { shell: yes }
+\documentclass[%
+  twoside,openright,titlepage,numbers=noenddot,headinclude,%1headlines,% letterpaper a4paper
+  footinclude=true,cleardoublepage=empty,abstractoff, % <--- obsolete, remove (todo)
+  BCOR=5mm,paper=letter,fontsize=11pt,%11pt,a4paper,%
+  american,%
+]{scrartcl}
+
+\usepackage{hdeyoung-proposal}
+
+
+\usepackage{fixme}
+\fxsetup{inlineface=\color{blue}, nomargin, inline, status=draft}
+\makeatletter
+\renewcommand*\FXLayoutInline[3]{%
+  {\@fxuseface{inline}#2}}
+\makeatother
+\usepackage{soul}
+
+\NewDocumentCommand{\wc}{m o}
+  {#1\fxnote{\IfValueT{#2}{\ #2}\textsuperscript{?}}}
+
+\begin{document}
+\include{ch/background}
+\include{ch/choreographies}
+\end{document}

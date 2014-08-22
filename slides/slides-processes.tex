@@ -1,0 +1,346 @@
+% arara: pdflatex
+\documentclass{beamer}
+\usepackage{my-proposal-talk}
+
+% \usepackage[varl]{zi4}
+\usepackage{zlmtt}
+\usepackage{listings}
+
+
+\renewcommand*{\inc}{\color{example}\mathtt{s}\color{black}}
+\renewcommand*{\eps}{\color{structure}\mathtt{e}\color{black}}
+\renewcommand*{\bit}[1]{\color{structure}\mathtt{#1}\color{black}}
+
+\NewDocumentCommand \bits { }{ \mathord{\color{structure} B} }
+\NewDocumentCommand \val { m }{ \llcorner #1 \lrcorner }
+
+\newcommand*{\zeroq}{\mathtt{z\mkern-2mu \text{\texttt{?}}}}
+\newcommand*{\zerott}{\mathtt{t\mkern-2mu t}}
+\newcommand*{\zeroff}{\mathtt{f\mkern-2mu f}}
+
+
+\RenewDocumentCommand \strcons { }
+  { \mskip4mu }
+
+
+\NewDocumentCommand \showcolumnwidth { }{%
+  \tikz { \draw [|-|] (0,0) -- (\linewidth,0); }%
+}
+
+
+
+\lstset{
+  basicstyle=\ttfamily,
+  escapeinside={\%*}{*)},
+  keepspaces=true,
+  keywordstyle=\color{purple},
+  morekeywords={proc,recv,send,case,of},
+  emph={eps,bit0,bit1,bit0'}, emphstyle=\color{structure},
+  emph={[2]s,z?,tt,ff}, emphstyle={[2]\color{example}},
+  emph={[3]l,m,r}, emphstyle={[3]\itshape},
+  columns=fixed,
+  basewidth=0.5em,
+}
+
+
+\NewDocumentCommand{\proc}{m}{%
+  \text{\ttfamily\color{structure}#1}%
+}
+\NewDocumentCommand{\chan}{m}{%
+  \text{\ttfamily\itshape#1}%
+}
+\NewDocumentCommand{\spawn}{m m m}{%
+  #1 \mathbin{\text{\ttfamily->}} #2 \mathbin{\text{\ttfamily->}} #3%
+}
+\NewDocumentCommand{\exec}{}{\mathop{\mathsf{exec}}}
+\NewDocumentCommand{\msg}{}{
+  \mathop{\mathsf{msg}}
+}
+\NewDocumentCommand{\send}{m m m}{
+  \text{\ttfamily\color{purple} send}
+  \mskip\thinmuskip
+  #1
+  \mkern\medmuskip
+  #2
+  \text{\ttfamily ;}
+  #3
+}
+
+\begin{document}
+
+
+\colorlet{example}{example text.fg}
+
+
+\begin{frame}[fragile]
+  \frametitle{From choreography to process definitions}
+
+  \begin{columns}[onlytextwidth]
+  \column{0.5\textwidth}
+    \structure{\large Choreography}
+  \column{0.5\textwidth}
+    \structure{\large Process definition}
+  \end{columns}
+  \medskip
+
+  \onslide<+->
+  \begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+    \begin{flalign*}
+      \quad
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\inc$" message, "$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b/"\bit{1}"
+           -> ["$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+        %
+        \fill<.(3)> [white, fill opacity=.7]
+          (current bounding box.south west) rectangle (current bounding box.north east);
+      \end{tikzpicture}
+        &\trans
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b/"\bit{0}"
+           ->["$\inc$" message, "$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+        %
+        \fill<.(2)> [white, fill opacity=.7]
+          (current bounding box.south west) rectangle (current bounding box.north east);
+      \end{tikzpicture}&
+      % \\[4\jot]
+      % \begin{tikzpicture}[baseline=(b.base)]
+      %   \graph [sill graph=0.5, nodes={process}] {
+      %     / [coordinate]
+      %      -> ["$\zeroq$" message, "$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+      %     b/"\bit{1}"
+      %      -> ["$\text{\ttfamily\itshape l}$" channel]
+      %     / [coordinate];
+      %   };
+      % \end{tikzpicture}
+      %   &\trans
+      % \begin{tikzpicture}[baseline=(b.base)]
+      %   \graph [sill graph=0.5, nodes={process}] {
+      %     / [coordinate]
+      %      -> ["$\zeroff$" {message=right, overlay}, "$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+      %     b/"\bit{0}"
+      %      ->["$\text{\ttfamily\itshape l}$" channel]
+      %     / [coordinate];
+      %   };
+      % \end{tikzpicture}&
+    \end{flalign*}
+    % \showcolumnwidth
+
+  \onslide<+->
+  \column{0.5\textwidth}
+    \begin{tabular}{@{\quad}c@{}}\begin{lstlisting}[gobble=6]
+      %*\tikzmark{proc}*)l -> bit1 -> r =%*\tikzmark{eq}*)
+      { %*\tikzmark{case}*)case (recv r) of%*\tikzmark{of}*)
+          s => %*\tikzmark{send}*)send l s;
+               l -> bit0 -> r%*\tikzmark{bit0r}*) }
+    \end{lstlisting}\end{tabular}
+    % \showcolumnwidth
+  \tikz [remember picture, overlay] {
+    \fill<+> [white, fill opacity=.7] ([yshift=1.5ex]send) rectangle ([xshift=.2em]bit0r);
+    \fill<+> [white, fill opacity=.7] ([yshift=1.75ex]proc) |- ([yshift=-.75ex]proc -| case) |- ([yshift=-.25ex]send) |- ([yshift=-.25ex]of) |- (eq) |- ([yshift=1.75ex]proc) -- cycle; }
+  \end{columns}
+  \bigskip
+
+  \onslide<+->
+  \begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+    \begin{flalign*}
+      \quad
+      \begin{tikzpicture}[baseline=(e.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\inc$" message, "$\text{\ttfamily\itshape r}$" channel]
+          e/"\eps";
+        };
+        %
+        \fill<.(2)> [white, fill opacity=.7]
+          (current bounding box.south west) rectangle (current bounding box.north east);
+      \end{tikzpicture}
+        &\trans
+      \begin{tikzpicture}[baseline=(e.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\text{\ttfamily\itshape r}$" channel]
+          b/"\bit{1}"
+           -> ["$\text{\ttfamily\itshape m}$" channel]
+          e/"\eps";
+        };
+        %
+        \fill<.(1)> [white, fill opacity=.7]
+          (current bounding box.south west) rectangle (current bounding box.north east);
+      \end{tikzpicture}&
+    \end{flalign*}
+    % \showcolumnwidth
+
+  \column{0.5\textwidth}
+    \begin{tabular}{@{\quad}c@{}}\begin{lstlisting}[gobble=6]
+      %*\tikzmark{proc}*)eps -> r =%*\tikzmark{eq}*)
+      { %*\tikzmark{case}*)case (recv r) of%*\tikzmark{of}*)
+          s => %*\tikzmark{eps}*)eps -> m;
+               m -> bit1 -> r%*\tikzmark{bit1r}*) }
+    \end{lstlisting}\end{tabular}
+    \tikz [remember picture, overlay] {
+      \fill<+> [white, fill opacity=.7] ([yshift=1.5ex]eps) rectangle ([xshift=.2em]bit1r);
+      \fill<+> [white, fill opacity=.7] ([yshift=1.75ex]proc) |- ([yshift=-.75ex]proc -| case) |- (eps) |- (of) |- (eq) |- ([yshift=1.75ex]proc) -- cycle; }
+    % \showcolumnwidth
+  \end{columns}
+  \bigskip
+
+  \onslide<+->
+  \begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+    \begin{flalign*}
+      \quad
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\inc$" message, "$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b/"\bit{0}"
+           -> ["$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+      \end{tikzpicture}
+        &\trans
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b/"\bit{1}"
+           -> ["$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+      \end{tikzpicture}&
+    \end{flalign*}
+    % \showcolumnwidth
+
+  \column{0.5\textwidth}
+    \begin{tabular}{@{\quad}c@{}}\begin{lstlisting}[gobble=6]
+      l -> bit0 -> r =
+      { case (recv r) of
+          s => l -> bit1 -> r }
+    \end{lstlisting}\end{tabular}
+    % \showcolumnwidth
+  \end{columns}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Equivalence of a choreography and its process definition}
+
+  \onslide<+->
+  \begin{columns}[onlytextwidth]
+  \column{0.5\textwidth}
+    \structure{\large Choreography}
+  \column{0.5\textwidth}
+    \structure{\large Process definition and \rlap{semantics}}
+  \end{columns}
+  \medskip
+
+  \begin{columns}[T,onlytextwidth]
+  \column{0.5\textwidth}
+    \begin{flalign*}
+      \quad
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\inc$" message, "$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b/"\bit{1}"
+           -> ["$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+      \end{tikzpicture}
+        &\trans
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b/"\bit{0}"
+           ->["$\inc$" message, "$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+      \end{tikzpicture}&
+    \end{flalign*}
+    % \showcolumnwidth
+
+  \column{0.5\textwidth}
+    \begin{tabular}{@{\quad}c@{}}\begin{lstlisting}[gobble=6]
+      l -> bit1 -> r =
+      { case (recv r) of
+          s => send l s;
+               l -> bit0 -> r }
+    \end{lstlisting}\end{tabular}
+
+  % If executions are fair, then the second step is invertible.
+    % \showcolumnwidth
+  \end{columns}
+
+  \bigskip
+
+  \onslide<+->
+  % \hspace{\fill}\structure{\large Equivalence}\hspace{\fill}
+  \begin{equation*}
+    \qquad
+    \begin{tikzpicture}
+      \matrix [column sep=5em, column 2/.append style={inner sep=0, anchor=west}] {
+        \graph [sill graph=.5, nodes={process}] {
+          c1 / [coordinate]
+           -> ["$\inc$" message, "$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b1 / "\bit{1}"
+           -> ["$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+        &
+        \node (b1 s)
+        {$\exec(\spawn{\chan{l}}{\proc{bit1}}{\chan{r}})
+          \strcons
+          \msg(\inc)$};
+        % 
+        \\[5ex]
+        % 
+        &
+        \node (snd)
+        {$\mathmakebox[\widthof{$\exec(\spawn{\chan{l}}{\proc{bit1}}{\chan{r}}) \strcons \msg(\inc)$}][l]{
+            \exec(\send{\chan{l}}{\inc}{\spawn{\chan{l}}{\proc{bit0}}{\chan{r}}})
+          }$
+        };
+        % 
+        \\[5ex]
+        % 
+        \graph [sill graph=.5, nodes={process}] {
+          c0 / [coordinate]
+           -> ["$\text{\ttfamily\itshape r\vphantom{l}}$" channel]
+          b0 / "\bit{0}"
+           -> ["$\inc$" {message, overlay}, "$\text{\ttfamily\itshape l}$" channel]
+          / [coordinate];
+        };
+        &
+        \node (s b0)
+        {$\msg(\inc)
+          \strcons
+          \exec(\spawn{\chan{l}}{\proc{bit0}}{\chan{r}})$};
+        \\
+      };
+      %
+      \draw (b1) edge [->, shorten <=1ex, shorten >=1ex, line width=0.5pt] (b0);
+      %
+      \draw (b1 s) edge [->, shorten <=1ex, shorten >=1ex, line width=0.5pt] (snd);
+      \draw (snd) edge [->, shorten <=1ex, shorten >=1ex, line width=0.5pt] (s b0);
+      %
+      \draw (c1) edge [shorten <=1em, shorten >=1em, line width=0.5pt, double equal sign distance, double] (b1 s);
+      \draw (c0) edge [shorten <=1em, shorten >=1em, line width=0.5pt, double equal sign distance, double] (s b0);
+    \end{tikzpicture}
+  \end{equation*}
+\end{frame}
+
+
+\end{document}

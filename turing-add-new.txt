@@ -1,0 +1,244 @@
+e 1 1 + 1 1 dec ='
+e 1 1 + 1 << 0 >> ='
+e 1 1 + << 1 0 =
+e 1 1 s + 1 0 dec ='
+e 1 s 0 + 1 dec 1' ='
+e s 0 0 + << 0 >> 1' ='
+e 1 0 0 s + 0 1 >> ='
+e 1 0 1 + 0 1 =
+e 1 0 1 + 0 1 dec ='
+e 1 0 1 + 0 << 0 >> ='
+e 1 0 1 + << 0 0 =
+e 1 0 1 s + 0 0 dec ='
+e 1 0 s 0 + 0 dec 1' ='
+e 1 1 0 + dec 1' 1' ='
+e 1 1 0 kill 1' 1' ='
+e 1 1 0 kill 1' ='
+e 1 1 0 kill ='
+e 1 1 0
+
+
+
+stype Bit = &{ s: Bit }
+
+stype DBit = &{ dec: DBit' , <<: DBit }
+  and DBit' = +{ >>: DBit , kill: Bit }
+
+dbit0 :: {DBit |- DBit}
+l -> dbit0 -> r =
+{ case r of
+    dec => l.dec; l -> dbit1' -> r
+  | << => l.<<; l -> dbit0 -> r }
+
+dbit1 :: {DBit |- DBit}
+l -> dbit1 -> r =
+{ case r of
+    dec => l.<<; r.>>; l -> dbit0 -> r
+  | << => l.<<; l -> dbit1 -> r }
+
+dbit1' :: {DBit' |- DBit'}
+l -> dbit1' -> r =
+{ case l of
+    >> => r.>>; l -> dbit1 -> r
+  | kill => r.kill; l -> r }
+
++ :: {Bit |- DBit}
+l -> + -> r =
+{ case r of
+    dec => r.kill; l -> r
+  | << => l.s; l -> + -> r }
+
+= :: {DBit |- Bit}
+l -> = -> r =
+{ l.dec; l -> =' -> r }
+
+=' :: {DBit' |- Bit}
+l -> =' -> r =
+{ case l of
+    >> => l -> = -> r
+  | kill => l -> r }
+
+
+
+
+stype Bit = &{ s: Bit , a: +{ e: 1 , 0: Bit , 1: Bit } }
+
+c <- add <- d0,d1 =
+{ d0.a;
+  case d0 of 
+    e => wait d0; c <- d0
+  | 0 => (d1.a;
+          case d1 of
+            e => wait d1; c <- bit0 <- d0
+          | 0 => c' <- add <- d0,d1;
+                 c <- bit0 <- c'
+          | 1 => c' <- add <- d0,d1;
+                 c <- bit1 <- c')
+  | 1 => (d1.a;
+          case d1 of
+            e => wait d1; c <- bit1 <- d0
+          | 0 => c' <- add <- d0,d1;
+                 c <- bit1 <- c'
+          | 1 => c' <- add <- d0,d1;
+                 c'.s;
+                 c <- bit0 <- c') }
+
+
+
+
+
+
+proc eps =
+{ caseR of
+    inc => selectR skip; eps -- bit1 }
+
+proc bit0 =
+{ caseR of
+    dec => selectL dec; bit1'
+  | skip => selectL skip; bit0'
+  | inc => selectR skip; bit1 }
+
+proc bit1 =
+{ caseR of
+    dec => selectL skip; bit0'
+  | skip => selectL skip; bit1'
+  | inc => selectL inc; bit0' }
+
+proc bit0' =
+{ caseL of
+    skip => selectR skip; bit0
+  | erase => selectR erase; <-> }
+
+proc bit1' =
+{ caseL of
+    skip => selectR skip; bit1
+  | erase => selectR erase; <-> }
+
+proc plus =
+{ caseR of
+    dec => selectR erase; <->
+  | skip => selectL inc; plus' }
+
+proc plus' =
+{ caseL of
+    skip => selectR skip; plus }
+
+proc eq =
+{ selectL dec; eq' }
+
+proc eq' =
+{ caseL of
+    skip => eq
+  | erase => <-> }
+
+
+
+
+
+
+
+stype Bit = &{ s: Bit , a0: Bit -o Bit , a1: Bit -o Bit , a: Bit -o Bit }
+
+c <- eps =
+{ case c of
+    a0 => d0 <- recv c;
+          c <- bit0 <- d0
+  | a1 => d1 <- recv c;
+          c <- bit1 <- d1
+  | a => d <- recv c;
+         c <- d }
+
+c <- bit0 <- d =
+{ case c of
+    a0 => d0 <- recv c; 
+          d.a;
+          send d d0;
+          c <- bit0 <- d
+  | a1 => d1 <- recv c;
+          d.a;
+          send d d1;
+          c <- bit1 <- d
+  | a => c' <- recv c;
+         c'.a0;
+         send c' d;
+         c <- c' }
+
+c <- bit1 <- d =
+{ case c of
+    a0 => d0 <- recv c; 
+          d.a;
+          send d d0;
+          c <- bit1 <- d
+  | a1 => d1 <- recv c;
+          d.a;
+          send d d1;
+          d.s;
+          c <- bit0 <- d
+  | a => c' <- recv c;
+         c'.a1;
+         send c' d;
+         c <- c' }
+
+case d1 of
+            e => wait d1;
+                 c <- bit0 <- d0
+          | 0 => d0.a;
+                 send d0 (
+
+
+
+
+
+
+stype Bit = +{ e: 1, 0: Bit, 1: Bit }
+
+stype Vis<C> = &{ e: C, 0: Bit<C> -o C, 1: Bit<C> -o C }
+  and Bit<C> = &{ visit: Vis<C> -o C, stop: Bit }
+
+eps :: {Bit -|}
+c <- eps =
+{ case c of
+    visit => C <- recv c; v <- recv c;
+             v.e; c <- v
+  | stop => c <- eps }
+
+bit0 :: {Bit -| Bit}
+c <- bit0 <- d =
+{ case c of
+    visit => C <- recv c; v <- recv c;
+             v.0; send d C; send v d;
+             c <- v
+  | stop => c <- bit0 <- d }
+
+bit1 :: {Bit -| Bit}
+c <- bit1 <- d =
+{ case c of
+    visit => C <- recv c; v <- recv c;
+             v.1; send d C; send v d;
+             c <- v
+  | stop => c <- bit1 <- d }
+
+succ :: {Vis<Bit> -|}
+c <- succ =
+{ case c of
+    e => c <- eps
+  | 0 => d <- recv c;  % d : &{ visit: Vis<Bit> -o Bit , stop: Bit }
+         d.stop;
+         c <- bit1 <- d
+  | 1 => d <- recv c;
+         d.visit; send d (v <- succ);
+         c <- bit0 <- d }
+
+
+
+c <- val =
+{ case c of 
+    e => send c 0; close c
+  | 0 => b <- recv c; % b : Vis<nat /\ 1> -o nat /\ 1
+         send b (v' <- val);
+         x <- recv b; wait b;
+         send c (2*x); close c
+  | 1 => b <- recv c; % b : Vis<nat /\ 1> -o nat /\ 1
+         send b (v' <- val);
+         x <- recv b; wait b;
+         send c (2*x+1); close c }

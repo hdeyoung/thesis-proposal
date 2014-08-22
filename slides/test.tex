@@ -1,0 +1,41 @@
+% arara: pdflatex
+\documentclass[tikz]{standalone}
+
+\tikzset{
+  trapezoid height/.initial=1em,
+  trapezoid width/.initial=1em,
+  % sin t = o/h
+  trapezoid/.pic={
+    \pgfmathparse{\pgfkeysvalueof{/tikz/trapezoid width}}
+    \show\pgfmathresult
+    \pgfkeys{/tikz/trapezoid width/.expand once=\pgfmathresult}
+
+    \fill (0,0)
+      -- ++(\pgfkeysvalueof{/tikz/trapezoid width} , 0)
+      -- ++(60 : cosec 60 * \pgfkeysvalueof{/tikz/trapezoid height})
+      coordinate ( top right)
+      -- ++(-2 * cot 60 * \pgfkeysvalueof{/tikz/trapezoid height} - \pgfkeysvalueof{/tikz/trapezoid width} , 0)
+      circle [radius=1pt]
+      coordinate ( top left)
+      -- (0,0)
+      -- cycle;
+  }
+}
+
+% 
+\begin{document}
+\begin{tikzpicture}[equilateral triangle/.style={shape=regular polygon, regular polygon sides=3}]
+  \draw [help lines] (0,0) grid (3cm,3cm);
+
+  \pic [name=lower, trapezoid width=0.5cm, trapezoid height=0.5cm] {trapezoid};
+  \pic [name=upper, at=(lower top left), trapezoid width=1.0555cm, trapezoid height=0.5cm] {trapezoid};
+
+  % \node (tri) [equilateral triangle, fill=gray, minimum size=1cm, rotate=-60] {};
+  % \node [trapezium, fill=blue, minimum height=0.2cm, trapezium angle=120,
+  %        above=0.025cm of tri.corner 1, anchor=bottom right corner] {};
+  % \node (tra) [trapezium, fill=green, minimum height=0.2cm, trapezium angle=120,
+  %        above=0.025cm of tri.corner 2, anchor=bottom left corner] {};
+  % \node [trapezium, fill=red, minimum width=0.75cm, trapezium angle=120, trapezium stretches body,
+  %        above=0.025cm of tra] {};
+\end{tikzpicture}
+\end{document}

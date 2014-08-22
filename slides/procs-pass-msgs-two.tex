@@ -1,0 +1,384 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+\begin{standaloneframe}
+  \frametitle{Message-passing processes}
+
+  % \begin{overprint}
+  % \onslide<+>
+  %   \begin{equation*}
+  %     \begin{tikzpicture}
+  %       \graph [sill graph=0.5] {
+  %         / [coordinate]
+  %          ->
+  %         / "\inc" [process]
+  %          ->
+  %         / "\inc" [process]
+  %          ->
+  %         b / "\bit{1}" [process]
+  %          ->
+  %         e / "\eps" [process];
+  %       };
+  %     \end{tikzpicture}
+  %   \end{equation*}
+  % %
+  \onslide<+->
+
+  \begingroup\Large
+    \begin{equation*}
+      \begin{tikzpicture}
+        \graph [sill graph=0.5, simple] {
+          / [coordinate]
+           ->
+          i1 / "\inc" [process, transparent/.only=<+->]
+           ->
+          i0 / "\inc" [process, transparent/.only=<.->]
+           ->
+          b / "\alt<-.(4)>{\bit{1}}{\bit{0}}" [process]
+           ->
+          e / "\eps" [process];
+
+          (i1.east)
+           -> ["$\inc$" {message, name=i1 msg}, transparent/.only=<-.(-1)>]
+          (i1.west);
+
+          (i0.east)
+           -> ["$\inc$" {message, name=i0 msg, transparent/.only={<-.(-1),.(3)->}}, transparent/.only=<-.(-1)>]
+          (i0.west);
+
+          (i0) -> ["$\inc$" {message, name=i0 msg', somewhat near end, transparent/.only={<-.(2),.(5)->}}] (b);
+          (b) -> ["$\inc$" {message, name=i0 msg'', transparent/.only=<-.(4)>}] (e);
+        };
+
+        \draw<.> [overlay, decoration=brace]
+         ([yshift=0.25em]i0 msg.north -| i0 msg.west)
+            edge [decorate, "messages"] ([yshift=0.25em]i1 msg.north east);
+
+        \redex<+-+(1)>[ultra thick em]{(b) (i0 msg)}
+        \visioncircle<+-+(1)>{(e.east)}{(i0.west)}{{white}{0.85}}
+        \redex<+-+(1)>[ultra thick em]{(b) (i0 msg')}
+        \only<+>{} % 
+        \only<+>{} % 
+
+        \redex<+>[ultra thick em, structure]{(e) (i0 msg'')}
+        \redex<.>[ultra thick em, example text.fg]{(b) (i1 msg)}
+      \end{tikzpicture}
+    \end{equation*}
+  \endgroup
+  % \end{overprint}
+
+  What if some letters are processes and others are \emph{messages}? 
+  \begin{itemize}
+  \item<+-> Strings are linear networks of processes and messages, and 
+  \item<+-> rewriting rules are \emph{locally}-executing process implementations.
+    \begin{itemize}
+    \item
+      $
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            -> ["$\inc$" message]
+           b / "\bit{1}" [process]
+            ->
+           / [coordinate];
+         };
+       \end{tikzpicture}
+       %
+       \trans
+       %
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            ->
+           b / "\bit{0}" [process]
+            -> ["$\inc$" message]
+           / [coordinate];
+         };
+       \end{tikzpicture}$
+    %
+    \item
+      $
+       \begin{tikzpicture}[baseline=(e.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            -> ["$\inc$" message]
+           e / "\eps" [process];
+         };
+       \end{tikzpicture}
+       %
+       \trans
+       %
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            ->
+           "\bit{1}" [process]
+            ->
+           "\eps" [process];
+         };
+       \end{tikzpicture}$
+    %
+    \item
+      $
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            -> ["$\inc$" message]
+           b / "\bit{0}" [process]
+            ->
+           / [coordinate];
+         };
+       \end{tikzpicture}
+       %
+       \trans
+       %
+       \begin{tikzpicture}[baseline=(b.base)]
+         \graph [sill graph=0.5] {
+           / [coordinate]
+            ->
+           "\bit{1}" [process]
+            ->
+           / [coordinate];
+         };
+       \end{tikzpicture}$
+    \end{itemize}
+    %
+    \item<+-> Process/message assignment is a \emph{choreography} of the global specification
+  \end{itemize}
+
+  % \begin{equation*}
+  %   \begin{tikzpicture}
+  %     \graph [sill graph=0.5] {
+  %       / [coordinate]
+  %        -> ["$\mathtt{p}${\ttfamily\small?}" {message, text depth=0.2ex, text height=1.0ex}]
+  %       "\bit{0}" [process]
+  %        ->
+  %       b / "\bit{1}" [process]
+  %        ->
+  %       e / "\eps" [process];
+  %     };
+  %   \end{tikzpicture}
+  % \end{equation*}
+
+  % \begin{equation*}
+  %   \begin{tikzpicture}
+  %     \graph [sill graph=0.5] {
+  %       / [coordinate]
+  %        -> ["$\mathtt{x}$" {message, name=par}]
+  %       "\bit{0}" [process]
+  %        -> ["$\mathtt{v}$" {message=right}]
+  %       b / "\bit{1}" [process]
+  %        -> ["$\mathtt{o}$" {message=right, somewhat near end}]
+  %       e / "\eps" [process];
+  %     };
+  %   \end{tikzpicture}
+  % \end{equation*}
+\end{standaloneframe}
+\end{document}
+
+
+\begin{standaloneframe}
+  \frametitle{}
+  \begingroup
+    \Large
+    \begin{equation*}
+      \begin{overprint}
+      \onslide<+-+(1)>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$\inc$" {message, name=i1}] % , .apply style/.only=<+->{near end}}]
+          / [coordinate]
+           -> ["$c_0$" channel, "$\inc$" {message, name=i0}] % , .apply style/.alt=<.->{somewhat near end}{somewhat near start}}]
+          b / "\bit{1}" [process]
+           -> ["$c_1$" channel]
+          e / "\eps" [process];
+        };
+        \draw [decoration={brace}, semithick em]
+          ([yshift=0.75em]i0.west) edge [decorate, "messages" font=\normalsize] ([yshift=0.75em]i1.east);
+        % (e.west |- i0.west) edge [decorate, "processes" font=\normalsize] (b.east |- i0.west);
+
+        \redex<+>[ultra thick em]{(b) (i0)}
+      \end{tikzpicture}
+      %
+      \onslide<+>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$\inc$" message] % , near end}]
+          / [coordinate]
+           -> ["$c_0$" channel]
+          b / "\bit{0}" [process]
+           -> ["$c_1$" channel, "$\inc$" message] % , somewhat near start}]
+          "\eps" [process];
+        };
+      \end{tikzpicture}
+      %
+      \onslide<+-+(1)>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           ->
+          / [coordinate]
+           -> ["$c_0$" channel, "$\inc$" {message, name=i1}]
+          b / "\bit{0}" [process]
+           -> ["$c_1$" channel, "$\inc$" {message, name=i0}]
+          e / "\eps" [process];
+        };
+        \redex<+>[ultra thick em, structure]{(e) (i0)}
+        \redex<.>[ultra thick em, example text.fg]{(b) (i1)}
+      \end{tikzpicture}
+      %
+      \onslide<+->
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          "\bit{1}" [process]
+           -> ["$c_1$" channel]
+          / "\bit{1}" [process]
+           -> ["$c_2$" channel]
+          "\eps" [process];
+        };
+      \end{tikzpicture}
+      \end{overprint}
+    \end{equation*}
+
+
+    \begin{equation*}
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          "\inc" [process]
+           -> ["$c_1$" channel]
+          i1 / "\inc" [process]
+           -> ["$c_2$" channel]
+          b / "\bit{1}" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+        };
+
+        \redex[ultra thick em]{(b) (i1)}
+      \end{tikzpicture}
+    \end{equation*}
+
+    \begin{equation*}
+      \begin{overprint}
+      \onslide<+>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           ->
+          i0 / "\inc" [process, transparent]
+           ->
+          i1 / "\inc" [process, transparent]
+           -> ["$c_2$" channel]
+          b / "\bit{1}" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+
+          (i0.east)
+           -> ["$\inc$" message]
+          (i0.west);
+
+          (i1.east)
+           -> ["$\inc$" message]
+          (i1.west);
+        };
+      \end{tikzpicture}
+      \onslide<+-+(1)>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          i0 / "\inc" [process, transparent]
+           ->
+          i1 / "\inc" [process, transparent]
+           -> ["$c_2$" channel, "$\inc$" {message, name=i1m}]
+          b / "\bit{1}" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+
+          (i0.east)
+           -> ["$\inc$" message]
+          (i0.west);
+
+          (i1.east)
+           ->
+          (i1.west);
+        };
+
+        \redex<+>[ultra thick em]{(b) (i1m)}
+      \end{tikzpicture}
+      \onslide<+>
+      \begin{tikzpicture}
+        \graph [
+          sill graph=0.5,
+          /tikz/channel/.append style={transparent},
+        ] {
+          / [coordinate]
+           -> ["$c_0$" channel]
+          "\inc" [process]
+           ->
+          b / "\bit{0}" [process]
+           -> ["$c_2{=}c_1$" channel]
+          i1 / "\inc" [process]
+           -> ["$c_3$" channel]
+          "\eps" [process]
+           -> ["$c_4$" channel]
+          / [coordinate];
+        };
+      \end{tikzpicture}
+      \end{overprint}
+    \end{equation*}
+  \endgroup
+\end{standaloneframe}
+
+\begin{standaloneframe}
+  \frametitle{}
+
+  \begin{tikzpicture}
+    \graph [grow right sep=3em, nodes={align=flush center}] {
+      s / "string\\rewriting"
+       <->
+      g / "global\\processes"
+       -> [bend left]
+      l / "local\\processes"
+       -> [bend left]
+      { (s), (g) };
+    };
+    \draw [red, dotted] ($(g)!0.5!(l)!3em!90:(l)$) to ($(g)!0.5!(l)!3em!-90:(l)$);
+  \end{tikzpicture}
+\end{standaloneframe}
+\end{document}

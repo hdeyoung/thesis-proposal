@@ -1,0 +1,223 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {my-proposal-talk}
+  {2014/04/25}
+  {1.0}
+  {Preamble for Henry DeYoung's thesis proposal talk}
+
+\RequirePackage { stmaryrd }
+
+\RequirePackage { beamerext-fix } % Custom Beamer extensions
+
+\RequirePackage { tikz }
+\RequirePackage { tikzext } % Custom TikZ extensions
+
+\ExplSyntaxOff
+  \usetikzlibrary{decorations,decorations.pathreplacing,calc,backgrounds,spy,through}
+\ExplSyntaxOn
+
+\RequirePackage { tikz-cd }
+
+
+\RequirePackage { xparse }
+
+\RequirePackage { mathtools }
+
+
+\NewDocumentCommand{\mathul}{d<> O{} m}{
+  \IfValueTF {#1}
+    { \mathul:nnn {<#1>} {#2} {#3} }
+    { \mathul:nnn    { } {#2} {#3} }
+}
+
+\cs_new:Npn \mathul:nnn #1#2#3 {
+  \tikzmark { mathul~south~west }
+  #3
+  \tikzmark { mathul~south~east }
+  \tikz [remember~picture, overlay] {
+    \draw #1 [very~thick, color=structure, #2]
+      ([yshift=-0.25ex]mathul~south~west) -- ([yshift=-0.25ex]mathul~south~east);
+  }
+}
+
+
+
+
+
+% String concatenation
+\NewDocumentCommand \strcons { }
+  { \mskip\thinmuskip }
+
+% Binary counter atomic propositions
+\NewDocumentCommand \eps { } { \mathtt{e} }
+\NewDocumentCommand \bit { m } { \mathtt{#1} }
+\NewDocumentCommand \inc { } { \mathtt{s} }
+
+% Binary counter representation function
+\NewDocumentCommand \cntr { m } { \ulcorner#1\urcorner }
+
+
+\NewDocumentCommand \trans { s }
+  { \longrightarrow \IfBooleanT {#1} { ^* } }
+
+\NewDocumentCommand \ntrans { } { \longarrownot\trans }
+
+
+
+
+
+\NewDocumentCommand \fuse { }
+  { \mathbin{\bullet} }
+\NewDocumentCommand \rimp { }
+  { \mathbin{\twoheadrightarrow} }
+\NewDocumentCommand \monad { m }
+  { \{#1\} }
+
+
+
+
+\RequirePackage { relsize }
+
+\ExplSyntaxOff
+  \usetikzlibrary{scopes,graphs,shapes.misc,shapes.symbols,fit,positioning,shapes.geometric}
+\ExplSyntaxOn
+
+\tikzset{%
+  graphs/sill~graph/.style = {
+    grow~left~sep=#1 * 3em, math~nodes,
+    /tikz/line~width = 1.5 * rule_thickness,
+    edges = {-, shorten~<=-0.02em, shorten~>=-0.02em},
+  },
+  graphs/sill~graph/.default = 1,
+  graphs/sill~linear~graph/.style = {sill~graph},
+  %
+  process/.style = {
+    rounded~rectangle, rounded~rectangle~left~arc=none,
+    minimum~size=1.5em, inner~sep=0,
+    fill=structure!25, draw,
+  },
+  %
+  channel/.style = {
+    below~right=0.2em~and~0.05em, at~end, sloped,
+    inner~sep=0em,
+    overlay,
+    font=\smaller[2],
+%    draw
+  },
+  %
+  message@/.style~n~args = {3}{
+    signal, signal~to=#1, signal~pointer~angle=105,
+    above=0.3em, midway, sloped,
+    inner~xsep=#2, inner~ysep=0.2em,
+    font=\hspace{#3},
+    fill=example~text.fg!20, draw
+  },
+  message/.is~choice,
+  message/left/.style = { message@={left}{0.1em}{-0.05em} },
+  message/right/.style = { message@={right}{0.05em}{0.05em} },
+  message/east/.style = { message=right },
+  message/west/.style = { message=left },
+  message/.default = left,
+  %
+  point/.style = {
+    circle, fill=red,
+    inner~sep=0pt, outer~sep=0pt,
+    minimum~size=2pt
+  },
+  %
+  end~point/.style = {
+    circle, fill,
+    inner~sep=0, outer~sep=0,
+    minimum~size=4\pgflinewidth
+  }
+}
+
+\tikzset{
+  redex/.style = {fit={#1}, underline, draw, overlay, inner~xsep=0},
+  ellipse~highlight/.style={
+    append~after~command={
+      node [fit={#1}, ellipse, draw, overlay, alert, dashed, inner~xsep=0] {}
+    }
+  },
+}
+
+\newcommand<>{\redex}[2][]{%
+  \node#3 [redex=#2, #1] {};%
+}
+
+
+
+\tikzset{
+  select~complement~scope/.style={
+    execute~at~begin~scope={
+      \path [clip]
+        (current~bounding~box.south~west)
+          rectangle (current~bounding~box.north~east);
+    }
+  },
+  %
+  select~complement/.style~2~args={
+    insert~path={
+      (current~bounding~box.south~west)
+        rectangle (current~bounding~box.north~east)
+    },
+    fill={#1}, fill~opacity={#2}
+  }
+}
+
+\tikzset{
+  vision~circle~through/.style={
+    draw, circle~through={#1}, dotted, thick~em
+  }
+}
+
+\newcommand<>{\visioncircle}[4][]{
+  \begin{scope}
+    \coordinate (center) at ($#2!0.5!#3$);
+
+    \visible#5{
+      \node [at=(center), vision~circle~through={($#2 + (.5\pgflinewidth,0)$)}, #1] {};
+    
+      \begin{scope}[select~complement~scope]
+        \path [select~complement=#4]
+          let
+            \p1 = ($#2 - (center)$),
+            \n1 = {veclen(\x1,\y1)}
+          in 
+            (center) circle [radius=\n1];
+      \end{scope}
+    }
+  \end{scope}
+}
+
+
+\newcommand*{\ztest}{\mathtt{z}\smash{\text{\smaller{\ttfamily?}}}}
+
+\newcommand*{\ttrue}{\smash{\mathtt{t}}\vphantom{\inc}}
+\newcommand*{\ffalse}{\smash{\mathtt{f}}\vphantom{\inc}}
+% \renewcommand*{\ffalse}{\smash{\raisebox{-0.1em}{$\mathtt{f}$}}\vphantom{\inc}}
+
+\tikzset{
+  only/.style={.apply~style/.only={#1}},
+  alt/.style={.apply~style/.alt={#1}},
+  temporal/.style={.apply~style/.temporal={#1}}
+}
+
+
+
+\RequirePackage{ulem}
+\normalem
+
+
+
+
+% Fix~Beamer blocks
+
+\addtobeamertemplate{block~begin}{}{\setlength{\partopsep}{-\topsep}}
+
+% Beamer slide style
+\setbeamertemplate { navigation~symbols } { }
+% \setbeamercovered { transparent }
+\tikzset {
+  every~picture/.append~style = { thick }
+}

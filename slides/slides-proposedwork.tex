@@ -1,0 +1,486 @@
+% arara: pdflatex
+\documentclass{beamer}
+\usepackage{my-proposal-talk}
+% \usepackage{multicols}
+
+\usepackage{zlmtt}
+\usepackage{listings}
+
+
+\renewcommand*{\inc}{\color{example}\mathtt{s}\color{black}}
+\renewcommand*{\eps}{\color{structure}\mathtt{e}\color{black}}
+\RenewDocumentCommand \bit { m O{} }{ \mathord{\color{structure}\text{\texttt{#1}}#2} }
+
+\NewDocumentCommand \bits { }{ \mathord{\color{structure} B} }
+\NewDocumentCommand \bitplus { }{ \mathord{\text{\texttt{\color{structure} +}}} }
+\NewDocumentCommand \bitequals { O{} }{ \mathord{\color{structure}\text{\texttt{=#1}}} }
+\NewDocumentCommand \dec { }{ \mathord{\mathtt{\color{example} d}} }
+\NewDocumentCommand \bitlinc { }{ \mathord{\text{\texttt{\color{example} <}}\mkern-4mu\text{\texttt{\color{example} <}}} }
+\NewDocumentCommand \bitrskip { }{ \mathord{\text{\texttt{\color{example} >}}\mkern-4mu\text{\texttt{\color{example} >}}} }
+
+\NewDocumentCommand \blenq { }{ \mathord{\mathtt{len}\text{\texttt{?}}} }
+\NewDocumentCommand \blen { m }{ \mathop{\mathtt{len}} #1 }
+
+\NewDocumentCommand \valq { O{0} }{ \mathord{\color{example}\mathtt{v}\text{\smaller[#1]\texttt{?}}} }
+\NewDocumentCommand \val { m }{ \mathop{\color{example}\mathtt{v}} #1 }
+
+\NewDocumentCommand \dbl { }{ \mathop{\mathsf{dbl}} }
+
+\newcommand*{\zeroq}{\mathtt{z\mkern-2mu \text{\texttt{?}}}}
+\newcommand*{\zerott}{\mathtt{t\mkern-2mu t}}
+\newcommand*{\zeroff}{\mathtt{f\mkern-2mu f}}
+
+\RenewDocumentCommand \strcons { }
+  { \mskip4mu }
+\NewDocumentCommand \msetcons { }{ \mathbin{,} }
+
+
+\lstset{
+  basicstyle=\ttfamily,
+  escapeinside={\%*}{*)},
+  keepspaces=true,
+  keywordstyle=\color{purple},
+  morekeywords={proc,recv,send,case,of,stype,and},
+  emph={eps,bit0,bit1,bit0'}, emphstyle=\color{structure},
+  emph={[2]s,z?,tt,ff,v,v?}, emphstyle={[2]\color{example}},
+  emph={[3]l,m,r}, emphstyle={[3]\itshape},
+  columns=fixed,
+  basewidth=0.5em,
+}
+
+
+\begin{document}
+
+\colorlet{example}{example text.fg}
+
+\begin{frame}[fragile]
+  \frametitle{Value represented by a bit string}
+
+  \begin{tabular}{@{}l@{\quad}l@{\qquad\quad}l@{}}
+    % &&
+    % \begin{lstlisting}[gobble=6]
+    %   stype Nat = &{ ..., v%*\texttt{\color{example}?}*): Nat' }
+    %     and Nat' = +{ v: int /\ Nat }
+    % \end{lstlisting}
+    % %
+    % \\
+    % %
+    \rlap{\structure{\large Query:}} \\
+    %
+    &
+    $\bit{0} \strcons \valq  \trans  \valq \strcons \bit{0'}$
+    &
+    \begin{lstlisting}[gobble=6]
+      l -> bit0 -> r =
+      { case (recv r) of ...
+        | v%*\texttt{\color{example}?}*) => send l v%*\texttt{\color{example}?}*);
+                l -> bit0%*\texttt{\color{structure}'}*) -> r }
+    \end{lstlisting}
+    %
+    \\[6ex]
+    %
+    \rlap{\structure{\large Response:}} \\
+    %
+    &
+    $\!\begin{aligned}
+      \MoveEqLeft[2]
+      \val{(N)} \strcons \bit{\hphantom{'}0'} \strcons \tikzmark{dblp}\dbl(N,N') \\
+        &\trans  \bit{0} \strcons \val{(N')}
+    \end{aligned}$
+    &
+    \begin{lstlisting}[gobble=6]
+      l -> bit0%*\texttt{\color{structure}'}*) -> r =
+      { case (recv l) of
+          v => n <- recv l;
+               send r v;
+               send r (%*\tikzmark{dblf}*)dbl n);
+               l -> bit0 -> r }
+    \end{lstlisting}
+  \end{tabular}
+
+    \begin{tikzpicture}
+      \graph [grow right sep=3em] {
+        bc / "backward-chaining\\predicate" [align=center]
+         <-> [alert, dashed, "?" alert]
+        pf / "pure function";
+      };
+
+      \draw [overlay] (bc) edge (dblp);
+      \draw [overlay] (pf) edge (dblf);
+    \end{tikzpicture}
+
+  % \begin{itemize}
+  % \item Well-moded backward-chaining predicates vs.\ pure functions
+  % \item Specific challenge: mixture of forward- and backward-chaining
+  % \end{itemize}
+
+  % \begin{align*}
+  %   \begin{tikzpicture}[baseline=(b.base)]
+  %     \graph [sill graph=0.5, nodes={process}] {
+  %       / [coordinate]
+  %        -> ["{$\valq[1]$}" message]
+  %       b / "\bit{0}"
+  %        ->
+  %       / [coordinate];
+  %     };
+  %   \end{tikzpicture}
+  %     &\trans
+  %   \begin{tikzpicture}[baseline=(b.base)]
+  %     \graph [sill graph=0.5, nodes={process}] {
+  %       / [coordinate]
+  %        ->
+  %       b / "\bit{0'}"
+  %        -> ["{$\valq[1]$}" message]
+  %       / [coordinate];
+  %     };
+  %   \end{tikzpicture}
+  %   %
+  %   \\
+  %   %
+  %   \begin{tikzpicture}[baseline=(b.base)]
+  %     \graph [sill graph=0.5, nodes={process}] {
+  %       / [coordinate]
+  %        ->
+  %       b / "\bit{0'}"
+  %        -> ["$\val{}$" {message=right, somewhat near end}]
+  %       / [coordinate]
+  %        -> ["\smaller[2]$N$" {message=right, text height=\heightof{$\val{}$}}]
+  %       / [coordinate];
+  %     };
+  %   \end{tikzpicture}
+  %     &\trans
+  %   \begin{tikzpicture}[baseline=(b.base)]
+  %     \graph [sill graph=0.5, nodes={process}] {
+  %       / [coordinate]
+  %        -> ["$\val{}$" message=right]
+  %       / [coordinate]
+  %        -> ["\smaller[2]$2N$" {message=right, text height=\heightof{$\val{}$}}]
+  %       b / "\bit{0}"
+  %        ->
+  %       / [coordinate];
+  %     };
+  %   \end{tikzpicture}
+  % \end{align*}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{How to add two binary representations?}
+
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate] -> "\bitequals" [text height=1.5ex] -> / "\bit{0}" -> / "\bit{1}" -> "\bitplus" [text height=1.5ex] -> / "\bit{1}" -> / "\bit{1}" -> "\eps";
+      };
+    \end{tikzpicture}
+  \end{equation*}
+  %
+  \structure{String rewriting/process chains:} Addition as repeated increment
+  \begin{itemize}
+  \item Turing-machine--like: $\Omega(N \log N)$ work to compute $M+N$
+  % \begin{align*}
+  %   \eps \strcons \bit{1} \strcons \bit{1} \strcons \bitplus \strcons \bit{1} \strcons \bit{0} \strcons \bitequals
+  %     \trans*
+  %   \eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{0} \strcons \bitplus \strcons \bit{0} \strcons \bit{1} \strcons \bitequals
+  %     \trans*
+  %   \eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bitplus \strcons \bit{0} \strcons \bit{0} \strcons \bitequals
+  %     \trans*
+  %   \eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{1}
+  % \end{align*}
+  \begingroup\footnotesize
+  \begin{spreadlines}{.25ex}
+    \begin{align*}
+      \MoveEqLeft[0.5]
+      \eps \strcons \bit{1} \strcons \bit{1}
+      \strcons \bitplus \strcons
+      \bit{1} \strcons \bit{0}
+      \strcons \bitequals \\
+      % 
+      &\trans
+      % 
+      \eps \strcons \bit{1} \strcons \bit{1}
+      \strcons \bitplus \strcons
+      \bit{1} \strcons \bit{0}
+      \strcons \dec \strcons \bitequals['] \\
+      % 
+      &\trans
+      % 
+      \eps \strcons \bit{1} \strcons \bit{1}
+      \strcons \bitplus \strcons
+      \bit{1} \strcons \dec \strcons \bit{1\!'}
+      \strcons \bitequals['] \\
+      % 
+      &\trans
+      % 
+      \eps \strcons \bit{1} \strcons \bit{1}
+      \strcons \bitplus \strcons \bitlinc \strcons
+      \bit{0} \strcons \bitrskip \strcons \bit{1\!'}
+      \strcons \bitequals['] \\
+      % 
+      &\trans
+      % 
+      \eps \strcons \bit{1} \strcons \bit{1}
+      \strcons \inc \strcons \bitplus \strcons
+      \bit{0} \strcons \bitrskip \strcons \bit{1\!'}
+      \strcons \bitequals['] \\
+      % 
+      &\trans
+      % 
+      \eps \strcons \bit{1} \strcons \bit{1}
+      \strcons \inc \strcons \bitplus \strcons
+      \bit{0} \strcons \bit{1} \strcons \bitrskip
+      \strcons \bitequals['] \\
+      % 
+      &\trans
+      % 
+      \eps \strcons \bit{1} \strcons \bit{1}
+      \strcons \inc \strcons \bitplus \strcons
+      \bit{0} \strcons \bit{1}
+      \strcons \bitequals \\
+      % 
+      \shortvdotswithin{\trans}
+      % 
+      &\trans \eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{1}
+    \end{align*}
+  \end{spreadlines}
+  \endgroup
+
+  \item There must be a more efficient way\textellipsis\@
+  \end{itemize}
+\end{frame}
+
+% e11+10=
+% e11+10d=
+% e11+1d1=
+% e11+<0>1=
+% e11s+0>1=
+% e11s+01>=
+% e11s+01d=
+% e11s+0<0>=
+% e11s+<00>=
+% e11ss+00>=
+% e11ss+00=
+% e11ss+00d=
+% e11ss+0d1=
+% e11ss+d11=
+% e11ssk11=
+% e11ssk1=
+% e11ssk=
+% e11ss
+% e1s0s
+% es00s
+% e100s
+% e101
+
+
+\begin{frame}
+  \frametitle{From process chains to process trees}
+
+  \begin{equation*}
+    \begin{tikzpicture}[baseline=(plus.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate]
+         -> ["$z_0$" channel]
+        plus / "\bitplus" [text height=1.5ex]
+         ->
+        { / "\bit{1}" [> {"$x_0$" channel}] -> ["$x_1$" channel] / "\bit{1}" -> ["$x_2$" channel] / "\eps" ,
+          / "\bit{0}" [> {"$y_0$" channel}] -> ["$y_1$" channel] / "\bit{1}" -> ["$y_2$" channel] / "\eps" };
+      };
+    \end{tikzpicture}
+    \enskip\trans\enskip
+    \begin{tikzpicture}[baseline=(plus.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate]
+         -> ["$z_0$" channel]
+        / "\bit{1}"
+         -> ["$z_1$" channel]
+        plus / "\bitplus" [text height=1.5ex]
+         ->
+        { / "\bit{1}" [> {"$x_1$" channel}] -> ["$x_2$" channel] / "\eps" ,
+          / "\bit{1}" [> {"$y_1$" channel}] -> ["$y_2$" channel] / "\eps" };
+      };
+    \end{tikzpicture}
+  \end{equation*}
+
+  \structure{Process trees:}
+  \begin{itemize}
+  \item \emph{Explicit} use of channels generalizes from chains to trees (SILL)
+  \item Processes may now use services along multiple channels
+    \begin{equation*}
+      \begin{tikzpicture}
+        \graph [sill graph=0.5] {
+          / [coordinate]
+           -> ["$c$" channel]
+          p / "P" [process]
+           ->
+          { c0 / [coordinate, > {"$c_0$" channel}] ,
+            cn / [coordinate] };
+          (p) -> ["$c_n$" channel] (cn);
+
+          (c0) <-> [dotted] (cn);
+        };
+      \end{tikzpicture}
+    \end{equation*}
+  \item Bit-wise addition: $O(\log M + \log N)$ work to compute $M+N$
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{To what form of rewriting do process trees correspond?}
+
+  \begin{center}
+    \begin{tikzpicture}
+      \matrix [
+        matrix of nodes, column sep=2.5em,
+        column 1/.append style={anchor=base east},
+        column 2/.append style={anchor=base west}
+      ] {
+        |(sr)| string rewriting & |(pc)| process chains \\[1ex]
+        |(msr)| \llap{\structure{Claim:}\enskip}\emph{multiset} rewriting & |(pt)| process \emph{trees} \\
+        |(dst)| destinations & |(ch)| channels \\
+      };
+
+      \graph [edges={structure}] {
+        (sr) <-> (pc);
+        (msr) <-> (pt);
+        (dst) <-> (ch);
+      };
+    \end{tikzpicture}
+  \end{center}
+
+  \structure{Example:} Bit-wise addition
+  \begin{align*}
+    \begin{tikzpicture}[baseline=(plus.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate]
+         -> ["$z_i$" channel]
+        plus / "\bitplus" [text height=1.5ex]
+         ->
+        { / "\bit{1}" [> {"$x_i$" channel}] -> ["$x_{i+1}$" channel] / [coordinate] ,
+          / "\bit{0}" [> {"$y_i$" channel}] -> ["$y_{i+1}$" channel] / [coordinate] };
+      };
+    \end{tikzpicture}
+    \enskip
+    &\trans
+    \enskip
+    \begin{tikzpicture}[baseline=(plus.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate]
+         -> ["$z_i$" channel]
+        / "\bit{1}"
+         -> ["$z_{i+1}$" channel]
+        plus / "\bitplus" [text height=1.5ex]
+         ->
+        { / [coordinate, > {"$x_{i+1}$" channel}] ,
+          / [coordinate, > {"$y_{i+1}$" channel}] };
+      };
+    \end{tikzpicture}
+    &&
+    \text{\footnotesize($z_{i+1}$ fresh)}
+    %
+    \\[8\jot]
+    %
+    \!\begin{lgathered}
+      \bit{1}(x_{i+1}, x_i) \msetcons {} \\
+      \bit{0}(y_{i+1}, y_i) \msetcons {}
+    \end{lgathered}
+    \bitplus(x_i, y_i, z_i)
+    \enskip
+    &\trans\enskip
+    \!\begin{lgathered}
+      \bitplus(x_{i+1}, y_{i+1}, z_{i+1}) \msetcons {} \\
+      \bit{1}(z_{i+1}, z_i)
+    \end{lgathered}
+    &&
+    \text{\footnotesize($z_{i+1}$ fresh)}
+  \end{align*}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Multiset rewriting as process reduction}
+
+  \begin{center}
+    Rewriting--chreography--process picture
+  \end{center}
+
+  \structure{Specific challenges:}
+  \begin{itemize}
+  \item Linearity of destinations (unique indexes [Simmons '12])
+  \item Processes can pass channels.  Analogue for destinations?
+  \item Is there a process analogue to persistent propositions without destinations?
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Plan}
+
+  \begin{itemize}
+  \item First-order ordered logic programming
+    \begin{itemize}
+    \item Well-moded backward chaining vs.\ pure functional computation (X months)
+      \begin{itemize}
+      \item Rely more on related work here?
+      \end{itemize}
+    \item Nesting of forward-chaining computations inside backward-chaining computations (X months)
+    \end{itemize}
+  \item Concurrent linear logic programming (first-order)
+    \begin{itemize}
+    \item 
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+\end{document}
+
+
+
+\item \structure{\emph{Conjecture:}} corresponds to a fragment of \emph{multiset} rewriting (linear logic programming)
+    \begin{equation*}
+      \text{Process}\enskip
+      %
+      \begin{tikzpicture}[baseline=(plus.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate]
+           -> ["$z$" channel]
+          plus / "\bitplus" [text height=1.5ex]
+           ->
+          { / [coordinate, > {"$x$" channel}] ,
+            / [coordinate, > {"$y$" channel}] };
+        };
+      \end{tikzpicture}
+      %
+      \enskip\text{corresponds to element}\enskip
+      %
+      \bitplus(x,y,z)
+    \end{equation*}
+
+  \begin{align*}
+    \MoveEqLeft[0.5]
+    \begin{aligned}[t]
+      &\eps(x_2) \msetcons \bit{1}(x_2,x_1) \msetcons \bit{1}(x_1,x_0) \msetcons {} \\
+      &\eps(y_2) \msetcons \bit{1}(y_2,y_1) \msetcons \bit{0}(y_1,y_0) \msetcons \bitplus(x_0,y_0,z_0)
+    \end{aligned} \\
+    &\trans \\
+    \MoveEqLeft[0.5]
+     \begin{aligned}[t]
+       &\eps(x_2) \msetcons \bit{1}(x_2,x_1) \msetcons {} \\
+       &\eps(y_2) \msetcons \bit{1}(y_2,y_1) \msetcons \bitplus(x_1,y_1,z_1) \msetcons \bit{1}(z_1,z_0)
+     \end{aligned}
+  \end{align*}
+  \end{itemize}
+\end{frame}
+
+
+% case x of
+%   1 => case y of 
+%          0 => z' <- + <- x,y;
+%               z <- bit1 <- z'
+
+
+1 0 1 1 1 0 s s
+1 0 1 1 1 1 s
+1 1 0 0 0 0
+
+\end{document}

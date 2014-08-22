@@ -5,6 +5,8 @@
   {0.1}
   {Ordered logic macros}
 
+\RequirePackage{ltxcmds}
+
 \RequirePackage{amsmath}
 
 \PassOptionsToPackage{heavycircles}{stmaryrd}
@@ -14,14 +16,22 @@
 
 \NewDocumentCommand{\fuse}{}{\bullet}
 \NewDocumentCommand{\esuf}{}{\circ}
-\NewDocumentCommand{\one}{}{\mathord{\mathbf{1}}}
-\NewDocumentCommand{\with}{}{\mathbin{\binampersand}}
+
+\ltx@ifpackageloaded { linear-logic }
+  { }
+  {
+    \NewDocumentCommand{\one}{}{\mathord{\mathbf{1}}}
+    \NewDocumentCommand{\with}{}{\mathbin{\binampersand}}
+  }
 
 \NewDocumentCommand{\rimp}{}{\mathbin{\twoheadrightarrow}}
 \NewDocumentCommand{\limp}{}{\mathbin{\rightarrowtail}}
 \NewDocumentCommand{\lrimp}{}{\mathbin{\rightarrowtriangle}}
 
-\NewDocumentCommand{\bang}{}{\mathord{\text{!}}}
+\ltx@ifpackageloaded { linear-logic }
+  { }
+  { \NewDocumentCommand{\bang}{}{\mathord{\text{!}}} }
+
 \NewDocumentCommand{\gnab}{}{\mathord{\text{!`}}}
 
 \NewDocumentCommand{\octx}{}{\Omega}
@@ -30,8 +40,13 @@
 \NewDocumentCommand{\omatch}{O{} m}{\Theta#1\lbrace#2\rbrace}
 \NewDocumentCommand{\ofill}{O{} m}{\Theta#1\lbrace#2\rbrace}
 
-\NewDocumentCommand{\uctx}{}{\Gamma}
-\NewDocumentCommand{\seq}{}{\vdash}
+\ltx@ifpackageloaded { linear-logic }
+  { }
+  {
+    \NewDocumentCommand{\uctx}{}{\Gamma}
+    \NewDocumentCommand{\seq}{}{\vdash}
+  }
+
 \NewDocumentCommand{\lax}{}{%
   \relax\ifnum\lastnodetype>0\mskip\medmuskip\fi
   \text{\normalfont\textsf{lax}}%

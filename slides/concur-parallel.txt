@@ -1,0 +1,66 @@
+"Concurrency is not Parallelism", Talk by Rob Pike
+<http://concur.rspace.googlecode.com/hg/talk/concur.html>
+
+  + Concurrency is about design and structure; parallelism is about
+    execution
+
+      - Concurrency = composition of independently executing processes
+
+      - Parallelism = simultaneous execution of (possibly related)
+        "computations"
+
+      - Concurrent designs may or may not be parallelizable.
+
+  + Example of gophers incinerating outdated manuals
+
+      - Design #1: Gopher A loads books onto cart, gopher B unloads
+        books from cart, and gopher C transports carts back and forth
+        between A and B.
+
+      - Design #2: Add gopher D that also transports carts back and
+        forth between A and B.  While C is going forth, D is going
+        back; and vice versa.
+
+      - Design #2 adds a gopher (concurrent procedure) to the design,
+        which complicates the design but also makes it more
+        parallelizable.
+
+
+"Parallelism is not Concurrency", Blog post by Bob Harper
+<http://existentialtype.wordpress.com/2011/03/17/parallelism-is-not-concurrency/>
+
+  + Concurrency = nondeterministic compostion of programs;
+    parallelism = asymptotic efficiency of deterministic programs.
+
+      - "Parallelism is all about dependencies among the
+        subcomputations of a deterministic computation."
+
+      - "Parallelism is a useful abstraction, and abstractions should
+        never be confused with their implementations."
+
+
+"Parallelism and Concurrency Revisited", Blog post by Bob Harper
+<https://existentialtype.wordpress.com/2014/04/09/parallelism-and-concurrency-revisited/>
+
+  + Concurrent scheduling is nondeterministic and competitive;
+    parallel scheduling is deterministic and cooperative.
+
+
+Discussion with Frank
+
+  Concurrency (CLF, pi-calculus)
+    - nondeterministic scheduling
+    - competitive scheduling
+    - nondeterministic result
+    - Either interleaved or true concurrent semantics
+
+  Deterministic/confluent concurrency (SILL)
+    - nondeterministic scheduling
+    - noncompetitive (but not exactly "cooperative") scheduling
+    - deterministic result
+
+  Parallelism (NESL)
+    - deterministic scheduling
+    - cooperative scheduling
+    - deterministic result
+    - Interleaved semantics is awkward

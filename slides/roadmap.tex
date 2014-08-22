@@ -1,0 +1,18 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+\begin{standaloneframe}[plain]
+  \begin{tikzpicture}
+    \graph [grow right sep=4em] {
+      sr / "string\\rewriting" [align=flush center]
+       -> [bend left, "choreograph"]
+      "concurrent\\processes" [align=flush center]
+       -> [bend left, "SSOS"]
+      (sr);
+    };
+  \end{tikzpicture}
+\end{standaloneframe}
+\end{document}

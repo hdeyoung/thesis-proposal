@@ -1,0 +1,983 @@
+% arara: lualatex
+\documentclass{article}
+
+% \usepackage[T1]{fontenc}
+% \usepackage[no-math]{fontspec}
+% \usepackage[lining,semibold]{libertine}
+% \usepackage[scaled=0.9,varqu,varl]{zi4}
+% \usepackage{biolinum}
+% \usepackage[scaled=0.9,varqu,varl]{zi4}
+
+
+% \usepackage[lining,semibold]{libertine}
+% 
+
+
+
+% \usepackage[type1]{biolinum}
+\usepackage[type1,lining,semibold,scale=0.95,tt=false]{libertine}
+\usepackage[varqu,varl]{zi4}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage[libertine,slantedGreek]{newtxmath}
+% \usepackage[no-math]{fontspec}
+% \usepackage[osf,semibold,type1]{libertineRoman}
+\usepackage[heavycircles]{stmaryrd}
+\useosf
+
+% \newcommand*\binampersand{\&}
+% \newcommand*\shortleftarrow{\leftarrow}
+
+
+\usepackage{expl3}
+\usepackage{xparse}
+
+\usepackage{mathpartir}
+\usepackage{proof}
+
+\usepackage{tikz}
+\usetikzlibrary{graphs,graphdrawing}
+\usegdlibrary{trees}
+
+\usepackage{acro}
+\DeclareAcronym{SILL}{
+  short = \MakeLowercase{SILL},
+  long = session-typed intuitionistic linear logic,
+  short-format = \scshape
+}
+
+\ExplSyntaxOn
+
+\DeclarePairedDelimiter \parens { \lparen } { \rparen }
+\DeclarePairedDelimiter \bagged { \lbag } { \rbag }
+
+\NewDocumentCommand \tseq { >{ \SplitArgument{1}{|-} } m }
+  { \tseq:nn #1 }
+\cs_new:Npn \tseq:nn #1#2 { \tseq_ctx:n {#1} \vdash #2 }
+\cs_new:Npn \tseq_ctx:n #1 { #1 }
+
+\NewDocumentCommand \oseq { >{ \SplitArgument{1}{|-} } m }
+  { \oseq:nn #1 }
+\cs_new:Npn \oseq:nn #1#2 { \oseq_ctxs:n {#1} \vdash #2 }
+\cs_new:Npn \oseq_ctxs:n #1 {
+  \oseq_ctxs_aux:w #1 ; \q_no_value ; \q_stop
+}
+\cs_new:Npn \oseq_ctxs_aux:w #1 ; #2 ; #3 \q_stop {
+  #1
+  \quark_if_no_value:nF {#2} { \mathrel{;} #2 }
+}
+
+\NewDocumentCommand \tctx {} { \Psi }
+\NewDocumentCommand \octx {} { \lctx }
+\NewDocumentCommand \lctx {} { \Delta }
+\NewDocumentCommand \lctxe {} { \cdot }
+\NewDocumentCommand \uctx {} { \Gamma }
+
+\NewDocumentCommand \sub { >{ \SplitArgument{1}{/} } m m }
+  { \sub:nnn #1 {#2} }
+\cs_new:Npn \sub:nnn #1#2#3 { [#1/#2]#3 }
+
+\NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
+\NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
+\NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
+\NewDocumentCommand \subst { m } { \text{\textsc{\MakeLowercase{Subst}}}\sb{#1} }
+
+\NewDocumentCommand \comp { >{ \SplitArgument{1}{|} } m }
+  { \comp:nn #1 }
+\cs_new:Npn \comp:nn #1#2 { #1 \parallel #2 }
+
+\NewDocumentCommand \with { O{} g }
+  { \IfValueTF {#2} { \with:nn {#1} {#2} } \with: }
+\cs_new:Npn \with:nn #1#2 {
+  \mathord{\binampersand}
+  \bagged {
+    \seq_set_split:Nnn \l_tmpa_seq {,} {#2}
+    \seq_use:Nn \l_tmpa_seq {,}
+  } \sb{#1}
+}
+\cs_new:Npn \with: { \mathbin{\binampersand} }
+
+\NewDocumentCommand \ssor { O{} g }
+  { \IfValueTF {#2} { \ssor:nn {#1} {#2} } \ssor: }
+\cs_new:Npn \ssor:nn #1#2 {
+  \mathord{\ssor:}
+  \bagged {
+    \seq_set_split:Nnn \l_tmpa_seq {,} {#2}
+    \seq_use:Nn \l_tmpa_seq {,}
+  } \sb{#1}
+}
+\cs_new:Npn \ssor: { \oplus }
+
+\NewDocumentCommand \caseR { s O{} m }
+  {
+    \IfBooleanTF {#1}
+      { \case:nnnn { \mskip\thinmuskip \bagged } { \mathsf{caseR} } {#2} {#3} }
+      { \case:nnnn \parens { \mathsf{caseR} } {#2} {#3} }
+  }
+\NewDocumentCommand \caseL { s O{} m }
+  {
+    \IfBooleanTF {#1}
+      { \case:nnnn { \mskip\thinmuskip \bagged } { \mathsf{caseL} } {#2} {#3} }
+      { \case:nnnn \parens { \mathsf{caseL} } {#2} {#3} }
+  }
+\cs_new:Npn \case:nnnn #1#2#3#4 {
+  #2
+  #1 {
+    \seq_set_split:Nnn \l_tmpa_seq {|} {#4}
+    \seq_clear:N \l_tmpb_seq
+    \seq_map_inline:Nn \l_tmpa_seq
+      { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
+    \seq_use:Nn \l_tmpb_seq { \mid }
+  } \sb{#3}
+}
+\cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
+\cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
+  #1 \Rightarrow #2
+}
+
+\NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectL} } #1 }
+\NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectR} } #1 }
+\cs_new:Npn \select:nnn #1#2#3 {
+  #1 \mskip4mu #2 ; #3
+}
+
+\NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
+\NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
+
+\NewDocumentCommand \inj { m } { \mathsf{in}\sb{#1} }
+
+
+\NewDocumentCommand \one {} { \mathord { \mathbf{1} } }
+
+\NewDocumentCommand \quitR {} { \mathsf{quitR} }
+\NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
+
+
+\NewDocumentCommand \imp {} { \mathbin{\supset} }
+
+\NewDocumentCommand \sendR { m m }
+  { \send:nnn { \mathsf{sendR} } {#1} {#2} }
+\NewDocumentCommand \sendL { m m }
+  { \send:nnn { \mathsf{sendL} } {#1} {#2} }
+\cs_new:Npn \send:nnn #1#2#3 {
+  #1 \mskip4mu #2 ; #3
+}
+
+\NewDocumentCommand \recvL { m m }
+  { \recv:nnn { \mathsf{recvL} } {#1} {#2} }
+\NewDocumentCommand \recvR { m m }
+  { \recv:nnn { \mathsf{recvR} } {#1} {#2} }
+\cs_new:Npn \recv:nnn #1#2#3 {
+  #2 \mskip4mu \mathord{\shortleftarrow} \mskip4mu #1 ; #3
+}
+
+\NewDocumentCommand \vcut { m } { \text{\textsc{\MakeLowercase{Vcut}}}\sb{#1} }
+\NewDocumentCommand \cpy { } { \text{\textsc{\MakeLowercase{Copy}}} }
+
+\NewDocumentCommand \cp { m m } { \mathsf{copy} \mskip\thinmuskip #1 ; #2 }
+\NewDocumentCommand \vcomp { m >{ \SplitArgument{1}{|} } m }
+  { \vcomp:nnn {#1} #2 }
+\cs_new:Npn \vcomp:nnn #1#2#3 { #2 \parallel\sb{#1} #3 }
+\NewDocumentCommand \vrecvR { m m }
+  { \recv:nnn { \mathsf{vrecvR} } {#1} {#2} }
+\NewDocumentCommand \vsendL { m m }
+  { \send:nnn { \mathsf{vsendL} } {#1} {#2} }
+
+
+\NewDocumentCommand \rrule { o m } {
+  \IfValueTF {#1}
+    { \rrule:nn {#2} {#1} }
+    { \rrule:n {#2} }
+}
+\cs_new:Npn \rrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{R}}}\sb{#2} }
+\cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+
+\NewDocumentCommand \lrule { o m } {
+  \IfValueTF {#1}
+    { \lrule:nn {#2} {#1} }
+    { \lrule:n {#2} }
+}
+\cs_new:Npn \lrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{L}}}\sb{#2} }
+\cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+
+\NewDocumentCommand \reduces {} { \longrightarrow }
+
+\ExplSyntaxOff
+
+\title{Session-typing for linearly ordered process networks}
+\author{Henry DeYoung and Frank Pfenning}
+\date{\today} 
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}\label{sec:introduction}
+
+In \ac{SILL}, session-typed sequents have the form
+\begin{equation*}
+  \underbrace{
+    x_0{:}A_0 , x_1{:}A_1 , \dots , x_n{:}A_n
+  }_{\textstyle \lctx}
+  \vdash
+  P :: x_{n+1}{:}A_{n+1}
+\end{equation*}
+where the channel names, $x_i$, are needed to unambiguously refer to hypotheses and the consequent.
+The cut rule of \ac{SILL} types a parallel composition of processes,
+\begin{equation*}
+  \infer[\cut{A}]{\lctx , \lctx' \vdash (\nu x)(P \mid Q) :: z{:}C}{
+    \lctx \vdash P :: x{:}A &
+    \lctx' , x{:}A \vdash Q :: z{:}C}
+\end{equation*}
+Top-level $\cut{}$s thus arrange processes in a tree-shaped network, such as the following, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
+\begin{center}
+  \begin{tikzpicture}
+    \graph [tree layout, grow=left, empty nodes, nodes={draw, circle}] {
+      / [draw=none] <-
+      x <- { y0 <- z0 <- { w0 , w1 } ,
+             y1 ,
+             y2 <- { z1 , z2 <- w2 } };
+    };
+  \end{tikzpicture}
+\end{center}
+In this note, we are interested in developing a restriction of \ac{SILL} in which the process networks are linearly ordered:
+\begin{center}
+  \begin{tikzpicture}
+    \graph [tree layout, grow=left, empty nodes, nodes={draw, circle}] {
+      / [draw=none] <-
+      x <- y <- z <- w;
+    };
+  \end{tikzpicture}
+\end{center}
+
+Each edge in the above \ac{SILL} tree represents a top-level $\cut{}$, and each top-level $\cut{}$ corresponds to a hypothesis that serves as its principal formula.
+% Each hypothesis gives rise to a top-level $\cut{}$, represented as an edge in the above graph. 
+Therefore, for the process network to be linearly ordered, contexts $\lctx$ must be either singletons or empty.
+In this special case, sequents have one of the simpler forms
+\begin{equation*}
+  x_0{:}A_0 \vdash P :: x_1{:}A_1
+  \quad\text{or}\quad
+  \lctxe \vdash P :: x_1{:}A_1
+  \,.
+\end{equation*}
+Additionally, now that there is at most one hypothesis, we no longer need channel names.
+We can instead refer to the channels generically as the left channel (hypothesis) and the right channel (consequent), so that the forms of sequent are more simply
+\begin{equation*}
+  A_0 \vdash P :: A_1
+  \quad\text{and}\quad
+  \lctxe \vdash P :: A_1
+  \,.
+\end{equation*}
+
+
+
+% If we restrict contexts $\lctx$ to be either empty or singletons, then sequents have one of the simpler forms
+% \begin{equation*}
+%   \lctxe \vdash P :: x_1{:}A_1
+%   \quad\text{or}\quad
+%   x_0{:}A_0 \vdash P :: x_1{:}A_1
+%   \,.
+% \end{equation*}
+% Now that there is at most one hypothesis, we no longer need channel names --- we can instead refer to the channels generically as the left channel (hypothesis) and the right channel (consequent).
+% \begin{equation*}
+%   \lctxe \vdash P :: A_1
+%   \quad\text{or}\quad
+%   A_0 \vdash P :: A_1
+%   \,.
+% \end{equation*}
+
+\section{Judgmental principles}\label{sec:judeg-princ}
+
+When restricting sequents to have at most one hypothesis, the identity and cut principles become
+\begin{mathpar}
+  \infer[\id{A}]{\oseq{A |- A}}{
+    }
+  \and
+  \infer[\cut{A}]{\oseq{\octx |- C}}{
+    \oseq{\octx |- A} &
+    \oseq{A |- C}}
+\end{mathpar}
+
+As in \ac{SILL}, the identity rule types a forwarding process, which we write here as $\fwd$.
+The cut rule continues to type a process composition, but, without channel names, process composition is no longer commutative.
+To reinforce this difference, we use a different notation, $\comp{P | Q}$, for this form of composition.
+\begin{mathpar}
+  \infer[\id{A}]{\oseq{A |- \fwd :: A}}{
+    }
+  \and
+  \infer[\cut{A}]{\oseq{\octx |- \comp{P | Q} :: C}}{
+    \oseq{\octx |- P :: A} &
+    \oseq{A |- Q :: C}}
+\end{mathpar}
+
+\subsection{Cut reduction as computation}\label{sec:cut-reduction-as-1}
+
+The cut reductions involving $\id{A}$ are
+\begin{gather*}
+  \infer[\cut{A}]{\oseq{A |- \comp{\fwd | Q} :: C}}{
+    \infer[\id{A}]{\oseq{A |- \fwd :: A}}{
+      } &
+    \oseq{A |- Q :: C}}
+  %
+  \reduces
+  %
+  \oseq{A |- Q :: C}
+  %
+  \\
+  \shortintertext{and}
+  %
+  \infer[\cut{A}]{\oseq{\octx |- \comp{P | \fwd} :: A}}{
+    \oseq{\octx |- P :: A} &
+    \infer[\id{A}]{\oseq{A |- \fwd :: A}}{
+      }}
+  %
+  \reduces
+  %
+  \oseq{\octx |- P :: A}
+\end{gather*}
+and correspond to the process reductions
+\begin{equation*}
+  (\comp{\fwd | Q}) \reduces Q
+  \quad\text{and}\quad
+  (\comp{P | \fwd}) \reduces P
+  \,.
+\end{equation*}
+
+
+\section{Additives}\label{sec:additives}
+
+\subsection{Additive conjunction as branching}\label{sec:addit-conj-as-branch}
+
+When restricted to singleton or empty contexts, the sequent calculus rules for the additive conjunction $A_1 \with A_2$ are as follows.
+Note that in this case the left rules' contexts are forced to be the singleton $A_1 \with A_2$.
+\begin{mathpar}
+  \infer[\rrule{\with}]{\oseq{\octx |- A_1 \with A_2}}{
+    \oseq{\octx |- A_1} &
+    \oseq{\octx |- A_2}}
+  \and
+  \infer[{\lrule[1]{\with}}]{\oseq{A_1 \with A_2 |- C}}{
+    \oseq{A_1 |- C}}
+  \and
+  \infer[{\lrule[2]{\with}}]{\oseq{A_1 \with A_2 |- C}}{
+    \oseq{A_2 |- C}}
+\end{mathpar}
+
+Just as a proof of $A_1 \with A_2$ may be used as a proof of either $A_1$ or $A_2$, a process of type $A_1 \with A_2$ offers its client the choice of either service $A_1$ or service $A_2$.
+Thus, the session-typing rules for $A_1 \with A_2$ are
+\begin{mathpar}
+  \infer[\rrule{\with}]{\oseq{\octx |- \caseR{\inl => P_1 | \inr => P_2} :: A_1 \with A_2}}{
+    \oseq{\octx |- P_1 :: A_1} &
+    \oseq{\octx |- P_2 :: A_2}}
+  \\
+  \infer[{\lrule[1]{\with}}]{\oseq{A_1 \with A_2 |- \selectL{\inl ; Q} :: C}}{
+    \oseq{A_1 |- Q :: C}}
+  \and
+  \infer[{\lrule[2]{\with}}]{\oseq{A_1 \with A_2 |- \selectL{\inr ; Q} :: C}}{
+    \oseq{A_2 |- Q :: C}}
+\end{mathpar}
+
+\subsubsection{Cut reduction as computation}\label{sec:cut-reduction-as}
+
+There are two principal cut reductions for type $A_1 \with A_2$.
+The first of these involves the $\rrule{\with}$ and $\lrule[1]{\with}$ rules:
+\begin{gather*}
+  \infer[\cut{A_1 \with A_2}]{\oseq{\octx |- \comp{\caseR{\inl => P_1 | \inr => P_2} | (\selectL{\inl ; Q})} :: C}}{
+    \infer[\rrule{\with}]{\oseq{\octx |- \caseR{\inl => P_1 | \inr => P_2} :: A_1 \with A_2}}{
+      \oseq{\octx |- P_1 :: A_1} &
+      \oseq{\octx |- P_2 :: A_2}} &
+    \infer[{\lrule[1]{\with}}]{\oseq{A_1 \with A_2 |- \selectL{\inl ; Q} :: C}}{
+      \oseq{A_1 |- Q :: C}}}
+  \\
+  \reduces
+  \\
+  \infer[\mathrlap{\cut{A_1}}]{\oseq{\octx |- \comp{P_1 | Q} :: C}}{
+    \oseq{\octx |- P_1 :: A_1} &
+    \oseq{A_1 |- Q :: C}}
+\end{gather*}
+It corresponds to the process reduction in which the client selects the first branch,
+\begin{equation*}
+  \comp{\caseR{\inl => P_1 | \inr => P_2} | (\selectL{\inl; Q})}
+    \reduces \comp{P_1 | Q}
+  \,.
+\end{equation*}
+The second principal cut reduction for type $A_1 \with A_2$, involving the $\rrule{\with}$ and $\lrule[1]{\with}$ rules, is analogous and corresponds to the process reduction in which the client selects the second branch:
+\begin{equation*}
+  \comp{\caseR{\inl => P_1 | \inr => P_2} | (\selectL{\inr; Q})}
+    \reduces \comp{P_2 | Q}
+  \,.
+\end{equation*}
+
+\subsubsection{Identity expansion as forwarding}\label{sec:ident-expans-as}
+
+The identity expansion for $A_1 \with A_2$ is  
+\begin{gather*}
+  \infer[\mathrlap{\id{A_1 \with A_2}}]{\oseq{A_1 \with A_2 |- \fwd :: A_1 \with A_2}}{
+    }
+  \\
+  \equiv
+  \\
+  \infer[\rrule{\with}]{\oseq{A_1 \with A_2 |- \caseR{\inl => \selectL{\inl ; \fwd} | \inr => \selectL{\inr ; \fwd}} :: A_1 \with A_2}}{
+    \infer[{\lrule[1]{\with}}]{\oseq{A_1 \with A_2 |- \selectL{\inl ; \fwd} :: A_1}}{
+      \infer[\id{A_1}]{\oseq{A_1 |- \fwd :: A_1}}{
+        }} &
+    \infer[{\lrule[2]{\with}}]{\oseq{A_1 \with A_2 |- \selectL{\inr ; \fwd} :: A_2}}{
+      \infer[\id{A_2}]{\oseq{A_1 |- \fwd :: A_2}}{
+        }}}
+\end{gather*}
+It corresponds to an observational equivalence on session-typed processes:
+\begin{equation*}
+  (\fwd :: A_1 \with A_2) \equiv \caseR{\inl => \selectL{\inl ; \fwd} | \inr => \selectL{\inr ; \fwd}}
+  \,.
+\end{equation*}
+  
+
+\subsubsection{$n$-ary generalization}\label{sec:n-ary-generalization}
+
+For the programmer's convenience, we generalize the binary additive conjunction to a labeled $n$-ary additive conjunction, $\with{\ell_i : A_i}$.
+The session-typing rules are thus
+\begin{mathpar}
+  \infer[\rrule{\with}]{\oseq{\octx |- \caseR*{\ell_i => P_i} :: \with{\ell_i : A_i}}}{
+    \bagged{\oseq{\octx |- P_i :: A_i}}}
+  \and
+  \infer[\lrule{\with}]{\oseq{\with{\ell_i : A_i} |- \selectL{\ell_k ; Q} :: C}}{
+    \oseq{A_k |- Q :: C}}
+\end{mathpar}
+with a single principal cut reduction that corresponds to the process reduction
+\begin{equation*}
+  \comp{(\caseR*{\ell_i => P_i}) | (\selectL{\ell_k ; Q})} \reduces \comp{P_k | Q}
+\end{equation*}
+and an identity expansion that corresponds to the equivalence   
+\begin{equation*}
+  (\fwd :: \with{\ell_i: A_i}) \equiv \caseR*{\ell_i => \selectL{\ell_i ; \fwd}}
+  \,.
+\end{equation*}
+
+\subsection{Additive disjunction as choice}\label{sec:addit-disj-as}
+
+The additive disjunction $A_1 \ssor A_2$ is dual to the additive conjunction $A_1 \with A_2$.
+% \begin{mathpar}
+%   \infer{\oseq{\octx |- A_1 \ssor A_2}}{
+%     \oseq{\octx |- A_1}}
+%   \and
+%   \infer{\oseq{\octx |- A_1 \ssor A_2}}{
+%     \oseq{\octx |- A_2}}
+%   \and
+%   \infer{\oseq{A_1 \ssor A_2 |- C}}{
+%     \oseq{A_1 |- C} &
+%     \oseq{A_2 |- C}}
+% \end{mathpar}
+A process that offers service $A_1 \ssor A_2$ is one that offers its own choice, not the client's choice, of services $A_1$ or $A_2$.
+When annotated with process terms, the right and left sequent rules for $\ssor$ are therefore: 
+\begin{mathpar}
+  \infer[{\rrule[1]{\ssor}}]{\oseq{\octx |- \selectR{\inl ; P} :: A_1 \ssor A_2}}{
+    \oseq{\octx |- P :: A_1}}
+  \and
+  \infer[{\rrule[2]{\ssor}}]{\oseq{\octx |- \selectR{\inr ; P} :: A_1 \ssor A_2}}{
+    \oseq{\octx |- P :: A_2}}
+  \and
+  \infer[\lrule{\ssor}]{\oseq{A_1 \ssor A_2 |- \caseL{\inl => Q_1 | \inr => Q_2} :: C}}{
+    \oseq{A_1 |- Q_1 :: C} &
+    \oseq{A_2 |- Q_2 :: C}}
+\end{mathpar}
+Again, notice that the context restriction forces the left rule's context to be only the principal formula, $A_1 \ssor A_2$.
+
+The two principal cut reductions are dual to those for $A_1 \with A_2$; they correspond to the process reductions
+\begin{align*}
+  \comp{(\selectR{\inl; P}) | \caseL{\inl => Q_1 | \inr => Q_2}}
+    &\reduces \comp{P | Q_1} \\
+  %
+  \shortintertext{and}
+  %
+  \comp{(\selectR{\inr; P}) | \caseL{\inl => Q_1 | \inr => Q_2}}
+    &\reduces \comp{P | Q_2}
+  \,.
+\end{align*} 
+
+The identity expansion is also dual to that of $A_1 \with A_2$; it corresponds to the observational equivalence
+\begin{equation*}
+  (\fwd :: A_1 \ssor A_2) \equiv \caseL{\inl => \selectR{\inl ; \fwd} | \inr => \selectR{\inr ; \fwd}}
+  \,.
+\end{equation*}
+
+Finally, for the programmer's convenience, we again generalize the binary additive disjunction to labeled, $n$-ary additive disjunction.
+The session-typing rules are
+\begin{mathpar}
+  \infer[\rrule{\ssor}]{\oseq{\octx |- \selectR{\ell_k ; P} :: \ssor{\ell_i : A_i}}}{
+    \oseq{\octx |- P :: A_k}}
+  \and
+  \infer[\lrule{\ssor}]{\oseq{\ssor{\ell_i : A_i} |- \caseL*{\ell_i => Q_i} :: C}}{
+    \bagged{\oseq{A_i |- Q_i :: C}}}
+\end{mathpar}
+with the principal cut reduction that corresponds to the process reduction
+\begin{equation*}
+  \comp{(\selectR{\ell_k ; P}) | (\caseL*{\ell_i => Q_i})}
+    \reduces \comp{P | Q_k}
+\end{equation*}
+and the identity expansion that corresponds to the observational equivalence
+\begin{equation*}
+  (\fwd :: \ssor{\ell_i: A_i}) \equiv \caseL*{\ell_i => \selectR{\ell_i ; \fwd}}
+  \,.
+\end{equation*}
+
+
+\section{Multiplicative unit as termination}\label{sec:mult-unit-as}
+
+Once contexts are restricted at most one hypothesis, the right and left sequent rules for $\one$ are:
+\begin{mathpar}
+  \infer[\rrule{\one}]{\oseq{\lctxe |- \one}}{
+    }
+  \and
+  \infer[\lrule{\one}]{\oseq{\one |- C}}{
+    \oseq{\lctxe |- C}}
+\end{mathpar}
+As session-typing rules, these rules type termination processes:
+\begin{mathpar}
+  \infer[\rrule{\one}]{\oseq{\lctxe |- \quitR :: \one}}{
+    }
+  \and
+  \infer[\lrule{\one}]{\oseq{\one |- \waitL{Q} :: C}}{
+    \oseq{\lctxe |- Q :: C}}
+\end{mathpar}
+
+The principal cut reduction for $\one$ is
+\begin{equation*}
+  \infer[\cut{\one}]{\oseq{\lctxe |- \comp{\quitR | (\waitL{Q})} :: C}}{
+    \infer[\rrule{\one}]{\oseq{\lctxe |- \quitR :: \one}}{
+      } &
+    \infer[\lrule{\one}]{\oseq{\one |- \waitL{Q} :: C}}{
+      \oseq{\lctxe |- Q :: C}}}
+  \reduces
+  \oseq{\lctxe |- Q :: C}
+\end{equation*}
+It corresponds to the process reduction
+\begin{equation*}
+  \comp{\quitR | (\waitL{Q})}  \reduces  Q
+  \,.
+\end{equation*}
+
+The identity expansion for $\one$ is
+\begin{equation*}
+  \infer[\id{\one}]{\oseq{\one |- \fwd :: \one}}{
+    }
+  \equiv
+  \infer[\lrule{\one}]{\oseq{\one |- \waitL{\quitR} :: \one}}{
+    \infer[\rrule{\one}]{\oseq{\lctxe |- \quitR :: \one}}{
+      }}
+\end{equation*}
+and corresponds to the observational equivalance
+\begin{equation*}
+  (\fwd :: \one) \equiv \waitL{\quitR}
+  \,.
+\end{equation*}
+
+
+\section{First-order connectives}\label{sec:data}
+
+\subsection{First-order conjunction as data output}\label{sec:first-order-conj}
+
+The conjunction of a proposition and a first-order type is used to describe the behavior of a process that offers the output of a first-order term of type $\tau$.
+The right and left session-typing rules are 
+% \begin{mathpar}
+%   \infer[\rrule{\land}]{\oseq{\tctx ; \octx |- A \land \tau}}{
+%     \tseq{\tctx |- M : \tau} &
+%     \oseq{\tctx ; \octx |- A}}
+%   \and
+%   \infer[\lrule{\land}]{\oseq{\tctx ; A \land \tau |- C}}{
+%     \oseq{\tctx, x:\tau ; A |- C}}
+% \end{mathpar}
+\begin{mathpar}
+  \infer[\rrule{\land}]{\oseq{\tctx ; \octx |- \sendR{M}{P} :: A \land \tau}}{
+    \tseq{\tctx |- M : \tau} &
+    \oseq{\tctx ; \octx |- P :: A}}
+  \and
+  \infer[\lrule{\land}]{\oseq{\tctx ; A \land \tau |- \recvL{x}{Q} :: C}}{
+    \oseq{\tctx, x:\tau ; A |- Q :: C}}
+\end{mathpar}
+
+The principal cut reduction for $A \land \tau$ is
+\begin{gather*}
+  \infer[\cut{A \land \tau}]{\oseq{\tctx ; \octx |- \comp{(\sendR{M}{P}) | (\recvL{x}{Q})} :: C}}{
+    \infer[\rrule{\land}]{\oseq{\tctx ; \octx |- \sendR{M}{P} :: A \land \tau}}{
+      \tseq{\tctx |- M : \tau} &
+      \oseq{\tctx ; \octx |- P :: A}} &
+    \infer[\lrule{\land}]{\oseq{\tctx ; A \land \tau |- \recvL{x}{Q} :: C}}{
+      \oseq{\tctx, x:\tau ; A |- Q :: C}}}
+  \\
+  \reduces
+  \\
+  \infer[\cut{A}]{\oseq{\tctx ; \octx |- \comp{P | (\sub{M/x}{Q})} :: C}}{
+    \oseq{\tctx ; \octx |- P :: A} &
+    \infer[\subst{\tau}]{\oseq{\tctx ; A |- \sub{M/x}{Q} :: C}}{
+      \tseq{\tctx |- M : \tau} &
+      \oseq{\tctx, x:\tau ; A |- Q :: C}}}
+\end{gather*}
+which corresponds to the process reduction
+\begin{equation*}
+  \comp{(\sendR{M}{P}) | (\recvL{x}{Q})} \reduces \comp{P | (\sub{M/x}{Q})}
+  \,.
+\end{equation*}
+The identity expansion at type $A \land \tau$ is
+\begin{gather*}
+  \infer[\id{A \land \tau}]{\oseq{\tctx ; A \land \tau |- \fwd :: A \land \tau}}{
+    }
+  \\
+  \equiv
+  \\
+  \infer[\lrule{\land}]{\oseq{\tctx ; A \land \tau |- \recvL{x}{\sendR{x}{\fwd}} :: A \land \tau}}{
+    \infer[\rrule{\land}]{\oseq{\tctx, x:\tau ; A |- \sendR{x}{\fwd} :: A \land \tau}}{
+      \tseq{\tctx, x:\tau |- x : \tau} &
+      \infer[\id{A}]{\oseq{\tctx, x:\tau ; A |- \fwd :: A}}{
+        }}}
+\end{gather*}
+which corresponds to an observational equivalence on typed processes:
+\begin{equation*}
+  (\fwd :: A \land \tau) \equiv \recvL{x}{\sendR{x}{\fwd}}
+  \,.
+\end{equation*}
+
+\subsection{First-order implication as data input}\label{sec:first-order-impl}
+
+The connective $\imp$ is dual to $\land$, having right and left session-typing rules
+% \begin{mathpar}
+%   \infer[\rrule{\imp}]{\oseq{\tctx ; \octx |- \tau \imp A}}{
+%     \oseq{\tctx, x:\tau ; \octx |- A}}
+%   \and
+%   \infer[\lrule{\imp}]{\oseq{\tctx ; \tau \imp A |- C}}{
+%     \tseq{\tctx |- M : \tau} &
+%     \oseq{\tctx ; A |- C}}
+% \end{mathpar}
+\begin{mathpar}
+  \infer[\rrule{\imp}]{\oseq{\tctx ; \octx |- \recvR{x}{P} :: \tau \imp A}}{
+    \oseq{\tctx, x:\tau ; \octx |- P :: A}}
+  \and
+  \infer[\lrule{\imp}]{\oseq{\tctx ; \tau \imp A |- \sendL{M}{Q} :: C}}{
+    \tseq{\tctx |- M : \tau} &
+    \oseq{\tctx ; A |- Q :: C}}
+\end{mathpar}
+The principal cut reduction for $\tau \imp A$ is also analogous to that of $A \land \tau$, and corresponds to the process reduction
+\begin{equation*}
+  \comp{(\recvR{x}{P}) | (\sendL{M}{Q})} \reduces \comp{(\sub{M/x}{P}) | Q}
+  \,.
+\end{equation*}
+Likewise, the identity expansion for $\tau \imp A$ gives rise to the observational equivalence
+\begin{equation*}
+  (\fwd :: \tau \imp A) \equiv \recvR{x}{\sendL{x}{\fwd}}
+\end{equation*}
+that is analogous to the one for $A \land \tau$.
+
+
+\section{Example: Binary natural numbers}\label{sec:exampl-binary-natur}
+
+\begin{verbatim}
+datatype bin = 0 | 1
+
+stype Bit = &{ s: Bit ,
+               z?: bool /\ Bit ,
+               p: +{ fail: Bit , succ: Bit } ,
+               c: Bit' }
+ and Bit' = +{ a: bin /\ Bit' , q: Bit }
+
+eps :: |- Bit =
+{ caseR of 
+    s => eps || bit1
+  | z? => sendR true; eps
+  | p => selectR fail; eps
+  | c => selectR q; eps }
+
+bit0 :: Bit |- Bit =                       bit1 :: Bit |- Bit =       
+{ caseR of                                 { caseR of                 
+    s => bit1                                  s => selectL s; bit0
+  | z? => selectL z?; b <- recvL;            | z? => sendR false; bit1
+          sendR b; bit0                      | p => selectR succ; bit0
+  | p => selectL p;                         | c => selectR a1;
+         caseL of                                   selectL c; bit1' }
+           fail => selectR fail; bit0
+         | succ => selectR succ; bit1
+  | c => selectR a0;
+         selectL c; bit0' }
+
+bit0' :: Bit' |- Bit' =            bit1' :: Bit' |- Bit' =    
+{ caseL of                         { caseL of                 
+    a => b <- recvL;                   a => b <- recvL;
+         selectR a; sendR b;                selectR a; sendR b;
+         bit0'                              bit1'
+  | q => selectR q; bit0 }           | q => selectR q; bit1 }
+
+copy :: Bit' |- Bit =
+{ caseL of 
+    a => b <- recvL;
+         case b of
+           0 => copy || bit0
+         | 1 => copy || bit1
+  | q => <-> }
+\end{verbatim}
+
+
+\section{}
+
+\begin{mathpar}
+  \infer[\cpy]{\oseq{\uctx , u:A ; \lctxe |- \cp{u}{Q} :: C}}{
+    \oseq{\uctx , u:A ; A |- Q :: C}}
+  \and
+  \infer[\vcut{A}]{\oseq{\uctx ; \lctx' |- \vcomp{u}{P | Q} :: C}}{
+    \oseq{\uctx ; \lctxe |- P :: A} &
+    \oseq{\uctx , u:A ; \lctx' |- Q :: C}}
+  \and
+  \infer[\rrule{\imp}]{\oseq{\uctx ; \lctx |- \vrecvR{u}{P} :: A \imp B}}{
+    \oseq{\uctx , u:A ; \lctx |- P :: B}}
+  \and
+  \infer[\lrule{\imp}]{\oseq{\uctx ; A \imp B |- \vsendL{Q_1}{Q_2} :: C}}{
+    \oseq{\uctx ; \lctxe |- Q_1 :: A} &
+    \oseq{\uctx ; B |- Q_2 :: C}}
+\end{mathpar}
+
+\begin{gather*}
+  \infer[\vcut{A}]{\oseq{\uctx ; \lctx' |- \vcomp{u}{P | (\cp{u}{Q})} :: C}}{
+    \oseq{\uctx ; \lctxe |- P :: A} &
+    \infer[\cpy]{\oseq{\uctx , u:A ; \lctxe |- \cp{u}{Q} :: C}}{
+      \oseq{\uctx , u:A ; A |- Q :: C}}}
+  \\
+  \reduces
+  \\
+  \infer[\vcut{A}]{\oseq{\uctx ; \lctxe |- \vcomp{u}{P | (\comp{P | Q})} :: C}}{
+    \oseq{\uctx ; \lctxe |- P :: A} &
+    \infer[\cut{A}]{\oseq{\uctx , u:A ; \lctxe |- \comp{P | Q} :: C}}{
+      \oseq{\uctx , u:A ; \lctxe |- P :: A} &
+      \oseq{\uctx , u:A ; A |- Q :: C}}}
+\end{gather*}
+
+
+\begin{gather*}
+  \infer[\cut{A \imp B}]{\oseq{\uctx ; \lctx |- \comp{(\vrecvR{u}{P}) | (\vsendL{Q_1}{Q_2})} :: C}}{
+    \infer[\rrule{\imp}]{\oseq{\uctx ; \lctx |- \vrecvR{u}{P} :: A \imp B}}{
+      \oseq{\uctx , u:A ; \lctx |- P :: B}} &
+    \infer[\lrule{\imp}]{\oseq{\uctx ; A \imp B |- \vsendL{Q_1}{Q_2} :: C}}{
+      \oseq{\uctx ; \lctxe |- Q_1 :: A} &
+      \oseq{\uctx ; B |- Q_2 :: C}}}
+  \\
+  \reduces
+  \\
+  \infer[\vcut{A}]{\oseq{\uctx ; \lctx |- \vcomp{u}{Q_1 | (\comp{P | Q_2})} :: C}}{
+    \oseq{\uctx ; \lctxe |- Q_1 :: A} &
+    \infer[\cut{B}]{\oseq{\uctx , u:A ; \lctx |- \comp{P | Q_2} :: C}}{
+      \oseq{\uctx , u:A ; \lctx |- P :: B} &
+      \oseq{\uctx , u:A ; B |- Q_2 :: C}}}
+\end{gather*}
+
+\begin{gather*}
+  \infer[\mathrlap{\id{A \imp B}}]{\oseq{\uctx ; A \imp B |- \fwd :: A \imp B}}{
+    }
+  \\
+  \equiv
+  \\
+  \infer[\rrule{\imp}]{\oseq{\uctx ; A \imp B |- \vrecvR{u}{\vsendL{(\cp{u}{\fwd})}{\fwd}} :: A \imp B}}{
+    \infer[\lrule{\imp}]{\oseq{\uctx , u:A ; A \imp B |- \vsendL{(\cp{u}{\fwd})}{\fwd} :: B}}{
+      \infer[\cpy]{\oseq{\uctx , u:A ; \lctxe |- \cp{u}{\fwd} :: A}}{
+        \infer[\id{A}]{\oseq{\uctx , u:A ; A |- \fwd :: A}}{
+          }} &
+      \infer[\id{B}]{\oseq{\uctx , u:A ; B |- \fwd :: B}}{
+        }}}
+\end{gather*}
+
+
+
+\begin{center}
+  \begin{tikzpicture}[valid/.style={fill=gray!50}]
+    \graph [tree layout, grow=left, empty nodes, nodes={circle,draw}] {
+      // [tree layout] {
+        x0 [draw=none] <- x1 <- x2 <- x3;
+      };
+
+      // [tree layout, sibling distance=0.5em] {
+        x2 [grow=120] <- { [nodes={valid}] u0 <- { u1 , u2 , u3 } };
+      };
+
+      // [tree layout, sibling distance=0.5em] {
+        x3 [grow=-120] <- { [nodes={valid}] u4 <- { u5 , u6 } };
+      };
+    };
+  \end{tikzpicture}
+\qquad
+  \begin{tikzpicture}[valid/.style={fill=gray!50}]
+    \graph [tree layout, grow=left, sibling distance=0.5em, empty nodes, nodes={circle,draw}] {
+      // [tree layout] {
+        x0 [draw=none] <- x1 <- x2 <- x3 <- x5 <- { [nodes={valid}] u5' , u6' };
+      };
+
+      // [tree layout] {
+        x2 [grow=120] <- { [nodes={valid}] u0 <- { u1 , u2 , u3 } };
+      };
+
+      // [tree layout] {
+        x3 [grow=-120] <- { [nodes={valid}] u4 <- { u5 , u6 } };
+      };
+    };
+  \end{tikzpicture}
+\end{center}
+
+\end{document}
+
+LM =
+  selectR copy;
+  <->
+
+bit0' =
+  caseL of
+    copy => selectR app0;
+            bit0 | LM
+  | app0 => selectR app0;
+            bit0'
+  | app1 => ...
+
+Rm 
+  caseL of 
+    app0 => RM | bit0
+
+
+
+e LM -> e F
+0 LM -> LM 0' A0
+A0 0' -> 0' A0
+A0 Rm -> Rm 0
+F 0' -> 0 F
+F Rm -> .
+
+
+
+
+e S L T R T -->* e 
+
+e S 0 L T R T
+
+Bit = &{ cp: Bit' }
+Bit' = +{ app0: Bit' , app1: Bit' , quit: Bit }
+
+eps : |- Bit
+eps =
+{ caseR of
+    cp => selectR quit;
+          eps }
+
+bit0 : Bit |- Bit
+bit0 =
+{ caseR of
+    cp => selectR app0;
+          selectL cp;
+          bit0' }
+
+bit0' =
+{ caseL of
+    app0 => selectR app0;
+            bit0'
+  | app1 => ...
+  | quit => selectR quit;
+            bit0 }
+
+copy : Bit' |- Bit
+copy =
+{ caseL of
+    app0 => copy | bit0
+  | app1 => ...
+  | quit => <-> }
+
+
+stype Bit = &{ s: Bit ,
+               z?: bool /\ Bit ,
+               p: +{ fail: Bit , succ: Bit } ,
+               c: Bit' }
+ and Bit' = +{ a0: Bit' , a1: Bit' , q: Bit }
+
+eps : |- Bit
+eps =
+{ caseR of 
+    s => eps | bit1
+  | z? => sendR true; eps
+  | p => selectR fail; eps
+  | c => selectR q; eps }
+
+bit0 : Bit |- Bit
+bit0 =
+{ caseR of
+    s => bit1
+  | z? => selectL z?; b <- recvL;
+          sendR b; bit0
+  | p => selectL p;
+         caseL of
+           fail => selectR fail; bit0
+         | succ => selectR succ; bit1
+  | c => selectR a0;
+         selectL c; bit0' }
+
+bit0' : Bit' |- Bit'
+bit0' =
+{ caseL of
+    a0 => selectR a0; bit0'
+  | a1 => selectR a1; bit0'
+  | q => selectR q; bit0 }
+
+bit1 : Bit |- Bit
+bit1 =
+{ caseR of
+    s => selectL s; bit0
+  | z? => sendR false; bit1
+  | p => selectR succ; bit0
+  | c => selectR a1;
+         selectL c; bit1' }
+
+bit1' : Bit' |- Bit'
+bit1' =
+{ caseL of
+    a0 => selectR a0; bit1'
+  | a1 => selectR a1; bit1'
+  | q => selectR q; bit1 }
+
+copy : Bit' |- Bit
+copy =
+{ caseL of 
+    a0 => copy | bit0
+  | a1 => copy | bit1
+  | q => <-> }
+
+
+e 1 0 c cp
+e 1 c 0' a0 cp
+e c 1' a1 0' cp 0
+e q 1' 0' a1 cp 0
+e 1 q 0' cp 1 0
+e 1 0 q cp 1 0
+e 1 0 1 0
+
+e 1 0 c cp c cp
+e 1 c 0' a0 cp c cp
+e c 1' a1 0' cp 0 c cp
+e q 1' 0' a1 cp c 0' a0 cp
+e 1 q 0' cp 1 c 0' cp 0
+e 1 0 q cp c 1' a1 0' cp 0
+e 1 0 c 1' 0' a1 cp 0
+e 1 c 0' a0 1' 0' cp 1 0
+e c 1' a1 0' 1' a0 0' cp 1 0
+e q 1' 0' a1 1' 0' a0 cp 1 0
+e 1 q 0' 1' a1 0' cp 0 1 0
+e 1 0 q 1' 0' a1 cp 0 1 0
+e 1 0 1 q 0' cp 1 0 1 0
+e 1 0 1 0 q cp 1 0 1 0
+e 1 0 1 0 1 0 1 0
+
+e 1 0 c cp s c cp
+e 1 c 0' a0 cp s c cp
+e c 1' a1 0' cp 0 s c cp
+e q 1' 0' a1 cp 1 c cp
+e 1 q 0' cp 1 c 1' a1 cp
+e 1 0 q cp c 1' a1 1' cp 1
+e 1 0 c 1' 1' a1 cp 1
+e 1 c 0' a0 1' 1' cp 1 1
+e c 1' a1 0' 1' a0 1' cp 1 1
+e q 1' 0' a1 1' 1' a0 cp 1 1
+e 1 q 0' 1' a1 1' cp 0 1 1
+e 1 0 q 1' 1' a1 cp 0 1 1
+e 1 0 1 q 1' cp 1 0 1 1
+e 1 0 1 1 q cp 1 0 1 1
+e 1 0 1 1 1 0 1 1

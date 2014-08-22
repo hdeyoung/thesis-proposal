@@ -1,0 +1,172 @@
+h S • r ->> h S • b • r
+
+h s₀ • b ->> 0 • h s₁
+h s₁ • b ->> b • h s₂
+h s₂ • b ->> 1 • h s₃
+h s₃ • b ->> b • h s₀
+h s₀ • 0 ->> 0 • h s₁
+h s₁ • 0 ->> b • h s₂
+h s₂ • 0 ->> 1 • h s₃
+h s₃ • 0 ->> b • h s₀
+h s₀ • 1 ->> 0 • h s₁
+h s₁ • 1 ->> b • h s₂
+h s₂ • 1 ->> 1 • h s₃
+h s₃ • 1 ->> b • h s₀
+
+
+
+type State = 0 | 1 | 2 | 3
+stype Tape = +{ B: Tape, Z: Tape, O: Tape, R: 1 }
+
+proc rend :: {Tape -|} =
+{ selectL R; closeL }
+
+proc blank :: {Tape -| Tape} =
+{ selectL B; <-> }
+
+proc zero :: {Tape -| Tape} =
+{ selectL Z; <-> }
+
+proc one :: {Tape -| Tape} =
+{ selectL O; <-> }
+
+proc head s :: State -> {Tape -| Tape} =
+{ caseR of
+   (B | Z | O) =>
+      (case s of
+         0 => zero – (head 1)
+       | 1 => blank – (head 2)
+       | 2 => one – (head 3)
+       | 3 => blank – (head 0))
+  | R => waitR; (head s) – blank – rend }
+
+
+
+
+
+
+h S • r ->> h S • b • r
+
+h s₀ • 1 ->> b • h s₁
+h s₁ • 1 ->> 1 • h s₁
+h s₁ • b ->> b • h s₂
+h s₂ • 1 ->> 1 • h s₂
+h s₂ • b ->> h' s₃ • 1
+1 • h' s₃ ->> h' s₃ • 1
+b • h' s₃ ->> h' s₄ • b
+1 • h' s₄ ->> h' s₄ • 1
+b • h' s₄ ->> 1 • h s₀
+h s₀ • b ->> ?
+
+
+stype Tape = +{ O: Tape, B: Tape, R: 1 }
+stype Tape' = &{ O: Tape', B: Tape' }
+
+proc head s :: State -> {Tape' -| Tape}
+proc head 0 =
+       { caseR of
+           O => blank' – (head 1)
+         | B => ?
+         | R => waitR; (head 0) – blank – rend }
+   | head 1 =
+       { caseR of
+           O => one' – (head 1)
+         | B => blank' – (head 2)
+         | R => waitR; (head 1) – blank – rend }
+   | head 2 =
+       { caseR of
+           O => one' – (head 2)
+         | B => (head 3) – one
+         | R => waitR; (head 2) – blank – rend }
+   | head 3 =
+       { caseL of
+           O => (head 3) – one
+         | B => (head 4) – blank }
+   | head 4 =
+       { caseL of
+           O => (head 4) – one
+         | B => one' – (head 0) }
+
+
+
+
+
+proc hd s :: State -> {Tape -| Tape} =
+{ caseR of
+    * => (case s of
+            0 => hd 1
+          | 1 => * – (hd 1))
+  | + => (case s of
+            0 => <->
+          | 1 => *) }
+
+
+
+
+
+
+^11+101$
+^0'[1]+101$
+^0'1'[+]101$
+^0'1'+'[1]01$
+^0'1'+'0'[0]1$
+^0'1'+'[0']11$
+^0'1'[+']011$
+^0'[1']+011$
+^[0']1+011$
+[^]01+011$
+^[0]1+011$
+
+
+stype Tape+ = +{ 0: Tape+, 1: Tape+, +: Tape$ }
+  and Tape$ = +{ 0: Tape$, 1: Tape$, $: 1 }
+stype Tape+' = &{ 0': Tape+', 1': Tape+', +': Tape^' }
+  and Tape^' = &{ 0': Tape^', 1': Tape^', ^: X }
+
+proc 0 :: {Tape+ -| Tape+} /\ {Tape$ -| Tape$} =
+{ selectL 0; <-> }
+proc 1 :: {Tape+ -| Tape+} /\ {Tape$ -| Tape$} =
+{ selectL 1; <-> }
+proc + :: {Tape+ -| Tape$} =
+{ selectL +; <-> }
+proc $ :: {Tape$ -|} =
+{ selectL $; closeL }
+
+proc 0' :: {Tape+' -| Tape+'} /\ {Tape^' -| Tape^'} =
+{ selectR 0'; <-> }
+proc 1' :: {Tape+' -| Tape+'} /\ {Tape^' -| Tape^'} =
+{ selectR 1'; <-> }
+proc +' :: {Tape^' -| Tape+'} =
+{ selectR +'; <-> }
+proc ^ :: {X -| Tape^'} =
+{ selectR ^; <-> }
+
+proc hd DEC :: {Tape^' -| Tape+} =
+{ caseR of
+    0 => 1' – (hd DEC)
+  | 1 => 0' – (hd INC+)
+  | + => ^ }
+
+proc hd INC+ :: {Tape^' -| Tape+} =
+{ caseR of
+    0 => 0' – (hd INC+)
+  | 1 => 1' – (hd INC+)
+  | + => +' – (hd INC) }
+
+proc hd INC :: {Tape+' -| Tape$} =
+{ caseR of
+    1 => 0' – (hd INC)
+  | 0 => (hd SKIP+) – 1
+  | $ => waitR; (hd SKIP+) – 1 – $ }
+
+proc hd SKIP+ :: {Tape+' -| Tape$} =
+{ caseL of
+    0' => (hd SKIP+) – 0
+  | 1' => (hd SKIP+) – 1
+  | +' => (hd SKIP^) – + }
+
+proc hd SKIP^ :: {Tape^' -| Tape+} =
+{ caseL of
+    0' => (hd SKIP^) – 0
+  | 1' => (hd SKIP^) – 1
+  | ^ => ^ – (hd DEC) }

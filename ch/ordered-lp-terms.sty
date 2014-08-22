@@ -73,8 +73,14 @@
 
 %% Traces
 
-\NewDocumentCommand \tstep { >{ \SplitArgument {1} {<-} } m }
-  { \tstep:nn #1 }
+\NewDocumentCommand \tstep { >{ \SplitArgument {1} {;} } m }
+  { \tstep_aux:nn #1 }
+\NewDocumentCommand \tstep_aux:nn { >{ \SplitArgument {1} {<-} } m m }
+  {
+    \IfValueTF {#2}
+      { \tseq:nn { \tstep:nn #1 } {#2} } 
+      { \tstep:nn #1 }
+  }
 \cs_new:Npn \tstep:nn #1#2 { \monad {#1} \leftarrow #2 }
 
 \NewDocumentCommand \tnil { } { \tnil: }

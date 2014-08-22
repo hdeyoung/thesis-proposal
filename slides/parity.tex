@@ -1,0 +1,231 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\begin{document}
+\begin{standaloneframe}
+  \frametitle{Testing for zero (with leading $\bit{0}$s allowed)}
+  %
+  \vspace*{0.5\fill}%
+  %
+  \begingroup\Large
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph=0.5] {
+        / [coordinate]
+         -> [dashed, alt=<.(15)->{nearly transparent}{transparent}]
+         c / "C" [process, dashed, fill=none, alt=<.(15)->{nearly transparent}{transparent}]
+         -> [only={<.,.(5)>{"$\ztest$" message}},
+             only={<.(3)-.(4),.(11)->{"$\ttrue$" {message=right, transparent/.only=<.(4)>, temporal=<.(11)>{somewhat near end}{near end}{very near start, anchor=south west}}}},
+             only=<.(8)-.(12)>{"$\inc$" {message, name=i, only=<-.(11)>{at start, anchor=south west}}},
+             % only=<.(8)->{"$\ttrue$" {message=right, very near start, anchor=south west}}
+            ]
+        b / "\temporal<-+,+(3)-+(5),+(11)-+(12)>{\bit{0}\smash{'}}{\bit{0}}{\bit{1}}" [process]
+         -> [only={<+,+(5)>{"$\ztest$" message}},
+             only={<+,+(5)-+(8)>{"$\ttrue$" {message=right, name=t, somewhat near end}}}]
+        "\eps" [process];
+      };
+      \addtocounter{beamerpauses}{6}
+      % \node<+>
+      %   [ellipse, fit={(i.north west) (i.south west) (i.north east) (i.south east)},
+      %    overlay, draw, red, dashed, inner xsep=0.15em, inner ysep=0, xshift=-0.075em] {};
+
+      \redex<+-+(1)>[ultra thick em, alert]{(t) (b)}
+      \redex<+>[ultra thick em, alert, inner ysep=0.6666em]{(b) (i)}
+      \addtocounter{beamerpauses}{4}
+    \end{tikzpicture}
+  \end{equation*}
+  % \begin{equation*}
+  %   \begin{tikzpicture}[trim right=(c)]
+  %     \graph [sill graph=0.5] {
+  %       c / [coordinate]
+  %        -> [only=<.>{"$\ztest$" message},
+  %            only=<.(3)>{"$\ttrue$" {message=right, somewhat near end}},
+  %            only=<.(5)-.(8)>{"$\inc$" {message, name=i}},
+  %            only=<.(8)->{"$\ttrue$" {message=right, very near start, anchor=south west}}]
+  %       b / "\temporal<-+,+(3),+(8)>{\bit{0}\smash{'}}{\bit{0}}{\bit{1}}" [process]
+  %        -> [only=<+>{"$\ztest$" message},
+  %            only={<+,+(2)-+(5)>{"$\ttrue$" {message=right, name=t, somewhat near end}}}]
+  %       % "\bit{1}" [process]
+  %       %  ->
+  %       "\eps" [process];
+  %     };
+  %     \only<+>{} \only<+>{}
+  %     \node<+>
+  %       [ellipse, fit={(i.north west) (i.south west) (i.north east) (i.south east)},
+  %        overlay, draw, red, dashed, inner xsep=0.15em, inner ysep=0, xshift=-0.075em] {};
+  %
+  %     \redex<+-+(1)>[ultra thick em, alert]{(t) (b)}
+  %     \redex<+>[ultra thick em, alert, inner ysep=0.6666em]{(b) (i)}
+  %   \end{tikzpicture}
+  % \end{equation*}
+  \endgroup
+  %
+  \vspace*{0.5\fill}%
+  %
+  \begin{columns}[t,onlytextwidth]
+  \column{0.5\textwidth}
+    \structure{Binary string's protocol:}
+    \begin{enumerate}
+    \item Wait for either $\inc$ or $\ztest$.
+      \begin{enumerate}[a.]
+      \item If $\inc$, then increment.
+      \item If $\ztest$, then send a reply,\\either $\ttrue$ or $\ffalse$.
+      \end{enumerate}
+    \item Repeat.
+    \end{enumerate}
+
+  \column{0.5\textwidth}
+    \uncover<+->{%
+      \structure{Client should behave dually:}
+      \begin{enumerate}
+      \item Send either $\inc$ or $\ztest$.
+        \begin{enumerate}[a.]
+        \item If $\inc$, then continue to \rlap{step \ref{step:client-2}.}
+        \item If $\ztest$, then wait for a reply, either $\ttrue$ or $\ffalse$.
+        \end{enumerate}
+      \item\label{step:client-2} Repeat.
+      \end{enumerate}%
+    }
+  \end{columns}
+  %
+  \vspace*{\fill}
+
+
+  % % \begin{columns}[t,onlytextwidth]
+  % % \column{0.5\textwidth}
+  %   \structure{Binary string's protocol:}
+  %   \begin{enumerate}
+  %   \item Wait for an instruction, either $\inc$ or $\ztest$.% from the user.
+  %     \begin{enumerate}[a.]
+  %     \item If $\inc$, then increment the number.
+  %     \item If $\ztest$, then reply with $\ttrue$ or $\ffalse$.% , as appropriate.
+  %     \end{enumerate}
+  %   \item Repeat.
+  %   \end{enumerate}
+
+  % \structure{Client should behave dually:}% follow a dual protocol:}% .\\
+  % % \column{0.5\textwidth}
+  % % \structure{Client's protocol}
+  % \begin{enumerate}
+  % \item Send an instruction, either $\inc$ or $\ztest$.
+  %   \begin{enumerate}[a.]
+  %   \item If $\inc$, then continue to step \ref{step:client-2}.
+  %   \item If $\ztest$, then wait for a reply, either $\ttrue$ or $\ffalse$.
+  %   \end{enumerate}
+  % \item\label{step:client-2} Repeat.
+  % \end{enumerate}
+  % % \end{columns}
+
+  % \begin{columns}[t,onlytextwidth]
+  % \column{0.5\textwidth}
+  %   \structure{Zero-test protocol}
+  %   \begin{enumerate}
+  %   \item Wait for the $\ztest$ instruction.% from the user.
+  %   \item Reply with either $\ttrue$ or $\ffalse$.% , as appropriate.
+  %   \end{enumerate}
+
+  % \column{0.5\textwidth}
+  %   \structure{User's protocol}
+  %   \begin{enumerate}
+  %   \item Send the $\ztest$ instruction.
+  %   \item Wait for reply, either $\ttrue$ or $\ffalse$.
+  %   \end{enumerate}
+  % \end{columns}
+  
+  % What if more $\ztest$ messages arrive in the meantime?
+
+  % \begin{equation*}
+  %   \begin{tikzpicture}
+  %     \graph [sill graph=0.5] {
+  %       / [coordinate]
+  %        -> [only=<+-+(2)>{"$\ztest$" {message, copy shadow/.only=<.>}}]
+  %       "\bit{0}" [process]
+  %        -> [only=<+>{"$\ztest$" message},
+  %            only=<+>{"$\ffalse$" {message=right, somewhat near end}}]
+  %       "\bit{1}" [process]
+  %        ->
+  %       "\eps" [process];
+  %     };
+  %   \end{tikzpicture}
+  % \end{equation*}
+
+  \begin{tikzpicture}
+    \graph [sill graph=0.5] {
+      / [coordinate]
+       ->
+      "\temporal<+>{C}{\inc\inc}{\inc\inc\smash{'}}" [process]
+       ->
+      "\bit{1}" [process]
+       ->
+      "\eps" [process];
+    };
+  \end{tikzpicture}
+  \onslide<+->
+\end{standaloneframe}
+\end{document}
+
+
+% \newcommand*{\xor}{\mathtt{x}}
+% \newcommand*{\even}{\mathtt{e}}
+% \newcommand*{\odd}{\mathtt{o}}
+
+
+  % \begin{equation*}
+  %   \begin{tikzpicture}
+  %     \graph [sill graph=0.5] {
+  %       / [ coordinate]
+  %        -> [only=<.>{"$\xor$" message},
+  %            only=<.(5)>{"$\even$" {message=right, somewhat near end}}]
+  %       "\alt<-+,+(5)->{\bit{0}}{\bit{0}\smash{'}}" [process]
+  %        -> [only=<.>{"$\xor$" message},
+  %            only=<.(3)>{"$\odd$" {message=right, somewhat near end}}]
+  %       "\alt<-+,+(3)->{\bit{1}}{\bit{1}\smash{'}}" [process]
+  %        -> [only=<+>{"$\xor$" message},
+  %            only=<+>{"$\even$" {message=right, somewhat near end}}]
+  %       "\epsilon" [process];
+  %     };
+  %   \end{tikzpicture}
+  % \end{equation*}
+
+  % \begin{equation*}
+  %   \begin{tikzpicture}
+  %     \graph [sill graph=0.5] {
+  %       / [coordinate]
+  %        -> [only=<.>{"$\ztest$" message},
+  %            only=<.(3)>{"$\ttrue$" {message=right, somewhat near end}}]
+  %       "\alt<-+,+(3)->{\bit{0}}{\bit{0}\smash{'}}" [process]
+  %        -> [only=<+>{"$\ztest$" message},
+  %            only=<+>{"$\ttrue$" {message=right, somewhat near end}}]
+  %       "\eps" [process];
+  %     };
+  %   \end{tikzpicture}
+  % \end{equation*}
+
+
+% \newcommand*{\rep}{\mathtt{r}}
+% \newcommand*{\killzero}{\text{\footnotesize$\mathtt{k}$}}
+% \newcommand*{\id}{\mathtt{i}}
+
+  % \begin{equation*}
+  %   \begin{tikzpicture}
+  %     \graph [sill graph=0.5] {
+  %       / [coordinate]
+  %        -> [only=<.>{"$\rep$" message},
+  %            only=<.(7)>{"$\id$" {message=right, somewhat near end}}]
+  %       "\alt<-+,+(7)->{\bit{0}}{\bit{0}\smash{'}}" [process]
+  %        -> [only=<.>{"$\rep$" message},
+  %            only=<.(5)>{"$\id$" {message=right, somewhat near end}}]
+  %       "\alt<-+,+(5)->{\bit{1}}{\bit{1}\smash{'}}" [process]
+  %        -> [only=<.>{"$\rep$" message},
+  %            only=<.(3)>{"$\killzero$" {message=right, somewhat near end}}]
+  %       b0 / "\alt<-+,+(3)->{\bit{0}}{\bit{0}\smash{'}}" [process, transparent/.only=<.(4)->]
+  %        -> [only=<+>{"$\rep$" message},
+  %            only=<+>{"$\killzero$" {message=right, somewhat near end}}]
+  %       "\eps" [process];
+
+  %       (b0.east) -> [transparent/.only=<-.>] (b0.west);
+  %     };
+  %   \end{tikzpicture}
+  % \end{equation*}

@@ -1,0 +1,316 @@
+% arara: pdflatex
+\documentclass{beamer}
+\usepackage{my-proposal-talk}
+
+\usetikzlibrary{positioning}
+
+
+\renewcommand*{\inc}{\color{structure}\mathtt{s}\color{black}}
+\renewcommand*{\eps}{\color{structure}\mathtt{e}\color{black}}
+\renewcommand*{\bit}[1]{\color{structure}\mathtt{#1}\color{black}}
+
+\NewDocumentCommand \val { m }{ \llcorner #1 \lrcorner }
+
+\NewDocumentCommand \circtask { O{} m }{%
+  \tikz { \fill [#1] (#2/2,#2/2) circle [radius={#2/2}]; }%
+}
+\NewDocumentCommand \sqtask { O{} m }{%
+  \tikz { \fill [#1] (0,0) rectangle ++(#2,#2); }%
+}
+
+\tikzset{
+  derivation length/.initial = 1em,
+  %
+  derivation/.pic = {
+    \fill (0,0)
+      coordinate ( root)
+      -- ++( 60 : \pgfkeysvalueof{/tikz/derivation length})
+      coordinate ( right leaf)
+      -- ++(180 : \pgfkeysvalueof{/tikz/derivation length})
+      coordinate ( left leaf)
+      -- ++(-60 : \pgfkeysvalueof{/tikz/derivation length})
+      -- cycle;
+  },
+  %
+  derivation layer width/.initial = 1em,
+  derivation layer height/.initial = 1em,
+  %
+  derivation layer/.pic = {
+    \fill (0,0)
+      coordinate ( bottom left)
+      -- ++(  0 : \pgfkeysvalueof{/tikz/derivation layer width})
+      coordinate ( bottom right)
+      -- ++( 60 : cosec 60 * \pgfkeysvalueof{/tikz/derivation layer height})
+      coordinate ( top right)
+      -- ++(180 : 2 * cot 60 * \pgfkeysvalueof{/tikz/derivation layer height}
+                   + \pgfkeysvalueof{/tikz/derivation layer width})
+      coordinate ( top left)
+      -- ++(-60 : cosec 60 * \pgfkeysvalueof{/tikz/derivation layer height})
+      -- cycle;
+  },
+}
+
+
+\NewDocumentCommand \pfreduce { O{} m m }{%
+  \begin{tikzpicture}[#1]
+    \fill [gray] (0 : 0) -- ++(60 : 2) -- ++(180 : 2) -- ++(-60 : 2) -- cycle;
+    \clip (60 : 2 + \gaphyp)
+      -- ++(60 : \layerhyp)
+      -- ++(180 : 2 + \gaphyp + 2 * cos 60 * \layerhyp)
+      -- ++(-60 : \layerhyp)
+      -- ++(0 : 2 + \gaphyp)
+      -- cycle;
+
+    \fill [fill={#2}]
+      (120 : 0.8 + \gaphyp + \layerhyp)
+       -- ++( 60 : 1.2)
+       -- ++(180 : 1.2)
+       -- ++(-60 : 1.2)
+       -- cycle;
+
+    \fill [fill={#3}]
+      (60 : 0.8 + \gaphyp + \layerhyp)
+       -- ++( 60 : 1.2)
+       -- ++(180 : 1.2)
+       -- ++(-60 : 1.2)
+       -- cycle;
+  \end{tikzpicture}%
+}
+
+
+\NewDocumentCommand \pfconstruct { O{} m m }{%
+  \begin{tikzpicture}[#1]
+    \fill [fill={#2}]
+      (0 : 0)
+       -- ++( 120 : \layerhyp)
+       -- ++(   0 : 1.2)
+       -- ++(-120 : \layerhyp)
+       -- ++( 180 : 1.2 - 2 * cos 60 * \layerhyp)
+       -- cycle;
+
+    \fill [fill={#3}]
+      (120 : \layerhyp + \gaphyp)
+       -- ++( 120 : \layerhyp)
+       -- ++(   0 : 1.2 + 2 * cos 60 * \layerhyp + 2 * cos 60 * \gaphyp)
+       -- ++(-120 : \layerhyp)
+       -- ++( 180 : 1.2 + 2 * cos 60 * \gaphyp)
+       -- cycle;
+  \end{tikzpicture}%
+}
+
+
+\NewDocumentCommand \showcolumnwidth { }{%
+  \tikz { \draw [|-|] (0,0) -- (\linewidth,0); }%
+}
+
+
+% Presentation metadata
+\title{Session-typed concurrent logic programming}
+\author[DeYoung]{Henry DeYoung}
+\institute[Carnegie Mellon]{%
+  Computer Science Department\\
+  Carnegie Mellon University%
+}
+\date{\today}
+\titlegraphic{\textcolor{gray}{\rule{12em}{9em}}}
+
+
+\begin{document}
+
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+
+\newcommand*\gaphyp{0.05}
+\newcommand*\layerhyp{0.5}
+
+
+\begin{frame}[fragile]
+  \frametitle{Computation and deduction}
+
+  \begin{columns}[c]
+  \column{0.5\textwidth}
+    \begin{center}
+      \begin{tikzcd}[arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=real east, end anchor=real west}, /tikz/nodes={inner xsep=0}]
+        \pfreduce[scale=0.75]{structure}{example text.fg}
+          \rar[structure] &
+        %
+        \pfreduce[scale=0.75]{none}{example text.fg}
+      \end{tikzcd}
+    \end{center}
+
+  \column{0.55\textwidth}
+    \begin{center}
+      \begin{tikzcd}[arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=real east, end anchor=real west}, /tikz/nodes={inner xsep=0}]
+        \pfconstruct[scale=0.75]{none}{none}  \rar[structure] &  \pfconstruct[scale=0.75]{example text.fg}{structure}
+      \end{tikzcd}
+    \end{center}
+  \end{columns}
+
+  \vspace*{2ex}
+
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+    \structure{Computation as proof reduction}
+    \begin{itemize}
+    \item Functional programming
+    \item Types --- preservation and progress properties
+    \end{itemize}
+
+  \column{0.55\textwidth}
+    \structure{Computation as proof construction}
+    \begin{itemize}
+    \item Committed-choice bottom-up logic programming
+    \item Impoverished types --- can get stuck
+    \end{itemize}
+  \end{columns}
+
+  \vspace*{1ex}
+
+  \begin{center}
+    Both have a seemingly sequential notion of transition,
+    \begin{tikzcd}[arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick}, /tikz/nodes={inner xsep=0}]
+      \rar & {}
+    \end{tikzcd}.
+  \end{center}
+
+  \vspace*{-4ex}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{From sequentiality to concurrency}
+  % \emph{Concurrent} proof reduction and proof construction}
+
+  \begin{columns}[b,onlytextwidth]
+  \column{0.3\textwidth}
+    \begin{center}
+      \fcolorbox{structure!30}{structure!10}{$
+        \begin{gathered}
+          \text{Tasks:} \\
+          \begin{tikzcd}[ampersand replacement=\&, row sep=1.5ex, column sep=1.8em, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=real east, end anchor=real west}, /tikz/nodes={inner ysep=0}]
+            \circtask[structure]{1.7ex}
+              \rar[structure] \&
+            \sqtask[gray]{1.7ex}
+            \\
+            \circtask[example text.fg]{1.7ex}
+              \rar[example text.fg] \&
+            \sqtask[gray]{1.7ex}
+          \end{tikzcd}
+        \end{gathered}
+      $}
+    \end{center}
+
+  \column{0.6\textwidth}
+    \begin{tikzcd}[row sep=2ex, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick}, /tikz/nodes={inner ysep=0}]
+      &
+      \sqtask[gray]{1.7ex} \, \circtask[example text.fg]{1.7ex}
+        \drar[example text.fg, start anchor=east, end anchor=north west] &
+      \\
+      \circtask[structure]{1.7ex} \, \circtask[example text.fg]{1.7ex}
+        \urar[structure, start anchor=north east, end anchor=west]
+        \drar[example text.fg, start anchor=south east, end anchor={[yshift=-axis_height]north west}]
+        \ar[rr, alert, dashed, dash phase=0.5em, start anchor=real east, end anchor=real west] &
+      &
+      \sqtask[gray]{1.7ex} \, \sqtask[gray]{1.7ex}
+      \\
+      &
+      \circtask[structure]{1.7ex} \, \sqtask[gray]{1.7ex}
+        \urar[structure, start anchor={[yshift=-axis_height]north east}, end anchor=south west] &
+    \end{tikzcd}
+  \end{columns}
+
+  \vspace*{3ex}
+
+  % \setbeamerfont*{itemize/enumerate body}{size=\small}
+  \structure{Interleaving concurrent semantics:}
+  \begin{itemize}
+  \item Require that interleavings of independent tasks are indistinguishable,
+  so that they appear to be concurrent.
+    \begin{itemize}
+    \item This diagram commutes.
+    \item CLF's concurrent equality [WCPW '02]
+    \end{itemize}
+  \end{itemize}
+
+  \structure{True concurrent semantics?}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{\emph{Concurrent} computation and deduction}
+
+  \begin{columns}[t]
+  \column{0.5\textwidth}
+    \begin{center}
+      \begin{tikzcd}[row sep=0, every cell/.append style={rectangle, inner sep=0}, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=east, end anchor=west}]
+        % 
+        & \drar[example text.fg, end anchor={[yshift=0.75ex]west}] & \\[-1ex]
+        % 
+        \pfreduce[scale=0.75]{structure}{example text.fg}
+          \urar[structure, start anchor={[yshift=0.75ex]east}]
+          \drar[example text.fg, start anchor={[yshift=-0.75ex]east}]
+          \ar[rr, alert, dashed] & &
+        % 
+        \pfreduce[scale=0.75]{none}{none} \\[-1ex]
+        % 
+        & \urar[structure, end anchor={[yshift=-0.75ex]west}] &
+      \end{tikzcd}
+    \end{center}
+
+  \column{0.55\textwidth}
+    \begin{center}
+      \begin{tikzcd}[row sep=0, every cell/.append style={rectangle, inner sep=0}, arrow style=tikz, /tikz/>={To[scale=0.8]}, arrows={very thick, start anchor=east, end anchor=west}]
+        & \drar[example text.fg, end anchor={[yshift=0.75ex]west}] & \\
+        % 
+        \pfconstruct[scale=0.75]{none}{none}
+          \urar[structure, start anchor={[yshift=0.75ex]east}]
+          \drar[example text.fg, start anchor={[yshift=-0.75ex]east}]
+          \ar[rr, alert, dashed]
+        &&
+        \pfconstruct[scale=0.75]{example text.fg}{structure}
+        \equiv
+        \pfconstruct[scale=0.75]{structure}{example text.fg}
+        \\
+        & \urar[structure, end anchor={[yshift=-0.75ex]west}] &
+      \end{tikzcd}
+    \end{center}
+  \end{columns}
+
+
+  \begin{columns}[c]
+  \column{0.5\textwidth}
+    \structure{Concurrent computation as concurrent proof reduction}    
+    \begin{itemize}
+    \item SILL: Proofs as session-typed processes
+    \end{itemize}
+
+    \showcolumnwidth
+
+  \column{0.55\textwidth}
+    \structure{Concurrent computation as concurrent proof construction}    
+    \begin{itemize}
+    \item CLF: Proofs as multiset rewriting traces
+    \end{itemize}
+
+    \showcolumnwidth
+  \end{columns}
+\end{frame}
+
+\end{document}
+
+
+e 1 0 1 1
+e o v o o v?
+
+e 1 0 1 1 ?
+e 1 0 1 1 f
+
+    e 0 ?
+    e ? 0
+    e t 0 s
+e t 1    e 0 t s
+e 1 t
+

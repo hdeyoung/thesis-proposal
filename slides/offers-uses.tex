@@ -1,0 +1,53 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\tikzset{
+  visible/.style args={<#1>#2}{
+    alt={<#1>{#2}{transparent}}
+  }
+}
+
+\begin{document}
+\begin{standaloneframe}
+  \frametitle{}
+  \onslide<+->
+
+  \begin{equation*}
+    \begin{tikzpicture}[
+      hypothetical/.style={dashed, fill=none, nearly transparent}
+    ]
+      \graph [sill graph=0.5,
+        /tikz/every label quotes/.style={below, label distance=0.5em}
+      ] {
+        { [
+           /utils/exec/.only=<+>,
+           nodes={process, hypothetical, visible=<.(1)->},
+           edges={hypothetical, visible=<.(1)->}
+          ]
+          / [coordinate]
+           ->
+          C ["client" {hypothetical, visible=<.(1)->, text height=1ex} ]
+           ->
+          / [coordinate]
+        }
+         ->
+        P [process, "process"]
+         ->
+        { [
+           /utils/exec/.only=<+>,
+           nodes={process, hypothetical, visible=<.(-1)->},
+           edges={hypothetical, visible=<.(-1)->}
+          ]
+          / [coordinate]
+           ->
+          S ["server" {hypothetical, visible=<.(-1)->} ]
+           ->
+          / [coordinate]
+        };
+      };
+    \end{tikzpicture}
+  \end{equation*}
+\end{standaloneframe}
+\end{document}

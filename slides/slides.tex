@@ -1,0 +1,95 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass{beamer}
+\usepackage{my-proposal-talk}
+\usepackage{standalone}
+
+% Presentation metadata
+\title{Session-typed concurrent logic programming}
+\author[DeYoung]{Henry DeYoung}
+\institute[Carnegie Mellon]{%
+  Computer Science Department\\Carnegie Mellon University}
+\date{\today}
+\titlegraphic{\textcolor{gray}{\rule{12em}{9em}}}
+
+
+\tikzset{
+  visible/.style args={<#1>#2}{
+    alt={<#1>{#2}{transparent}}
+  }
+}
+
+\tikzset{
+  hypothetical/.style={dashed, fill=none, nearly transparent},
+  graphs/visible/.style args={<#1>}{nodes={visible={<#1>}}, edges={visible={<#1>}}},
+  graphs/hypothetical graph/.style={nodes={process, hypothetical}, edges={hypothetical}},
+}
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+
+% \begin{frame}[plain]
+%   \onslide<+->
+%   Concurrent \tikzinlinetext[only=<+->{draw=alert}, strike out, thick, text depth=0]
+%              {ordered logic programming}
+%              \only<.->{string rewriting}
+% \end{frame}
+
+
+\begin{frame}
+  \include{nat-string-rep}
+\end{frame}
+
+
+\begin{frame}
+  \include{binary-inc}
+\end{frame}
+
+
+\begin{frame}
+  \include{concur-inc}
+\end{frame}
+
+
+\begin{frame}[plain]
+  \include{where-process}
+\end{frame}
+
+
+\begin{frame}
+  \include{formulas-as-procs}
+\end{frame}
+
+
+\begin{frame}
+  \include{global-done}
+\end{frame}
+
+
+\begin{frame}
+  \include{procs-pass-msgs}
+\end{frame}
+
+
+\begin{frame}
+  \include{procs-pass-msgs-two}
+\end{frame}
+
+
+\begin{frame}
+  \include{parity}
+\end{frame}
+
+\begin{frame}
+  \include{open-system}
+\end{frame}
+
+
+\begin{frame}[plain]
+  \include{roadmap}
+\end{frame}
+
+\end{document}

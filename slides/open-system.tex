@@ -1,0 +1,60 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+\usepackage{my-proposal-talk}
+
+\tikzset{
+  visible/.style args={<#1>#2}{
+    alt={<#1>{#2}{transparent}}
+  }
+}
+
+\tikzset{
+  hypothetical/.style={dashed, fill=none, nearly transparent},
+  graphs/visible/.style args={<#1>}{nodes={visible={<#1>}}, edges={visible={<#1>}}},
+  graphs/hypothetical graph/.style={nodes={process, hypothetical}, edges={hypothetical}},
+}
+
+\begin{document}
+\begin{standaloneframe}
+  \frametitle{}
+  \onslide<+->
+
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph=0.5] {
+        { [hypothetical graph, /utils/exec/.only=<+>, visible=<.(1)->]
+          / [coordinate] -> C -> / [coordinate]
+        }
+         ->
+        P
+         ->
+        { [hypothetical graph, /utils/exec/.only=<+>, visible=<.(-1)->]
+          / [coordinate] -> S -> / [coordinate]
+        };
+      };
+    \end{tikzpicture}
+  \end{equation*}
+
+  \begin{itemize}
+  \item A process offers a service to its client.
+  \item A process may also use an outside service.
+  \end{itemize}
+  
+  \begin{equation*}
+    \begin{tikzpicture}
+      \graph [sill graph=0.5] {
+        / [coordinate]
+         -> [hypothetical]
+        C [process, hypothetical]
+         -> ["$\inc$" message]
+        / [coordinate]
+         -> ["$\inc$" message]
+        "\bit{1}" [process]
+         ->
+        "\eps" [process, hypothetical];
+      };
+    \end{tikzpicture}
+  \end{equation*}
+\end{standaloneframe}
+\end{document}

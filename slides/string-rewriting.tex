@@ -1,0 +1,31 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass{beamer}%[class=beamer]{standalone}
+
+\usepackage{standalone}
+
+
+\usepackage{tikz}
+\usepackage{tikzext}
+
+\usepackage{mathtools}
+
+\usepackage{xparse}
+
+
+\NewDocumentCommand{\eps}{}{\mathtt{e}}
+\NewDocumentCommand{\bit}{m}{\mathtt{#1}}
+\NewDocumentCommand{\strcons}{}{\mskip\thinmuskip}
+
+\NewDocumentCommand{\cntr}{m}{\ulcorner#1\urcorner}
+
+
+\tikzset{every picture/.style = {thick}}
+
+\begin{document}
+
+\begin{frame}
+  \include{counter-rep-rev}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,279 @@
+% arara: pdflatex
+\documentclass{beamer}
+\usepackage{my-proposal-talk}
+
+\usepackage{pifont}
+
+
+\renewcommand*{\inc}{\color{structure}\mathtt{s}\color{black}}
+\renewcommand*{\eps}{\color{structure}\mathtt{e}\color{black}}
+\renewcommand*{\bit}[1]{\color{structure}\mathtt{#1}\color{black}}
+
+\NewDocumentCommand \bits { }{ \mathord{\color{structure} B} }
+\NewDocumentCommand \val { m }{ \llcorner #1 \lrcorner }
+
+\newcommand*{\zeroq}{\mathtt{z\mkern-2mu \text{\texttt{?}}}}
+\newcommand*{\zerott}{\mathtt{t\mkern-2mu t}}
+\newcommand*{\zeroff}{\mathtt{f\mkern-2mu f}}
+
+
+\RenewDocumentCommand \strcons { }
+  { \mskip4mu }
+
+
+\NewDocumentCommand \showcolumnwidth { }{%
+  \tikz { \draw [|-|] (0,0) -- (\linewidth,0); }%
+}
+
+
+\newenvironment{checkenv}{%
+  \only{%
+    \setbeamertemplate{itemize item}{{\color{example}\ding{51}}}%
+  }%
+}
+{}
+
+\newenvironment{crossenv}{%
+  \only{%
+    \setbeamertemplate{itemize item}{\alert{\ding{55}}}%
+  }%
+}
+{}
+
+
+\begin{document}
+
+
+\colorlet{example}{example text.fg}
+
+
+\begin{frame}
+  \frametitle{Letters as processes}
+
+  \begin{equation*}
+    \begin{tikzpicture}[trim left=(e.west), ellipse highlight/.append style={overlay}]
+      \graph [
+        sill graph/.alt=<-+>{0}{0.5}, nodes={process}, nodes/.only=<-.>{text height=1.5ex},
+        nodes/.alt=<+->{}{transparent, text opaque},
+        edges/.alt=<+->{}{transparent},
+        /tikz/channel/.append style/.alt=<+>{}{transparent},
+        /utils/exec/.only=<+>,
+        /tikz/execute at end scope/.only=<+>{\node [ellipse highlight={($(i2.east)!1.33!(s right)$) ($(i2.east)!.67!(s right)$)}] {};},
+        /tikz/execute at end scope/.only=<+>{\node [ellipse highlight={($(e.west)!0.67!(s left)$) ($(e.west)!1.33!(s left)$)}] {};},
+        /utils/exec/.only=<+>,
+        /tikz/execute at end scope/.only=<+>{\redex[ultra thick em]{(b) (i1)}},
+      ] {
+        s right / [coordinate]
+         -> ["$c_0$" channel, transparent/.only=<.(2)-.(3)>]
+        i2 / "\inc" [transparent/.only=<+(2)-+(3)>]
+         -> ["$c_1$" channel]
+        i1 / "\temporal<.-.(1)>{\inc}{\bit{0}}{\alt<.(2)-.(3)>{\bit{1}}{\inc}}"
+         -> ["$c_2$" channel]
+        b / "\alt<.-.(1)>{\inc}{\bit{1}}"
+         -> ["$c_3$" channel]
+        e / "\eps"
+         -> ["$c_4$" channel, transparent/.only=<.(-2)->]
+        s left / [coordinate];
+      };
+
+      \redex<+>[ultra thick em]{(e) (b)}
+      \redex<.>[ultra thick em]{(i1) (i2)}
+
+      \redex<+(2)->[ultra thick em]{(b) (i1)}
+      \visioncircle<+(2)>{(e.east)}{(i1.west)}{{white}{50}}
+      \visioncircle<+(2)->{(b.east)}{(i2.west)}{{white}{50}}
+
+      \path (s right) +(0,2.3em) +(0,-2.3em);
+      % \draw [red] (current bounding box.north west) rectangle (current bounding box.south east);
+    \end{tikzpicture}
+  \end{equation*}
+
+  What if letters are processes? (cf.\ [Miller '92])
+  \begin{itemize}
+  \item Strings are process and message chains.
+  \item Rewriting rules are chain transformations:
+    \begin{itemize}
+    \item[] \hspace{-1.5em}
+      $\begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate] -> "\inc" -> b / "\bit{1}" -> / [coordinate];
+        };
+      \end{tikzpicture}
+        \trans
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate] -> b / "\bit{0}" -> "\inc" -> / [coordinate];
+        };
+      \end{tikzpicture}$, etc.
+    \end{itemize}
+  \end{itemize}
+  \bigskip\medskip
+
+  \onslide<+(-2)->
+  This is not a local implementation!
+  \begin{itemize}
+  % \item It assumes an omniscient coordinator, or bounded-omniscient processes.
+  \item Assumes ``processes'' have a degree of omniscience
+  \item Similar to a one-dimensional cellular automaton
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Letters as processes \emph{and} messages}
+
+  \onslide<+->
+  \begin{equation*}
+    \begin{tikzpicture}[trim left=(e.west)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate]
+         ->
+        i2 / "\inc" [transparent/.only=<+->]
+         ->
+        i1 / "\inc" [transparent/.only=<.->]
+         ->
+        b / "\alt<-.(3)>{\bit{1}}{\bit{0}}"
+         ->
+        e / "\eps"
+         -> [transparent]
+        / [coordinate];
+
+        (i2.east) -> ["$\inc$" {message, name=i2 msg}, transparent/.only=<-.(-1)>] (i2.west);
+        (i1.east) -> ["$\inc$" {message, name=i1 msg, transparent/.only=<+(2)->}, transparent/.only=<-.(-1)>] (i1.west);
+      };
+
+      \redex<+(-1)-+>[ultra thick em]{(b) (i1 msg)}
+
+      \visioncircle<+(-1)-+(1)>{(e.east)}{(i1.west)}{{white}{50}}
+
+      \path<+(-1)> (i1) edge ["$\inc$" {message, name=i1 msg', somewhat near end}] (b);
+      \redex<.(-1)>[ultra thick em]{(b) (i1 msg')}
+
+      \path<+(-1)-> (b) edge ["$\inc$" {message, name=i1 msg'', somewhat near start}] (e);
+
+      \redex<+->{(e) (i1 msg'')}
+      \redex<.->{(b) (i2 msg)}
+
+      \path (e.east) +(0,2.3em) -- +(0,-2.3em);
+      % \draw [red] (current bounding box.north west) rectangle (current bounding box.south east);
+    \end{tikzpicture}
+  \end{equation*}
+
+  What if some letters are processes and some are messages?
+  \begin{itemize}
+  \item Strings are process chains
+  \item Rewriting rules are \emph{local} process implementations
+    \begin{itemize}
+    \item[] \hspace{-1.5em}
+      $\begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate] ->["$\inc$" message] b / "\bit{1}" -> / [coordinate];
+        };
+      \end{tikzpicture}
+        \trans
+      \begin{tikzpicture}[baseline=(b.base)]
+        \graph [sill graph=0.5, nodes={process}] {
+          / [coordinate] -> b / "\bit{0}" ->["$\inc$" message] / [coordinate];
+        };
+      \end{tikzpicture}$, etc.
+    \end{itemize}
+  \end{itemize}
+  \bigskip\medskip
+
+  \onslide<+->
+  Assignment of letters to process/message roles is a \structure{\emph{choreography}}
+  \begin{itemize}
+  \item $\eps$, $\bit{0}$, and $\bit{1}$ are processes in the example choreography, whereas $\inc$, $\zeroq$, $\zerott$, and $\zeroff$ are messages.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Choreographies must be local}
+
+  \onslide<+->
+
+  {\large Not all role assignments are well-formed choreographies.}
+  \begin{itemize}[<+- | cross@1->]
+  \item<.- | cross@1-> Two or more processes:\enskip% \hfill
+    {\footnotesize
+    $\begin{tikzpicture}[baseline=(b.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate] -> "{}" -> b / "\phantom{\inc}" -> / [coordinate];
+      };
+    \end{tikzpicture}
+      \trans
+    \dotsb$}
+
+  \item Only messages:\enskip% \hfill
+    {\small
+    $\raisebox{.5ex}[.75em+.5ex]{$\begin{tikzpicture}[baseline=(c)]
+      \graph [sill graph=0.5, nodes={process}] {
+        c / [coordinate] ->["$\phantom{\inc}$" {message, overlay}] / [coordinate] ->["$\phantom{\inc}$" {message, overlay}] / [coordinate];
+      };
+    \end{tikzpicture}$}
+      \trans
+    \dotsb$}
+
+  \item Process and two incoming messages:\enskip% \hfill
+    {\footnotesize
+    $\begin{tikzpicture}[baseline=(b.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate] ->["$\phantom{\inc}$" {message, overlay}] b / "\phantom{\inc}" ->["$\phantom{\inc}$" {message=right, somewhat near end}] / [coordinate];
+      };
+    \end{tikzpicture}
+      \trans
+    \dotsb$}
+
+  \item Process and an outgoing message:\enskip% \hfill
+    {\footnotesize
+    $\begin{tikzpicture}[baseline=(b.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate] -> b / "\phantom{\inc}" ->["$\phantom{\inc}$" {message, overlay}] / [coordinate];
+      };
+    \end{tikzpicture}
+      \trans
+    \dotsb$}
+  \end{itemize}
+  \medskip
+
+  \onslide<+->
+
+  {\large Well-formed choreographies have premises:}
+  \begin{itemize}[<+- | check@1->]
+  \item A process and an incoming message:\\\qquad% \hfill
+    {\footnotesize
+    $\begin{tikzpicture}[baseline=(b.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate] ->["$\phantom{\inc}$" message] b / "\phantom{\inc}" -> / [coordinate];
+      };
+    \end{tikzpicture}
+      \trans
+    \dotsb$
+    {\normalsize or}\enskip
+    $\begin{tikzpicture}[baseline=(b.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate] -> b / "\phantom{\inc}" ->["$\phantom{\inc}$" {message=right, somewhat near end}] / [coordinate];
+      };
+    \end{tikzpicture}
+      \trans
+    \dotsb$}
+
+  \item A process:\enskip% \hfill
+    {\footnotesize
+    $\begin{tikzpicture}[baseline=(b.base)]
+      \graph [sill graph=0.5, nodes={process}] {
+        / [coordinate] -> b / "\phantom{\inc}" -> / [coordinate];
+      };
+    \end{tikzpicture}
+      \trans
+    \dotsb$}
+  \end{itemize}
+  \bigskip
+
+  \onslide<+->
+  \structure{\large Definition (Locality).}\enskip A choreography is \emph{local} if each rewriting rule's premise then contains exactly one process, at most one incoming message, and no outgoing messages.
+\end{frame}
+
+
+\end{document}

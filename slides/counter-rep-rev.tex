@@ -1,0 +1,57 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass[beamer]{standalone}
+
+\usepackage{tikz}
+\usepackage{tikzext}
+
+\usepackage{mathtools}
+
+\usepackage{xparse}
+
+
+\NewDocumentCommand{\eps}{}{\mathtt{e}}
+\NewDocumentCommand{\bit}{m}{\mathtt{#1}}
+\NewDocumentCommand{\strcons}{}{\mskip\thinmuskip}
+
+\NewDocumentCommand{\cntr}{m}{\ulcorner#1\urcorner}
+
+
+\begin{document}
+
+\begin{standaloneframe}
+  \frametitle{Binary representation of natural numbers as strings}
+  % A \vocab{value} is a string of $\bit{0}$s and $\bit{1}$s beginning with an $\eps$, with no leading $\bit{0}$s.
+  % Represent a number by a string of $\bit{0}$s and $\bit{1}$s beginning with an $\eps$, with no leading $\bit{0}$s.
+  \structure{Representation:}
+  \begin{itemize}
+  \item<+-> String of $\bit{0}$s and $\bit{1}$s beginning with an $\eps$, with \tikzmarktext{leading0s}{\alert<.(3)>{no leading $\bit{0}$s.}}
+    % Make rhs visible as <.->
+    \begin{align*}
+      \eps \strcons \bit{1}
+        \uncover<+->{&= \cntr{1} \\}
+      \eps \strcons \bit{1} \strcons \bit{0}
+        \uncover<.->{&= \cntr{2} \\}
+      \mathllap{\eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0}}
+        \uncover<.->{&= \cntr{42}}
+    \end{align*}
+  % 
+  \item<+-> Adequately represent natural number $n$ by bit string $\cntr{n}$:
+  % \item<+-> More generally, adequately represent number $n$ by string $\cntr{n}$:
+    \begin{align*}
+      \hphantom{\eps \strcons \bit{1} \strcons \bit{0}} &\hphantom{= \cntr{42}} \\[-\baselineskip]
+      \cntr{0} &= \eps \\
+      \cntr{2n} &= \cntr{n} \strcons \bit{0}
+          \mathrlap{\text{ , \tikzmarktext{leading0s side}{\alert<.(1)>{if $2n > 0$}}%
+            \tikz [remember picture, overlay] {
+              \draw <.(1)> [alert]
+                (leading0s.south)
+                  edge [->, out=-90, in=20, in looseness=2] (leading0s side.east);
+          }}} \\
+      %
+      \mathllap{\cntr{2n+1}} &= \cntr{n} \strcons \bit{1}
+    \end{align*}
+  \end{itemize}
+\end{standaloneframe}
+
+\end{document}

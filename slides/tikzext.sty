@@ -1,0 +1,126 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {tikzext}
+  {2014/04/24}
+  {1.0}
+  {Custom TikZ extensions}
+
+% @@ = tikzext
+\RequirePackage { tikz }
+
+
+\tikzset{
+  text~transparent/.style={text~opacity=0},
+  text~opaque/.style={text~opacity=1},
+  edge~coordinate/.style={edge~node={coordinate~#1}},
+  %
+  ultra~thin~em/.style={line~width=0.0091em},
+  very~thin~em/.style={line~width=0.0182em},
+  thin~em/.style={line~width=0.0364em},
+  semithick~em/.style={line~width=0.0545em},
+  thick~em/.style={line~width=0.0727em},
+  very~thick~em/.style={line~width=0.1091em},
+  ultra~thick~em/.style={line~width=0.1454em},
+  %
+  somewhat~near~start/.style={pos=0.375},
+  somewhat~near~end/.style={pos=0.625},
+}
+
+
+
+\RequirePackage { xparse }
+
+\NewDocumentCommand{\tikzmark}{m}{%
+  \tikz [remember~picture, overlay, baseline]
+    { \coordinate (#1); }%
+}
+
+
+\NewDocumentCommand \tikzmarktext { m m }
+  { \@@_marktext:nn {#1} {#2} }
+
+\cs_new_protected:Npn \@@_marktext:nn #1#2 {
+  \tikz [remember~picture, baseline=(#1.base)] {
+    \node (#1) [inner~sep=0, outer~sep=0.3333em]
+      {#2};
+  }
+}
+
+
+\NewDocumentCommand \tikzinlinetext { O{} m }
+  { \@@_inlinetext:nn {#1} {#2} }
+
+\cs_new_protected:Npn \@@_inlinetext:nn #1#2 {
+  \tikz [baseline=(text.base)] {
+    \node [inner~sep=0, #1] (text) {#2};
+  }
+}
+
+
+
+\pgfkeys{
+  /pgf/underline~shape/lower/.initial = 0pt,
+  /pgf/underline~shape/lower/.value~required,
+  %
+  /pgf/underline~shape/underline~style/.style={draw},
+}
+
+\pgfdeclareshape{underline}{
+  \inheritsavedanchors[from=rectangle] % this is nearly a rectangle
+  \inheritanchorborder[from=rectangle]
+  \inheritanchor[from=rectangle]{center}
+  \inheritanchor[from=rectangle]{north}
+  \inheritanchor[from=rectangle]{north~west}
+  \inheritanchor[from=rectangle]{north~east}
+  \inheritanchor[from=rectangle]{south}
+  \inheritanchor[from=rectangle]{south~west}
+  \inheritanchor[from=rectangle]{south~east}
+  \inheritanchor[from=rectangle]{west}
+  \inheritanchor[from=rectangle]{east}
+  \inheritanchor[from=rectangle]{mid}
+  \inheritanchor[from=rectangle]{mid~west}
+  \inheritanchor[from=rectangle]{mid~east}
+  \inheritanchor[from=rectangle]{base}
+  \inheritanchor[from=rectangle]{base~west}
+  \inheritanchor[from=rectangle]{base~east}
+  \inheritanchor[from=rectangle]{text}
+  %
+  \backgroundpath{% this is new
+    % store lower right in xa/ya and upper right in xb/yb
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+    %
+    \pgfpathmoveto{\southwest}
+    \pgfpathmoveto{\pgfqpoint{\pgf@xb}{\pgf@ya}} % south east
+    \pgfpathmoveto{\northeast}
+    \pgfpathmoveto{\pgfqpoint{\pgf@xa}{\pgf@ya}} % north west
+    \pgfpathclose
+    % \pgfsetarrowsstart{}
+    % \pgfsetarrowsend{}
+  }
+  %
+  \foregroundpath{%
+    % \pgfsys@beginscope
+    % \let\tikz@mode=\pgfutil@empty
+    % \tikz@mode@drawfalse
+    % \tikzset{/pgf/underline~shape/underline~style}
+    % \tikz@mode
+    % \tikz@options
+    % %
+    % \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    % \northeast \pgf@xb=\pgf@x
+    % %
+    % \pgfmathaddtolength{\pgf@ya}{-\pgfkeysvalueof{/pgf/underline~shape/lower}}
+    % \pgfpathmoveto{\pgfqpoint{\pgf@xa}{\pgf@ya}} % lowered south west
+    % \pgfpathlineto{\pgfqpoint{\pgf@xb}{\pgf@ya}} % lowered south east
+    % %
+    % \edef\@tempa{\noexpand\pgfusepath{\iftikz@mode@draw draw\fi}}
+    % \@tempa
+    % \pgfsys@endscope
+    %
+    \southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+    \northeast \pgf@xb=\pgf@x
+    \pgfpathmoveto{\southwest}
+    \pgfpathlineto{\pgfqpoint{\pgf@xb}{\pgf@ya}} % south east
+  }
+}

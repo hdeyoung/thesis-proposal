@@ -1,7 +1,9 @@
 % arara: pdflatex
+% arara: pdflatex
 % arara: biber
 % arara: pdflatex
 % arara: pdflatex
+% \documentclass{../hdeyoung-proposal}
 \documentclass[
   class=../hdeyoung-proposal,
   crop=false
@@ -18,17 +20,17 @@
 
 \section{Choreographies}\label{sec:choreographies}
 
-Traditionally, concurrency is phrased as the composition of interacting, \wc{locally executing}[\st{distributed}] processes.
-As the binary counter example from \cref{sec:exampl-binary-count-2,sec:exampl-binary-count-3} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewrites arises naturally in ordered logic programming.
+Traditionally, concurrency is phrased as the composition of interacting, locally executing processes.
+As the binary counter example from \cref{sec:olp-intuition:concurrency} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewrites arises naturally in ordered logic programming.
 % a notion of concurrency based on indestinguishable interleavings arises naturally in ordered logic programming.
 % However, it is not as clear how to identify a notion of process
-But where are the \wc{locally executing}[\st{distributed}] processes?
+But where are the locally executing processes?
 
 Taking a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the processes are the ordered logic program's atomic propositions.
 % This thesis proposes that the atomic propositions in an ordered logic program are the processes.
 % \fxnote{[How much of this is already implied by a formula-as-process interpretation?]}%
 The program's clauses, accordingly, serve to specify the valid interactions among processes. 
-In the binary counter,
+In the binary counter (\cref{sec:olp-intuition:binary-counter}),
 % \wc{specification}[\st{program}], 
 for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$, among others,
 % $\dec$, $\bit[']{0}$, $\zero$, and $\succ$ 
@@ -46,9 +48,9 @@ says that one valid interaction is for neighboring $\bit{1}$ and $\inc$ processe
 % (with similar readings for the other clauses).
 
 The program's clauses don't tell the full story, however:
-the clauses specify\fxnote{\ globally} \emph{what} are valid interactions but not \emph{how} to realize \wc{them}[\st{those interactions}]\fxnote{\ \st{locally}}.
+the clauses globally specify \emph{what} are valid interactions but not \emph{how} to realize \wc{them}[\st{those interactions}] locally.
 % The program is thus only a \vocab{specification}, with the how instead being supplied by the logic programming language's operational semantics.
-In ordered logic programming, the how is\fxnote{\ \st{instead}} traditionally supplied by an operational semantics in which a\fxnote{\st{n omniscient}} central conductor, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+In ordered logic programming, the how is traditionally supplied by an operational semantics in which an omniscient central conductor, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
 % The how is instead supplied by the language's operational semantics.
 % % The  language's operational semantics instead supplies the how.
 % % The program is thus only a \vocab{specification}, with
@@ -65,12 +67,13 @@ For instance, by communicating directly with its left-hand neighbor, an $\inc$ p
 
 So, the distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
 % \fxnote{\st{The original program is only a specification of the valid process interactions, whereas a choreography is a pattern of communication that implements that specification.}}
-A specification is the original program, which serves as a \emph{global} description of the valid process interactions; a choreography is a \emph{local}\fxnote{\ message-passing} implementation of that specification.%
+A specification is the original program, which serves as a \emph{global} description of the valid process interactions; a choreography%
+\footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
+The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}
+is a \emph{local}\fxnote{\ message-passing} implementation of that specification.%
 % A specification is the original program used to describe the valid process interactions, whereas a choreography is a pattern of communication that implements that specification%
 % \footnote{Notice that we always speak of a choreography relative to a specification, just as an implementation is always relative to an abstraction.}%
 % , and which must be given by the programmer, at least implicitly.%
-\footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
-The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}%
 %, which must also be given by the programmer, at least implicitly.%
 \footnote{Notice that a choreography is always relative to a given specification.}
 
@@ -85,7 +88,7 @@ sometimes a specification will even admit several choreographies, and, more ofte
 % Not having a one-size-fits-all local operational semantics, the programmer himself must indicate the intended pattern of communication for each program.
 Therefore, not having a one-size-fits-all local operational semantics, the programmer himself must supply the choregraphy, at least implicitly.
 
-In the previous \lcnamecref{sec:??}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations.
+In the previous \lcnamecref{sec:ordered-lp}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
 We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
 
 

@@ -1,0 +1,99 @@
+% arara: pdflatex
+% arara: pdflatex
+% arara: biber
+% arara: pdflatex
+% arara: pdflatex
+% \documentclass{../hdeyoung-proposal}
+\documentclass[
+  class=../hdeyoung-proposal,
+  crop=false
+]{standalone}
+
+% \usepackage[subpreambles]{standalone}
+
+\usepackage{xparse}
+
+\usepackage{stmaryrd}
+\usepackage{proof}
+\usepackage{mathpartir}
+
+\usepackage{../msill}
+
+\NewDocumentCommand{\compilebasic}{m m m m}{%
+  \llbracket #2\rrbracket^{#1}_{#3} = #4%
+}
+\NewDocumentCommand{\compilepos}{m m m m}{%
+  \compilebasic{#1}{#2}{#3}{#4}%
+}
+\NewDocumentCommand{\compileneg}{m m m m}{%
+  \compilebasic{#1}{#2}{#3}{#4}%
+}
+
+\usepackage{linear-logic}
+\usepackage{ordered-logic}
+\usepackage{basic-atoms}
+
+\NewPredicate{\exec}{1}
+\NewPredicate{\msgl}[msg_l]{3}
+
+\NewDocumentCommand{\susp}{m m}{\langle#2\rangle}
+
+\begin{document}
+
+\section{Compiling choreographies}\label{sec:compile-choreo}
+
+\begin{mathpar}
+  \infer{\compilepos{d}{A^+_1 \fuse A^+_2}{c}{\mbind{\bv{c'} <- \mspawn{P_1} <- d; P_2}}}{
+    \compilepos{d}{A^+_1}{c'}{P_1} &
+    \compilepos{c'}{A^+_2}{c}{P_2}}
+  \and
+  \infer{\compilepos{d}{\one}{c}{\mfwd{c <- d}}}{
+    }
+  \\
+  \infer{\compilepos{d}{\p^+}{c}{\mbind{c <- \p^+ <- d}}}{
+    }
+  \and
+  \infer{\compilepos{d}{\p[->]^+}{c}{\moutputl{c.\p[->]^+; \mfwd{c <- d}}}}{
+    }
+  \and
+  \infer{\compilepos{d}{\p[<-]^+}{c}{\moutputl{d.\p[<-]^+; \mfwd{c <- d}}}}{
+    }
+  \\
+  \infer{\compilepos{d}{A^-}{c}{P}}{
+    \compileneg{d}{A^-}{c}{P}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\compileneg{d}{\with_i (\p[->, _i]^+ \limp \monad{A^+_i})}{c}{\mcase{d}{\p[->, _i]^+ => P_i}}}{
+    \compileneg{d}{A^+_i}{c}{P_i}}
+  \and
+  \infer{\compileneg{d}{\with_i (\p[<-, _i]^+ \rimp \monad{A^+_i})}{c}{\mcase{c}{\p[<-, _i]^+ => P_i}}}{
+    \compileneg{d}{A^+_i}{c}{P_i}}
+  \and
+  \infer{\compileneg{d}{\monad{A^+}}{c}{P}}{
+    \compilepos{d}{A^+}{c}{P}}
+\end{mathpar}
+
+\NewDocumentCommand{\compilectx}{m m m m}{%
+  \compilebasic{#1}{#2}{#3}{#4}%
+}
+
+\begin{mathpar}
+  \infer{\compilectx{d}{\octx_1, \octx_2}{c}{\exists c'. A^+_1 \tensor A^+_2}}{
+    \compilectx{d}{\octx_1}{c'}{A^+_1} &
+    \compilectx{c'}{\octx_2}{c}{A^+_2}}
+  \and
+  \infer{\compilectx{d}{\octxe}{c}{c \eq d}}{
+    }
+  \\
+  \infer{\compilectx{d}{A^+}{c}{\exec{P}}}{
+    \compilepos{d}{A^+}{c}{P}}
+  \and
+  \infer{\compilectx{d}{\susp+{\p[->]^+}}{c}{\msgl{c,\p[->]^+,d}}}{
+    }
+  \and
+  \infer{\compilectx{d}{\susp+{\p[<-]^+}}{c}{\msgl{d,\p[<-]^+,c}}}{
+    }
+\end{mathpar}
+
+\end{document}
