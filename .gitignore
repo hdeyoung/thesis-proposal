@@ -3,11 +3,19 @@
 
 *.aux
 *.bbl
+*.bcf
 *-blx.bib
 *.blg
 *.log
+*.nav
 *.pdf
+*.out
 *.run.xml
+*.snm
+*.sta
+*.thm
+*.toc
+*.vrb
 
 *.pyg
 *.pyg.lst

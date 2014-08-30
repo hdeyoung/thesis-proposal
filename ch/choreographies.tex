@@ -21,35 +21,22 @@
 \section{Choreographies}\label{sec:choreographies}
 
 Traditionally, concurrency is phrased as the composition of interacting, locally executing processes.
-As the binary counter example from \cref{sec:olp-intuition:concurrency} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewrites arises naturally in ordered logic programming.
-% a notion of concurrency based on indestinguishable interleavings arises naturally in ordered logic programming.
-% However, it is not as clear how to identify a notion of process
+As the binary counter example from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewritings arises naturally in ordered logic programming.
 But where are the locally executing processes?
 
-Taking a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the processes are the ordered logic program's atomic propositions.
-% This thesis proposes that the atomic propositions in an ordered logic program are the processes.
-% \fxnote{[How much of this is already implied by a formula-as-process interpretation?]}%
+Taking a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the processes are the ordered logic program's atomic propositions (or, from a string rewriting perspective, the program's letters).
 The program's clauses, accordingly, serve to specify the valid interactions among processes. 
-In the binary counter (\cref{sec:olp-intuition:binary-counter}),
+In the binary counter (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}),
 % \wc{specification}[\st{program}], 
-for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$, among others,
-% $\dec$, $\bit[']{0}$, $\zero$, and $\succ$ 
-are
-% all 
-atoms-as-processes,
-% whose interactions are governed by the program's rules.
-% In particular, the rule
-and the clause
+for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$, among others, are atoms-as-processes, and the clause
 \begin{equation*}
   \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
 \end{equation*}
-% says that neighboring $\bit{1}$ and $\inc$ processes \fxnote{should be able to} interact to form neighboring $\inc$ and $\bit{0}$ processes.
-says that one valid interaction is for neighboring $\bit{1}$ and $\inc$ processes to \wc{coordinate}[\st{cooperate}] to become neighboring $\inc$ and $\bit{0}$ processes.
+says that one valid interaction is for neighboring $\bit{1}$ and $\inc$ processes to coordinate to become neighboring $\inc$ and $\bit{0}$ processes.
 % (with similar readings for the other clauses).
 
 The program's clauses don't tell the full story, however:
-the clauses globally specify \emph{what} are valid interactions but not \emph{how} to realize \wc{them}[\st{those interactions}] locally.
-% The program is thus only a \vocab{specification}, with the how instead being supplied by the logic programming language's operational semantics.
+the clauses globally specify \emph{what} are valid interactions but not \emph{how} to realize them locally.
 In ordered logic programming, the how is traditionally supplied by an operational semantics in which an omniscient central conductor, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
 % The how is instead supplied by the language's operational semantics.
 % % The  language's operational semantics instead supplies the how.
@@ -88,7 +75,8 @@ sometimes a specification will even admit several choreographies, and, more ofte
 % Not having a one-size-fits-all local operational semantics, the programmer himself must indicate the intended pattern of communication for each program.
 Therefore, not having a one-size-fits-all local operational semantics, the programmer himself must supply the choregraphy, at least implicitly.
 
-In the previous \lcnamecref{sec:ordered-lp}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+In the previous \lcnamecref{sec:ordered-lp}, we saw the aforementioned binary counter supporting increment and  several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+% In the previous \lcnamecref{sec:ordered-lp}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
 We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
 
 

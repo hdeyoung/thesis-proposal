@@ -1,0 +1,225 @@
+% arara: pdflatex
+\documentclass{beamer}
+\usepackage{my-proposal-talk}
+
+\usetikzlibrary{positioning}
+
+
+\renewcommand*{\inc}{\mathord{\color{example}\mathtt{s}}}
+\renewcommand*{\eps}{\mathord{\color{structure}\mathtt{e}}}
+\renewcommand*{\bit}[1]{\mathord{\color{structure}\mathtt{#1}}}
+
+\NewDocumentCommand \bits { }{ \mathord{\color{structure} B} }
+\NewDocumentCommand \val { m }{ \llcorner #1 \lrcorner }
+
+\newcommand<>\showval[1]{\Alt#2[c]{\val{#1}}{#1}}
+
+\NewDocumentCommand \zeroq { } { \mathord{\color{example} \mathtt{z\mkern-2mu \text{\texttt{?}}}} }
+\NewDocumentCommand \zerott { } { \mathord{\color{example} \mathtt{t}} }%\mkern-2mu t}} }
+\NewDocumentCommand \zeroff { } { \mathord{\color{example} \mathtt{f}} }%\mkern-2mu f}} }
+
+
+\RenewDocumentCommand \strcons { }
+  { \mskip4mu }
+
+
+\NewDocumentCommand \showcolumnwidth { }{%
+  \tikz { \draw [|-|] (0,0) -- (\linewidth,0); }%
+}
+
+
+\ExplSyntaxOn
+\cs_set_eq:NN \mathmakebox_nostar \mathmakebox
+
+\RenewDocumentCommand{\mathmakebox}{s}{
+  \IfBooleanTF {#1}
+    {\mathmakebox_star}
+    {\mathmakebox_nostar}
+}
+
+\NewDocumentCommand{\mathmakebox_star}{o}{
+  \IfValueTF {#1}
+    {\mathmakebox_nostar [\widthof{\mathmbox{$#1$}}]}
+    {\mathmakebox_nostar}
+}
+\ExplSyntaxOff
+
+\begin{document}
+
+
+\colorlet{example}{example text.fg}
+
+
+\begin{frame}
+  \frametitle{Representing natural numbers as binary strings}
+
+  \begin{itemize}[<+->]
+  \item Strings $\bits$ of $\bit{0}$s and $\bit{1}$s beginning with $\eps$; may have leading $\bit{0}$s.
+    \begin{equation*}
+      \!\begin{aligned}
+        \showval<+->{\eps \strcons \bit{1}} \uncover<.->{&= 1} \\
+        \showval<.->{\eps \strcons \bit{0} \strcons \bit{1}} \uncover<.->{&= 1} \\
+        % \val{\eps \strcons \bit{1} \strcons \bit{0}} \uncover<.->{&= 2} \\
+        \mathllap{\showval<.->{\eps \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0} \strcons \bit{1} \strcons \bit{0}}} \uncover<.->{&= 42}
+      \end{aligned}
+    \end{equation*}
+
+  \item $\cntr{n}$ is the \emph{canonical} representation of $n$: \tikzmarktext{leading0s}{\alert<+>{no leading $\bit{0}$s.}}
+    \begin{equation*}
+      \!\begin{aligned}
+        \hphantom{\val{\eps \strcons \bit{0} \strcons \bit{1}}} &\hphantom{{} = 42} \\[-\baselineskip]
+        %
+        \cntr{0} &= \eps \\
+        \cntr{2n} &= \mathrlap{\cntr{n} \strcons \bit{0} \quad\text{\tikzmarktext{leading0s side}{\alert<.>{if $2n > 0$}}%
+            \tikz [remember picture, overlay] {
+              \draw <.> [alert]
+                (leading0s.south)
+                  edge [->, out=-90, in=20, in looseness=2] (leading0s side.east); }}} \\
+        \mathllap{\cntr{2n+1}} &= \mathrlap{\cntr{n} \strcons \bit{1}}
+      \end{aligned}
+    \end{equation*}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Computing successors and zero-tests via string rewriting}
+
+  \begin{itemize}
+  \item<+-> $\inc$ for successor.   Grade school arithmetic as string rewriting:
+    \smallskip
+
+    \begin{minipage}{\linewidth}\begin{columns}[c,totalwidth=\linewidth]
+    \column{0.55\linewidth}
+      \begin{flalign*}
+        \quad
+        \alt<-+>{% 2
+          \hphantom{\eps \strcons \bit{1} \strcons \inc}
+          \mathllap{\cntr{n} \strcons \inc} & \mathrel{\Alt<.->[c]{\trans*}{\text{``$=$''}}} \cntr{n+1} &
+        }{\alt<-+>{% 3
+          \hphantom{\eps \strcons \bit{1} \strcons \inc}
+          \mathllap{\cntr{1} \strcons \inc} & \trans* \cntr{2} &
+        }{\alt<-+>{% 4
+          \eps \strcons \bit{1} \strcons \inc & \trans* \eps \strcons \bit{1} \strcons \bit{0} &
+        }{\only<-+,+(1)->{% -5,6-  +=5
+          \eps \strcons \bit{1} \strcons \inc &
+            \uncover<.(2)->{% 7-  +=5
+              \trans \eps \strcons \inc \strcons \bit{0}
+              \uncover<.(4)->{% 9-  +=5
+                \trans \eps \strcons \bit{1} \strcons \bit{0}
+              }
+            } &
+        }}}}
+      \end{flalign*}
+      % \showcolumnwidth
+
+    \column{0.45\linewidth}
+      \uncover<+->{%
+        \begin{center}\fcolorbox{black!30}{black!10}{\small
+          $\begin{alignedat}{2}
+               \uncover<.->{\text{Ends in $\bit{1}$?} &\quad& \bit{1} \strcons \inc &\trans \inc \strcons \bit{0} \\}
+                    \uncover<+(1)->{\text{Is $\eps$?} &     & \eps \strcons \inc &\trans \eps \strcons \bit{1} \\}
+            \uncover<+(2)->{\text{Ends in $\bit{0}$?} &     & \bit{0} \strcons \inc &\trans \bit{1}}
+          \end{alignedat}\,$%
+        }\end{center}%
+      }
+      % \showcolumnwidth
+    \end{columns}\end{minipage}%
+    \addtocounter{beamerpauses}{2}%
+    \medskip
+
+  \item<+-> $\zeroq$ means zero-test.
+    \begin{minipage}{\linewidth}\begin{columns}[c, totalwidth=\linewidth]
+    \column{0.55\linewidth}
+    \begin{flalign*}
+      \enskip
+      &\begin{lgathered}
+        \bits \strcons \zeroq
+          \trans* \!\begin{cases*}
+                    \bits \strcons \zerott & \rlap{if $\val{\bits} = 0$} \\
+                    \bits \strcons \zeroff & \rlap{otherwise}
+                  \end{cases*}
+        \\[2\jot]
+        \uncover<+->{
+          \eps \strcons \bit{0} \strcons \zeroq
+            \uncover<+->{\strcons \inc}
+          %
+          \trans*
+          %
+          \eps \strcons \bit{0} \strcons \zerott
+            \uncover<.->{\strcons \inc}
+          %
+          \uncover<+->{\ntrans}
+        }
+        \end{lgathered} &
+      \end{flalign*}
+      % \showcolumnwidth
+
+    \column{0.45\linewidth}
+      \fcolorbox{black!30}{black!10}{%
+        \small
+        $\begin{aligned}
+          \bit{0} \strcons \zeroq &\trans \zeroq \strcons \bit{0} \\
+          %
+          \eps \strcons \zeroq &\trans \eps \strcons \zerott \\
+          %
+          \bit{1} \strcons \zeroq &\trans \bit{1} \strcons \zeroff
+        \end{aligned}$%
+        \quad
+        $\begin{aligned}
+          \zerott \strcons \bit{0} &\trans \bit{0} \strcons \zerott \\
+          \zeroff \strcons \bit{0} &\trans \bit{0} \strcons \zeroff
+        \end{aligned}\!$
+      }
+      % \showcolumnwidth
+    \end{columns}\end{minipage}
+    \bigskip
+
+  \item<+-> Ordered logic programming: e.g., $\bit{1} \fuse \inc \rimp \monad{\inc \fuse \bit{0}}$
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{String rewriting, with concurrent equality}
+
+  \structure{Concurrency via concurrent equality:}
+  \begin{itemize}[<+->]
+  \item Several \emph{concurrent} successor instructions at once:
+    \begin{equation*}
+      \begin{tikzcd}[every cell/.append style={inner sep=0.2em, text height=1ex, transparent},
+        arrow style=tikz, every arrow/.append style={line width=1.5 * rule_thickness},
+        column sep=scriptsize
+      ]
+        & &
+        |[rectangle, opaque/.only=<.(2)->]|
+        \eps \strcons \bit{1} \strcons \bit{0} \strcons \inc
+          \only<.(3)->{\drar[example, start anchor=335, end anchor=north west]} & \\
+        %
+        |[opaque]|
+        \eps \strcons \bit{1} \strcons \inc \strcons \inc
+          \only<+->{\rar[start anchor=real east, end anchor=real west]}
+        &
+        |[opaque/.only=<.->]|
+        \eps \strcons \inc \strcons \bit{0} \strcons \inc
+          \only<+->{\urar[structure, start anchor=north east, end anchor=205]}
+          \only<+(1)->{\drar[example, start anchor=south east, end anchor=155]}
+          \only<+(2)->{\ar[rr, alert, dashed, start anchor=real east, end anchor=real west]}
+        & &
+        |[opaque/.only=<.(-1)->]|
+        \eps \strcons \bit{1} \strcons \bit{1} \\
+        %
+        & &
+        |[rectangle, opaque/.only=<+(-1)->]|
+        \makebox[\widthof{$\eps \strcons \bit{1} \strcons \bit{0} \strcons \inc$}]%
+          {$\eps \strcons \inc \strcons \bit{1}$}
+          \only<+(-1)->{\urar[structure, start anchor=25, end anchor=south west]} &
+      \end{tikzcd}
+    \end{equation*}
+  %
+  \item<+-|alert@+> Concurrent, yes, but where are the processes?
+  \end{itemize}
+\end{frame}
+
+
+\end{document}

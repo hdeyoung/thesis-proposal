@@ -43,8 +43,8 @@
 
 \subsection{Technical details}\label{sec:ordered-lp:technical}
 
-The previous \lcnamecrefs{sec:??} have hopefully served to provide intuition for forward-chaining ordered logic programming.
-In this \lcnamecref{sec:technical-details}, we review the technical details of this framework; 
+The previous \lcnamecrefs{sec:olp-intuition:binary-counter} have hopefully served to provide intuition for forward-chaining ordered logic programming.
+In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details of this framework; 
 we generally follow the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}.
 
 \subsubsection{Propositions, terms, and traces}\label{sec:props-terms-traces}
@@ -53,8 +53,8 @@ we generally follow the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\auto
 
 Propositions are polarized into \vocab{negative} and \vocab{positive} classes:
 \begin{alignat*}{2}
-  &\text{Negative propositions}\quad & A^- &::= \forall a{:}\tau. A^- \mid A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+} \\
-  &\text{Positive propositions}      & A^+ &::= \exists a{:}\tau. A^+ \mid A^+ \fuse B^+ \mid \one \mid \p^+ \mid A^-
+  &\text{Negative propositions}\quad & A^- &::= A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+} \\
+  &\text{Positive propositions}      & A^+ &::= \p^+ \mid A^+ \fuse B^+ \mid \one
 \end{alignat*}
 The negative propositions, $A^-$, are those whose right rules are invertible, whereas the positive propositions, $A^+$, are those whose left rules are invertible.
 As an example, the ordered implications $A^+ \rimp B^-$ and $A^+ \limp B^-$ are classified as negative because the $\rlab{\rimp}$ and $\rlab{\limp}$ rules are invertible.

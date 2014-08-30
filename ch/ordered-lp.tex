@@ -19,16 +19,10 @@
 
 \section{Background: Concurrent ordered logic programming}\label{sec:ordered-lp}
 
-% As we saw in \cref{sec:linear-lp}, proof search in linear logic is the foundation for concurrent linear logic programming, which can be seen as a logically motivated form of multiset rewriting.
-% Likewise, proof search in ordered logic forms the basis of concurrent ordered logic programming~\autocites{Pfenning+Simmons:LICS09}{Simmons:CMU12}, which is a form of string rewriting~\autocite[see, \eg,][]{Book+Otto:SRS93}.
-
-
 Viewed through a computational lens, proof search in a fragment of ordered logic becomes a forward-chaining logic programming language~\autocite{Pfenning+Simmons:LICS09}.
-It %[\st{This form of ordered logic programming}]
-can be seen as a logically motivated generalization of string rewriting~\autocite[see, \eg,][]{Book+Otto:SRS93}, an analogy which we will exploit to provide some intuition for this form of ordered logic programming.
+It can be seen as a logically motivated generalization of string rewriting~\autocite[see, \eg,][]{Book+Otto:SRS93}, an analogy which we will exploit to provide some intuition for this form of ordered logic programming.
 
-% We can exploit this analogy to provide some intuition for forward-chaining ordered logic programming.
-From the perspective of string rewriting, an ordered logic program's atomic propositions are letters; ordered conjunctions of these atoms are strings; and, under a focused proof search strategy~\autocite{Andreoli:JLC92}, the ordered implications that serve as program clauses are string rewriting rules.
+From the perspective of string rewriting, an ordered logic program's atomic propositions are letters; ordered conjunctions (or ordered contexts) of these atoms are strings; and, under a focused proof search strategy~\autocite{Andreoli:JLC92}, the ordered implications that serve as program clauses are string rewriting rules.
 An example will help to clarify.
 
 
