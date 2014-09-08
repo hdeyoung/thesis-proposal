@@ -1,0 +1,238 @@
+% arara: pdflatex
+% arara: pdflatex
+% arara: biber
+% arara: pdflatex
+% arara: pdflatex
+% \documentclass{../hdeyoung-proposal}
+\documentclass[
+  class=../hdeyoung-proposal,
+  crop=false
+]{standalone}
+
+
+\usepackage{linear-logic}
+\usepackage{ordered-logic}
+\usepackage{basic-atoms}
+\usepackage{proof}
+\usepackage{mathpartir}
+
+\usepackage{tikz}
+% \usetikzlibrary{shapes.misc,graphs,graphdrawing}
+% \usegdlibrary{trees}
+
+\ExplSyntaxOn
+
+% \DeclarePairedDelimiter \parens { \lparen } { \rparen }
+\DeclarePairedDelimiter \bagged:wn { \lbag } { \rbag }
+\NewDocumentCommand{ \bagged }{ s o m o }
+  {
+    \IfBooleanTF {#1}
+      { \bagged:wn* {#3} }
+      {
+        \IfValueTF {#2}
+          { \bagged:wn[#2] {#3} }
+          { \bagged:wn {#3} }
+      }
+    \IfValueT {#4} { \sb{#4} }
+  }
+
+
+\NewDocumentCommand \oseq { >{ \SplitArgument{1}{|-} } m }
+  { \oseq:nn #1 }
+\cs_new:Npn \oseq:nn #1#2 { \oseq_ctxs:n {#1} \vdash #2 }
+\cs_new:Npn \oseq_ctxs:n #1 {
+  \seq_set_split:Nnn \l_tmpa_seq {;} {#1}
+  \seq_use:Nn \l_tmpa_seq { \mathrel{;} }
+}
+
+\NewDocumentCommand \procof { m m } { #1 \dblcolon #2 }
+\NewDocumentCommand \hypof { m } { #1 }
+
+
+\NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
+\NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
+
+\NewDocumentCommand \comp { >{ \SplitArgument{1}{|} } m }
+  { \comp:nn #1 }
+\cs_new:Npn \comp:nn #1#2 { #1 \parallel #2 }
+
+\NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
+
+
+\RenewDocumentCommand \with { s }
+  { \IfBooleanTF {#1} \with:n \with: }
+\cs_new:Npn \with:n #1 {
+  \mathord{\binampersand}
+  \bagged {
+    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+    \seq_use:Nn \l_tmpa_seq {,}
+  }
+}
+\cs_new:Npn \with: { \mathbin{\binampersand} }
+
+\NewDocumentCommand \ssor { s }
+  { \IfBooleanTF {#1} \with:n \with: }
+\cs_new:Npn \ssor:n #1 {
+  \mathord{\ssor:}
+  \bagged {
+    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+    \seq_use:Nn \l_tmpa_seq {,}
+  }
+}
+\cs_new:Npn \ssor: { \oplus }
+
+\NewDocumentCommand \caseR { s m }
+  {
+    \IfBooleanTF {#1}
+      { \case:nNn { \mathsf{caseR} } \bagged {#2} }
+      { \case:nNn { \mathsf{caseR} } \parens {#2} }
+  }
+\NewDocumentCommand \caseL { s m }
+  {
+    \IfBooleanTF {#1}
+      { \case:nNn { \mathsf{caseL} } \bagged {#2} }
+      { \case:nNn { \mathsf{caseL} } \parens {#2} }
+  }
+\cs_new:Npn \case:nNn #1#2#3 {
+  #1 \mskip\thinmuskip
+  #2 {
+    \seq_set_split:Nnn \l_tmpa_seq {|} {#3}
+    \seq_clear:N \l_tmpb_seq
+    \seq_map_inline:Nn \l_tmpa_seq
+      { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
+    \seq_use:Nn \l_tmpb_seq { \mid }
+  }
+}
+\cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
+\cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
+  #1 \Rightarrow #2
+}
+
+\NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectL} } #1 }
+\NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectR} } #1 }
+\cs_new:Npn \select:nnn #1#2#3 {
+  \!\mathord{}\mathop{#1} #2 ; #3
+}
+
+
+\NewDocumentCommand \inj { m } { \mathsf{in}\sb{#1} }
+
+\NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
+\NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
+
+
+\RenewDocumentCommand \one {} { \mathord { \mathbf{1} } }
+
+\NewDocumentCommand \quitR {} { \mathsf{quitR} }
+\NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
+
+
+\NewDocumentCommand \rrule { o m } {
+  \IfValueTF {#1}
+    { \rrule:nn {#2} {#1} }
+    { \rrule:n {#2} }
+}
+\cs_new:Npn \rrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{R}}}\sb{#2} }
+\cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+
+\NewDocumentCommand \lrule { o m } {
+  \IfValueTF {#1}
+    { \lrule:nn {#2} {#1} }
+    { \lrule:n {#2} }
+}
+\cs_new:Npn \lrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{L}}}\sb{#2} }
+\cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+
+
+\NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
+\NewDocumentCommand \msg { } { \mathsf{msg} \mskip\thinmuskip }
+
+\ExplSyntaxOff
+
+
+\DeclareAcronym{SSOS}{
+  short = SSOS,
+  long = substructural operational semantics,
+  short-format = \scshape\MakeLowercase
+}
+\DeclareAcronym{SILL}{
+  short = \MakeLowercase{SILL},
+  long = session-typed intuitionistic linear logic,
+  short-format = \scshape
+}
+
+\addbibresource{../proposal.bib}
+
+
+\ExplSyntaxOn
+
+\NewDocumentCommand \spawn { >{ \SplitArgument{1}{;} }m } { \spawn:nn #1 }
+\cs_new:Npn \spawn:nn #1#2 { \mathsf{spawn} \mskip\thinmuskip #1 ; #2 }
+
+\NewDocumentCommand \call { m } { \call:n {#1} }
+\cs_new:Npn \call:n #1 { \mathsf{call} \mskip\thinmuskip #1 }
+
+\NewDocumentCommand \compile { m m } { \compile:nn {#1} {#2} }
+\cs_new:Npn \compile:nn #1#2 { \llbracket #1 \rrbracket = #2 }
+
+\ExplSyntaxOff
+
+
+\begin{document}
+
+\section{}
+
+\begin{mathpar}
+  \infer{\compile{A^+_1 \fuse A^+_2}{\spawn{P_1 ; P_2}}}{
+    \compile{A^+_1}{P_1} &
+    \compile{A^+_2}{P_2}}
+  \and
+  \infer{\compile{\one}{\fwd}}{
+    }
+  \\
+  \infer{\compile{\patom}{\call{\patom}}}{
+    }
+  \and
+  \infer{\compile{\matom[->]}{\selectR{\matom[->] ; \fwd}}}{
+    }
+  \and
+  \infer{\compile{\matom[<-]}{\selectL{\matom[<-] ; \fwd}}}{
+    }
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\compile{\with*{\matom[->]_i \limp \monad{A^+_i}}[i \in I]}{\caseL*{\matom[->]_i => P_i}[i \in I]}}{
+    \bagged{\compile{A^+_i}{P_i}}[i \in I]}
+  \and
+  \infer{\compile{\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]}{\caseR*{\matom[<-]_i => P_i}[i \in I]}}{
+    \bagged{\compile{A^+_i}{P_i}}[i \in I]}
+  \and
+  \infer{\compile{\monad{A^+}}{P}}{
+    \compile{A^+}{P}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\compile{\octx_1, \octx_2}{\octx'_1, \octx'_2}}{
+    \compile{\octx_1}{\octx'_1} &
+    \compile{\octx_2}{\octx'_2}}
+  \and
+  \infer{\compile{\octxe}{\octxe}}{
+    }
+  \and
+  \infer{\compile{A^+}{\exec{P}}}{
+    \compile{A^+}{P}}
+  \\
+  \infer{\compile{\susp+{\patom}}{\exec{P}}}{
+    \patom \lrimp A^- \in \sig &
+    \compile{A^-}{P}}
+  \and
+  \infer{\compile{\susp+{\matom[->]}}{\msg{\matom[->]}}}{
+    }
+  \and
+  \infer{\compile{\susp+{\matom[<-]}}{\msg{\matom[<-]}}}{
+    }
+\end{mathpar}
+
+\end{document}

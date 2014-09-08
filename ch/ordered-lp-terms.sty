@@ -18,9 +18,9 @@
 \NewDocumentCommand \tlam { >{ \SplitArgument {1} {.} } m }
   { \lam:Nnn { } #1 }
 \NewDocumentCommand \rlam { >{ \SplitArgument {1} {.} } m }
-  { \lam:Nnn r #1 }
+  { \lam:Nnn \rimp #1 }
 \NewDocumentCommand \llam { >{ \SplitArgument {1} {.} } m }
-  { \lam:Nnn l #1 }
+  { \lam:Nnn \limp #1 }
 \cs_new:Npn \lam:Nnn #1#2#3 { \lambda^{#1} #2.#3 }
 
 \NewDocumentCommand \pair { >{ \SplitArgument {1} {,} } m }

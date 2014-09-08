@@ -18,172 +18,393 @@
 
 \begin{document}
 
-\section{Choreographies}\label{sec:choreographies}
+As the binary counter from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} exemplifies, there is a notion of concurrency, based on indistinguishable interleavings of independent rewritings, that arises naturally in ordered logical specifications.
+And, under a forward-chaining logic programming interpretation, these specifications can be executed by an omniscient \enquote{puppeteer} that 
 
-Traditionally, concurrency is phrased as the composition of interacting, locally executing processes.
-As the binary counter example from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewritings arises naturally in ordered logic programming.
-But where are the locally executing processes?
+And these specifications can be executed by a forward-chaining logic programming interpreter that omnisciently rewrites 
 
-Taking a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the processes are the ordered logic program's atomic propositions (or, from a string rewriting perspective, the program's letters).
-The program's clauses, accordingly, serve to specify the valid interactions among processes. 
-In the binary counter (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}),
-% \wc{specification}[\st{program}], 
-for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$, among others, are atoms-as-processes, and the clause
+In contrast, concurrency is traditionally phrased as the composition of \vocab{communicating processes}.
+Processes are not omniscient but instead execute locally; (asyncronous) processes do not communicate directly, but instead communicate by exchanging messages.
+processes do not communicate on an arbitrary scale but instead communicate 
+
+Are there communicating processes hidden within ordered logical specifications that would allow these two seemingly distinct notions of concurrency to be reconciled?
+
+Inspired by the process-as-formula view of linear logic~\autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, we propose that each atomic proposition in an ordered logical specification serves in one of two roles:
+an atom is either process-like or message-like.
+These role assignments, or \vocab{choreographies}, refine the original specification to a local, message-passing specification.
+% We call this role assignment a \vocab{choreography}, and it\fxnote{\ \st{serves to refine}} refines the original specification to a local, message-passing specification.
+For example, in the increment fragment of the binary counter specification, $\eps$, $\bit{0}$, and $\bit{1}$ might all be process-like atoms and $\inc$ might be a message-like atom.
+The clause
+% Continuing with this atoms-as-processes view, the program's clauses should serve as\fxnote{\ \st{(a global description of)}} an implementation of\fxnote{\ \st{interactions among}} these processes.
+% For example, the clause
 \begin{equation*}
   \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
 \end{equation*}
-says that one valid interaction is for neighboring $\bit{1}$ and $\inc$ processes to coordinate to become neighboring $\inc$ and $\bit{0}$ processes.
-% (with similar readings for the other clauses).
-
-The program's clauses don't tell the full story, however:
-the clauses globally specify \emph{what} are valid interactions but not \emph{how} to realize them locally.
-In ordered logic programming, the how is traditionally supplied by an operational semantics in which an omniscient central conductor, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
-% The how is instead supplied by the language's operational semantics.
-% % The  language's operational semantics instead supplies the how.
-% % The program is thus only a \vocab{specification}, with
-% In the usual operational semantics for ordered logic programming, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
-But because they rely so heavily on the central conductor, processes using this semantics are no more than superficially \wc{local}[\st{distributed}].
-% Under this semantics, however, processes are only nominally distributed because they rely so heavily on the central conductor.
+would specify a $\bit{1}$ process that, upon receiving an $\inc$ message at its right side, sends an $\inc$ message to the left and continues as a $\bit{0}$ process.
 
 
-To be truly \wc{local}[\st{distributed}], the processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
-% For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process and that the above clause therefore applies; further direct communication between the two processes would effect
-For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process; with further direct communication, the $\bit{1}$ and $\inc$ processes could coordinate to effect the above\fxnote{\ globally specified} interaction.
-% How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
 
 
 So, the distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
 % \fxnote{\st{The original program is only a specification of the valid process interactions, whereas a choreography is a pattern of communication that implements that specification.}}
-A specification is the original program, which serves as a \emph{global} description of the valid process interactions; a choreography%
+A specification is the original program, which serves as a global description of the valid interactions among atoms; a choreography%
 \footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
 The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}
-is a \emph{local}\fxnote{\ message-passing} implementation of that specification.%
+is a local message-passing implementation of that specification that is obtained by assigning each atom a role---either message or process.
+is an assignment of message or process roles to the atoms that transforms the specification into a local message-passing implementation.
+is a local message-passing implementation of that specification.%
 % A specification is the original program used to describe the valid process interactions, whereas a choreography is a pattern of communication that implements that specification%
 % \footnote{Notice that we always speak of a choreography relative to a specification, just as an implementation is always relative to an abstraction.}%
 % , and which must be given by the programmer, at least implicitly.%
 %, which must also be given by the programmer, at least implicitly.%
 \footnote{Notice that a choreography is always relative to a given specification.}
 
-% Designing a one-size-fits-all distributed operational semantics appears to be difficult, however.
-% We could try to design a one-size-fits-all local operational semantics, but this appears to be difficult.
-Ideally, an operational semantics would automatically generate a choreography from the specification supplied by the programmer, but designing such a semantics\fxnote{\ \st{unfortunately}} appears to be difficult.
-% % Designing a distributed operational semantics that is uniformly suitable appears to be difficult, however.
-% % Designing a uniformly suitable distributed operational semantics appears to be difficult, however.
-Different specifications will often require different patterns of interprocess communication;
-sometimes a specification will even admit several choreographies, and, more often than not, the programmer will want to exercise control in those cases.
-% % Therefore, rather than relying on a one-size-fits-all operational semantics, the programmer must indicate the intended pattern of communication for each program.
-% Not having a one-size-fits-all local operational semantics, the programmer himself must indicate the intended pattern of communication for each program.
-Therefore, not having a one-size-fits-all local operational semantics, the programmer himself must supply the choregraphy, at least implicitly.
+Ideally, choreographies would be mechanically generated from ordered logical specifications.
+But this appears to be difficult:
+Different specifications often require different patterns of communication.
+And some specifications even admit several choreographies, amoung which the programmer should exercise his choice.
+Therefore, in the absence of a choreography generator, the programmer himself must supply the choreography.
 
-In the previous \lcnamecref{sec:ordered-lp}, we saw the aforementioned binary counter supporting increment and  several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
+
+
+Ideally, an operational semantics would automatically generate a choreography from the specification\fxnote{\ \st{supplied by the programmer}}, but designing such a semantics appears to be difficult.
+Different specifications will often require different patterns of communication;
+some specifications even admit several choreographies!
+sometimes one specification will even admit several choreographies, and\fxnote{\st{, more often than not,}} usually the programmer will want to exercise control in\fxnote{\ \st{those cases}} choosing one.
+Therefore, being unable to rely on a one-size-fits-all\fxnote{\ \st{local}} operational semantics, the programmer himself must supply the choreography\fxnote{\st{, at least implicitly}}.
+
+In the previous \lcnamecref{sec:ordered-lp}, we saw the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+% several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+% In the previous \lcnamecref{sec:ordered-lp}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
+
+
+one might suggest that an ordered logic program's atomic propositions---or, from a string rewriting perspective, letters---should be processes and that the program's clauses should serve as\fxnote{\ \st{(a global description of)}} an implementation of these processes.
+
+
+
+
+
+Traditionally, concurrency is phrased as the composition of communicating, but locally executing, processes.
+As the binary counter example from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewritings arises naturally in ordered logical specifications.
+
+As ..., ordered logical specifications naturally give rise to a notion of concurrency based not on communicating processes but on ... .
+Are there communicating processes hidden within the specifications that would allow these two seemingly distinct notions of concurrency to be reconciled?
+
+But where are the communicating\fxnote{\ \st{locally executing}} processes?
+
+Inspired by the process-as-formula view of linear logic~\autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, one might suggest that an ordered logic program's atomic propositions---or, from a string rewriting perspective, letters---should be processes and that the program's clauses should serve as\fxnote{\ \st{(a global description of)}} an implementation of these processes.
+In the increment fragment of the binary counter program,
+% \wc{specification}[\st{program}], 
+for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$ all would be atoms-as-processes, and the clause
+% Continuing with this atoms-as-processes view, the program's clauses should serve as\fxnote{\ \st{(a global description of)}} an implementation of\fxnote{\ \st{interactions among}} these processes.
+% For example, the clause
+\begin{equation*}
+  \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+\end{equation*}
+would implement $\bit{1}$ and $\inc$ processes that, when neighboring, react to become neighboring $\inc$ and $\bit{0}$ processes.
+
+But this atoms-as-processes and clauses-as-implementations view is somewhat flawed.
+If a clause such as the above is itself to be an implementation, then we must assume that the atoms-as-processes can \enquote{see} and identify their neighbors without any communication; otherwise how would $\bit{1}$ and $\inc$ know when to become $\inc$ and $\bit{0}$, for example?
+% possess some amount of omniscience
+But, in contradiction, true processes, in the sense of standard process calculi, are quite nearsighted:
+% do not have the advantage of being farsighted:
+\fxnote{\st{true}\ }processes can see only messages that arrive at their doorstep, not neighboring processes.
+
+Nevertheless, a clauses-as-implementations view is still valid if some atoms serve as messages and other atoms serve as processes.
+For example, if both of the $\inc$ atoms in the above clause are treated as message atoms, then that clause is an valid implementation.
+
+% A serious conceptual objection can be raised against this atoms-as-processes and clauses-as-implentations view, however:
+% If clauses are (global descriptions of) process implementations, then atoms cannot be locally executing.
+
+So, the distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
+% \fxnote{\st{The original program is only a specification of the valid process interactions, whereas a choreography is a pattern of communication that implements that specification.}}
+A specification is the original program, which serves as a global description of the valid interactions among atoms; a choreography%
+\footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
+The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}
+is a local message-passing implementation of that specification that is obtained by assigning each atom a role---either message or process.
+is an assignment of message or process roles to the atoms that transforms the specification into a local message-passing implementation.
+is a local message-passing implementation of that specification.%
+% A specification is the original program used to describe the valid process interactions, whereas a choreography is a pattern of communication that implements that specification%
+% \footnote{Notice that we always speak of a choreography relative to a specification, just as an implementation is always relative to an abstraction.}%
+% , and which must be given by the programmer, at least implicitly.%
+%, which must also be given by the programmer, at least implicitly.%
+\footnote{Notice that a choreography is always relative to a given specification.}
+
+Ideally, an operational semantics would automatically generate a choreography from the specification\fxnote{\ \st{supplied by the programmer}}, but designing such a semantics appears to be difficult.
+Different specifications will often require different patterns of interprocess communication;
+sometimes a specification will even admit several choreographies, and\fxnote{\st{, more often than not,}} usually the programmer will want to exercise control in\fxnote{\ \st{those cases}} choosing one.
+Therefore, unable to rely on a one-size-fits-all\fxnote{\ \st{local}} operational semantics, the programmer himself must supply the choreography\fxnote{\st{, at least implicitly}}.
+
+In the previous \lcnamecref{sec:ordered-lp}, we saw the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+% several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
 % In the previous \lcnamecref{sec:ordered-lp}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
 We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
 
 
 
-% % Designing a one-size-fits-all distributed operational semantics appears to be difficult, however.
-% % We could try to design a one-size-fits-all local operational semantics, but this appears to be difficult.
-% Ideally, the operational semantics would localize programs in this way, but, unfortunately, designing such a semantics\fxnote{\ \st{that is also uniformly suitable}} appears to be difficult.
-% % % Designing a distributed operational semantics that is uniformly suitable appears to be difficult, however.
-% % % Designing a uniformly suitable distributed operational semantics appears to be difficult, however.
-% Different programs will often require different patterns of interprocess communication;
-% sometimes a program will even admit several communication patterns, and, more often than not, the programmer will want to exercise control in those cases.
-% % Therefore, rather than relying on a one-size-fits-all operational semantics, the programmer must indicate the intended pattern of communication for each program.
-% Not having a one-size-fits-all local operational semantics, the programmer himself must indicate the intended pattern of communication for each program.
 
-% % The distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
-% % The original program serves only as a specification of what are valid process interactions, whereas the choregraphy is the programmer's intended 
+
+
+\section{Choreographies}\label{sec:choreographies}
+
+Traditionally, concurrency is phrased as the composition of interacting, locally executing processes.
+As the binary counter example from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewritings arises naturally in forward-chaining ordered logic programming.
+But where are the locally executing processes?
+
+Borrowing from the process-as-formula view of linear logic~\autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, one might suggest that an ordered logic program's atomic propositions---or, from a string rewriting perspective, letters---should be processes and that the program's clauses should serve as\fxnote{\ \st{(a global description of)}} an implementation of these processes.
+In the increment fragment of the binary counter program,
+% \wc{specification}[\st{program}], 
+for example, $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$ all would be atoms-as-processes, and the clause
+% Continuing with this atoms-as-processes view, the program's clauses should serve as\fxnote{\ \st{(a global description of)}} an implementation of\fxnote{\ \st{interactions among}} these processes.
+% For example, the clause
+\begin{equation*}
+  \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+\end{equation*}
+would implement $\bit{1}$ and $\inc$ processes that, when neighboring, react to become neighboring $\inc$ and $\bit{0}$ processes.
+
+But this atoms-as-processes and clauses-as-implementations view is somewhat flawed.
+If a clause such as the above is itself to be an implementation, then we must assume that the atoms-as-processes can \enquote{see} and identify their neighbors without any communication; otherwise how would $\bit{1}$ and $\inc$ know when to become $\inc$ and $\bit{0}$, for example?
+% possess some amount of omniscience
+But, in contradiction, true processes, in the sense of standard process calculi, are quite nearsighted:
+% do not have the advantage of being farsighted:
+\fxnote{\st{true}\ }processes can see only messages that arrive at their doorstep, not neighboring processes.
+
+Nevertheless, a clauses-as-implementations view is still valid if some atoms serve as messages and other atoms serve as processes.
+For example, if both of the $\inc$ atoms in the above clause are treated as message atoms, then that clause is an valid implementation.
+
+% A serious conceptual objection can be raised against this atoms-as-processes and clauses-as-implentations view, however:
+% If clauses are (global descriptions of) process implementations, then atoms cannot be locally executing.
+
+So, the distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
+% \fxnote{\st{The original program is only a specification of the valid process interactions, whereas a choreography is a pattern of communication that implements that specification.}}
+A specification is the original program, which serves as a global description of the valid interactions among atoms; a choreography%
+\footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
+The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}
+is a local message-passing implementation of that specification that is obtained by assigning each atom a role---either message or process.
+is an assignment of message or process roles to the atoms that transforms the specification into a local message-passing implementation.
+is a local message-passing implementation of that specification.%
+% A specification is the original program used to describe the valid process interactions, whereas a choreography is a pattern of communication that implements that specification%
+% \footnote{Notice that we always speak of a choreography relative to a specification, just as an implementation is always relative to an abstraction.}%
+% , and which must be given by the programmer, at least implicitly.%
+%, which must also be given by the programmer, at least implicitly.%
+\footnote{Notice that a choreography is always relative to a given specification.}
+
+Ideally, an operational semantics would automatically generate a choreography from the specification\fxnote{\ \st{supplied by the programmer}}, but designing such a semantics appears to be difficult.
+Different specifications will often require different patterns of interprocess communication;
+sometimes a specification will even admit several choreographies, and\fxnote{\st{, more often than not,}} usually the programmer will want to exercise control in\fxnote{\ \st{those cases}} choosing one.
+Therefore, unable to rely on a one-size-fits-all\fxnote{\ \st{local}} operational semantics, the programmer himself must supply the choreography\fxnote{\st{, at least implicitly}}.
+
+In the previous \lcnamecref{sec:ordered-lp}, we saw the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+% several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+% In the previous \lcnamecref{sec:ordered-lp}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
+
+
+
+
+
+
+% Under a process-as-formula view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the ordered logic program's atomic propositions---or, from a string rewriting perspective, letters---would be processes.
+% In the binary counter program,
+% % \wc{specification}[\st{program}], 
+% for example, $\eps$, $\bit{0}$, and $\bit{1}$ would be atoms-as-processes.
+% % If one tries to take\fxnote{\ \st{Taking}} a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the processes would be\fxnote{\ \st{are}} the ordered logic program's atomic propositions (or, from a string rewriting perspective, the program's letters).
+% Continuing with this atoms-as-processes view, the ordered logic program's clauses should serve as (a global description of) an implementation of\fxnote{\ \st{interactions among}} these processes.
+% For example, the clause
+% \begin{equation*}
+%   \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+% \end{equation*}
+% should implement $\bit{1}$ and $\inc$ processes that, when neighbors, should react to become neighboring $\inc$ and $\bit{0}$ processes.
+
+
+
+% The program's clauses don't tell the full story, however:
+% the clauses globally specify \emph{what} are valid interactions but not \emph{how} to realize them locally.
+% In ordered logic programming, the how is traditionally supplied by an operational semantics in which an omniscient central conductor, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+% % The how is instead supplied by the language's operational semantics.
+% % % The  language's operational semantics instead supplies the how.
+% % % The program is thus only a \vocab{specification}, with
+% % In the usual operational semantics for ordered logic programming, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+% But because they rely so heavily on the central conductor, processes using this semantics are no more than superficially \wc{local}[\st{distributed}].
+% % Under this semantics, however, processes are only nominally distributed because they rely so heavily on the central conductor.
+
+
+% To be truly \wc{local}[\st{distributed}], the processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
+% % For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process and that the above clause therefore applies; further direct communication between the two processes would effect
+% For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process; with further direct communication, the $\bit{1}$ and $\inc$ processes could coordinate to effect the above\fxnote{\ globally specified} interaction.
+% % How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+
+
+% \section{Choreographies}\label{sec:choreographies}
+
+% Traditionally, concurrency is phrased as the composition of interacting, locally executing processes.
+% As the binary counter example from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} demonstrates, a notion of concurrency based on indistinguishable interleavings of independent rewritings arises naturally in forward-chaining ordered logic programming.
+% But where are the locally executing processes?
+
+% Under a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the ordered logic program's atomic propositions---or, from a string rewriting perspective, letters---would be processes.
+% % If one tries to take\fxnote{\ \st{Taking}} a formula-as-process view \autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, the processes would be\fxnote{\ \st{are}} the ordered logic program's atomic propositions (or, from a string rewriting perspective, the program's letters).
+% The program's clauses, accordingly, would serve to specify the valid interactions among processes. 
+% In the binary counter (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}),
+% % \wc{specification}[\st{program}], 
+% for example, $\eps$, $\bit{0}$, and $\bit{1}$ are atoms-as-processes, and the clause
+% \begin{equation*}
+%   \bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}
+% \end{equation*}
+% says that one valid interaction is for neighboring $\bit{1}$ and $\inc$ processes to coordinate to become neighboring $\inc$ and $\bit{0}$ processes.
+% % (with similar readings for the other clauses).
+
+% The program's clauses don't tell the full story, however:
+% the clauses globally specify \emph{what} are valid interactions but not \emph{how} to realize them locally.
+% In ordered logic programming, the how is traditionally supplied by an operational semantics in which an omniscient central conductor, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+% % The how is instead supplied by the language's operational semantics.
+% % % The  language's operational semantics instead supplies the how.
+% % % The program is thus only a \vocab{specification}, with
+% % In the usual operational semantics for ordered logic programming, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
+% But because they rely so heavily on the central conductor, processes using this semantics are no more than superficially \wc{local}[\st{distributed}].
+% % Under this semantics, however, processes are only nominally distributed because they rely so heavily on the central conductor.
+
+
+% To be truly \wc{local}[\st{distributed}], the processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
+% % For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process and that the above clause therefore applies; further direct communication between the two processes would effect
+% For instance, by communicating directly with its left-hand neighbor, an $\inc$ process might learn that that neighbor is a $\bit{1}$ process; with further direct communication, the $\bit{1}$ and $\inc$ processes could coordinate to effect the above\fxnote{\ globally specified} interaction.
+% % How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
 
 % So, the distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
 % % \fxnote{\st{The original program is only a specification of the valid process interactions, whereas a choreography is a pattern of communication that implements that specification.}}
-% A specification is the original program, which serves as a global description of the valid process interactions; a choreography is a local\fxnote{, message-passing} implementation of that specification.%
+% A specification is the original program, which serves as a \emph{global} description of the valid process interactions; a choreography%
+% \footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
+% The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}
+% is a \emph{local}\fxnote{\ message-passing} implementation of that specification.%
 % % A specification is the original program used to describe the valid process interactions, whereas a choreography is a pattern of communication that implements that specification%
 % % \footnote{Notice that we always speak of a choreography relative to a specification, just as an implementation is always relative to an abstraction.}%
 % % , and which must be given by the programmer, at least implicitly.%
-% \footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
-% The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}%
 % %, which must also be given by the programmer, at least implicitly.%
 % \footnote{Notice that a choreography is always relative to a given specification.}
 
-% In the previous \lcnamecref{sec:??}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including a binary counter supporting increment and decrement operations.
+% % Designing a one-size-fits-all distributed operational semantics appears to be difficult, however.
+% % We could try to design a one-size-fits-all local operational semantics, but this appears to be difficult.
+% Ideally, an operational semantics would automatically generate a choreography from the specification supplied by the programmer, but designing such a semantics\fxnote{\ \st{unfortunately}} appears to be difficult.
+% % % Designing a distributed operational semantics that is uniformly suitable appears to be difficult, however.
+% % % Designing a uniformly suitable distributed operational semantics appears to be difficult, however.
+% Different specifications will often require different patterns of interprocess communication;
+% sometimes a specification will even admit several choreographies, and, more often than not, the programmer will want to exercise control in those cases.
+% % % Therefore, rather than relying on a one-size-fits-all operational semantics, the programmer must indicate the intended pattern of communication for each program.
+% % Not having a one-size-fits-all local operational semantics, the programmer himself must indicate the intended pattern of communication for each program.
+% Therefore, not having a one-size-fits-all local operational semantics, the programmer himself must supply the choregraphy, at least implicitly.
+
+% In the previous \lcnamecref{sec:ordered-lp}, we saw the aforementioned binary counter supporting increment and  several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
+% % In the previous \lcnamecref{sec:ordered-lp}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including the aforementioned binary counter supporting increment and decrement operations (\cref{sec:olp-intuition:binary-counter,sec:olp-intuition:decrements}).
 % We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
 
-% To build intuition, we'll now describe choregraphies by example
 
 
-% , adapting terminology from the concurrency literature,
+% % % Designing a one-size-fits-all distributed operational semantics appears to be difficult, however.
+% % % We could try to design a one-size-fits-all local operational semantics, but this appears to be difficult.
+% % Ideally, the operational semantics would localize programs in this way, but, unfortunately, designing such a semantics\fxnote{\ \st{that is also uniformly suitable}} appears to be difficult.
+% % % % Designing a distributed operational semantics that is uniformly suitable appears to be difficult, however.
+% % % % Designing a uniformly suitable distributed operational semantics appears to be difficult, however.
+% % Different programs will often require different patterns of interprocess communication;
+% % sometimes a program will even admit several communication patterns, and, more often than not, the programmer will want to exercise control in those cases.
+% % % Therefore, rather than relying on a one-size-fits-all operational semantics, the programmer must indicate the intended pattern of communication for each program.
+% % Not having a one-size-fits-all local operational semantics, the programmer himself must indicate the intended pattern of communication for each program.
+
+% % % The distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
+% % % The original program serves only as a specification of what are valid process interactions, whereas the choregraphy is the programmer's intended 
+
+% % So, the distinction being drawn here is one between a \vocab{specification} and its \vocab{choreography}---the what and the how.
+% % % \fxnote{\st{The original program is only a specification of the valid process interactions, whereas a choreography is a pattern of communication that implements that specification.}}
+% % A specification is the original program, which serves as a global description of the valid process interactions; a choreography is a local\fxnote{, message-passing} implementation of that specification.%
+% % % A specification is the original program used to describe the valid process interactions, whereas a choreography is a pattern of communication that implements that specification%
+% % % \footnote{Notice that we always speak of a choreography relative to a specification, just as an implementation is always relative to an abstraction.}%
+% % % , and which must be given by the programmer, at least implicitly.%
+% % \footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
+% % The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}%
+% % %, which must also be given by the programmer, at least implicitly.%
+% % \footnote{Notice that a choreography is always relative to a given specification.}
+
+% % In the previous \lcnamecref{sec:??}, we saw several examples of specifications (characterized as forward-chaining ordered logic programs), including a binary counter supporting increment and decrement operations.
+% % We'll now describe what counts as a choreography, first with informal examples and then with formal definitions.
+
+% % To build intuition, we'll now describe choregraphies by example
 
 
-% So, unfortunately, 
+% % , adapting terminology from the concurrency literature,
 
 
-% Unfortunately, because different programs will require different patterns of communication among processes, we won't be able to leave the how up to the operational semantics.
-% The programmer will want control over the communication patterns.
+% % So, unfortunately, 
 
 
-
-% Borrowing terminology from the literature on sessions
-
-% In session terminology, the logic program with a centralized operational semantics is known as an orchestration of processes, whereas the desired distributed semantics is known as a choreography.
-
-
-
-
-% \mbox{}\\
-
-% The program's clauses don't tell the full story, however:
-% The clauses specify what are valid interactions but not \emph{how} to realize those interactions; the \enquote*{how} is instead supplied by the logic programming language's operational semantics.
-% In the usual operational semantics, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
-
-% However, because they rely so heavily on the central conductor, processes using this semantics are no more than superficially distributed.
-% % Under this semantics, however, processes are only nominally distributed because they rely so heavily on the central conductor.
-% To be truly distributed, the processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
-
-% It's difficult to argue that this centralized \enquote{how} is suitable for \emph{distributed} processes, however.
-% The distributed processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
-% How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
-
-% In session terminology, the logic program with a centralized operational semantics is known as an orchestration of processes, whereas the desired distributed semantics is known as a choreography.
-
-
-
-
-% The program's clauses do not tell the full story, however: the clauses specify what are valid interactions but not \emph{how} to realize those interactions.
-% In the usual operational semantics, the \enquote{how} is supplied by providing a central \enquote{conductor} that, having the benefit of a global view\fxnote{\ \st{of all atoms}}, manipulates the atoms according to the program's clauses.
-% But it's difficult to argue that this centralized \enquote{how} is suitable for \emph{distributed} processes.
-% Distributed processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
-% How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+% % Unfortunately, because different programs will require different patterns of communication among processes, we won't be able to leave the how up to the operational semantics.
+% % The programmer will want control over the communication patterns.
 
 
 
+% % Borrowing terminology from the literature on sessions
+
+% % In session terminology, the logic program with a centralized operational semantics is known as an orchestration of processes, whereas the desired distributed semantics is known as a choreography.
 
 
 
-% This isn't the full story, however:
-% % The program's clauses specify \emph{what} are valid interactions but not \emph{how} to achieve those interactions.
-% the program's clauses specify what are valid interactions but not \emph{how} to achieve them.
-% The \enquote{how} is provided by the logic programming language's operational semantics.
-% The usual operational semantics
 
+% % \mbox{}\\
 
-% How do $\bit{1}$ and $\inc$, for example, learn that they are neighbors and that the above clause therefore applies?
+% % The program's clauses don't tell the full story, however:
+% % The clauses specify what are valid interactions but not \emph{how} to realize those interactions; the \enquote*{how} is instead supplied by the logic programming language's operational semantics.
+% % In the usual operational semantics, there is a central \enquote{conductor} who, having the benefit of a global view of all atoms, directs the atoms' interactions according to the program's clauses.
 
+% % However, because they rely so heavily on the central conductor, processes using this semantics are no more than superficially distributed.
+% % % Under this semantics, however, processes are only nominally distributed because they rely so heavily on the central conductor.
+% % To be truly distributed, the processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
 
-% the \enquote{how}it is provided by the logic programming language's operational semantics.
-% The usual operational semantics for logic programming 
-
-% This isn't the full story, however.
-% The usual operational semantics for ordered logic programming assumes a central \enquote{puppeteer} that has a global view of all atoms and manipulates them according to the program's clauses.
-% It's difficult to argue that this centralization is appropriate for distributed processes, however.
-% Instead, the processes should communicate directly to identify their neighbors and thereby deduce which, if any, of the valid interactions are possible for them at that moment.
-% But this communication is left unspecified in the original logic program.
-% How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
-
-% % What's left unspecified in the ordered logic program is how the distributed processes communicate to identify their neighbors and thereby deduce which, if any, of the valid interactions are possible for them at that moment.
-% % % Using a communication protocol that is left unspecified in the program, the atoms deduce 
+% % It's difficult to argue that this centralized \enquote{how} is suitable for \emph{distributed} processes, however.
+% % The distributed processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
 % % How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
 
-% Orchestration vs. choreography
+% % In session terminology, the logic program with a centralized operational semantics is known as an orchestration of processes, whereas the desired distributed semantics is known as a choreography.
+
+
+
+
+% % The program's clauses do not tell the full story, however: the clauses specify what are valid interactions but not \emph{how} to realize those interactions.
+% % In the usual operational semantics, the \enquote{how} is supplied by providing a central \enquote{conductor} that, having the benefit of a global view\fxnote{\ \st{of all atoms}}, manipulates the atoms according to the program's clauses.
+% % But it's difficult to argue that this centralized \enquote{how} is suitable for \emph{distributed} processes.
+% % Distributed processes should instead communicate directly with their neighbors to identify which, if any, of the valid interactions are possible for them at that moment.
+% % How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+
+
+
+
+
+% % This isn't the full story, however:
+% % % The program's clauses specify \emph{what} are valid interactions but not \emph{how} to achieve those interactions.
+% % the program's clauses specify what are valid interactions but not \emph{how} to achieve them.
+% % The \enquote{how} is provided by the logic programming language's operational semantics.
+% % The usual operational semantics
+
+
+% % How do $\bit{1}$ and $\inc$, for example, learn that they are neighbors and that the above clause therefore applies?
+
+
+% % the \enquote{how}it is provided by the logic programming language's operational semantics.
+% % The usual operational semantics for logic programming 
+
+% % This isn't the full story, however.
+% % The usual operational semantics for ordered logic programming assumes a central \enquote{puppeteer} that has a global view of all atoms and manipulates them according to the program's clauses.
+% % It's difficult to argue that this centralization is appropriate for distributed processes, however.
+% % Instead, the processes should communicate directly to identify their neighbors and thereby deduce which, if any, of the valid interactions are possible for them at that moment.
+% % But this communication is left unspecified in the original logic program.
+% % How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+% % % What's left unspecified in the ordered logic program is how the distributed processes communicate to identify their neighbors and thereby deduce which, if any, of the valid interactions are possible for them at that moment.
+% % % % Using a communication protocol that is left unspecified in the program, the atoms deduce 
+% % % How does $\bit{1}$, for example, learn that its right-hand neighbor is $\inc$ and that the above clause therefore applies?
+
+% % Orchestration vs. choreography
 
 
 \input{choreographies-intuition}

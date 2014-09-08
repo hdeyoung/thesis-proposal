@@ -34,7 +34,7 @@ First, we confine ourselves to the purely propositional fragment of ordered logi
 Second, to simplify the statement of locality, we require that each implication have exactly one premise: each implication has the form of $A^+ \rimp \monad{B^+}$, $A^+ \limp \monad{B^+}$, or $A^+ \lrimp \monad{B^+}$.
 These uncurried implications would not seem to place a large burden on the programmer, for it is easy enough to write $\p[_{\mathrm{2}}]^+ \fuse \p[_{\mathrm{1}}]^+ \fuse \p[_{\mathrm{3}}]^+ \lrimp \monad{B^+}$ in place of $\p[_{\mathrm{1}}]^+ \lrimp \p[_{\mathrm{2}}]^+ \limp \p[_{\mathrm{3}}]^+ \rimp \monad{B^+}$, for example.
 
-These restrictions can be lifted, but at the expense of complicating the presentation; because the restrictions are orthogonal to the main points of discussion, we therefore prefer the simplifying restrictions for the present.
+These restrictions can be lifted, but at the expense of complicating the presentation; because the restrictions are orthogonal to the main points of discussion, we prefer the simplifying restrictions for the present.
 
 \begin{alignat*}{2}
   &\text{Negative propositions}\quad & A^- &::= A^+ \rimp \monad{B^+} \mid A^+ \limp \monad{B^+} \mid A^- \with B^- \\

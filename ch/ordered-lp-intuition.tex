@@ -72,7 +72,7 @@
 
 \subsection{Example: Binary counter}\label{sec:olp-intuition:binary-counter}
 
-Using an ordered logic program, we can specify an incrementable binary counter.
+Using ordered logic, we can specify an incrementable binary counter.
 The counter is represented as a string of $\bit{0}$ and $\bit{1}$ atoms terminated at the most significant end by an $\eps$.
 For instance, the ordered conjunction $\eps \fuse \bit{1} \fuse \bit{0}$ is a string that represents a counter with value $2$.
 %
@@ -517,34 +517,34 @@ This violation of the game's rules is exactly what the committed-choice semantic
 % \end{figure}
 
 
-\subsection{Generalizing string rewriting}\label{sec:olp-intuition:gener-string-rewr}
+% \subsection{Generalizing string rewriting}\label{sec:olp-intuition:gener-string-rewr}
 
-In a rewriting setting, strings are comprised of letters, and strings, as we've seen, correspond to ordered conjunctions of atomic propositions.
-Forward-chaining ordered logic programming generalizes string rewriting by allowing rewriting rules themselves to appear as \enquote{letters}.
-Logically, ordered conjunctions may include implications as conjuncts.
-\begin{equation*}
-  \begin{lgathered}
-    \eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
-    \bit{0} \fuse \dec \lrimp \monad[auto]{
-                                \dec \fuse \parens[auto, align=c@{\,}l]{
-                                                 & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
-                                           \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
-    \bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc}
-  \end{lgathered}
-\end{equation*}
+% In a rewriting setting, strings are comprised of letters, and strings, as we've seen, correspond to ordered conjunctions of atomic propositions.
+% Forward-chaining ordered logic programming generalizes string rewriting by allowing rewriting rules themselves to appear as \enquote{letters}.
+% Logically, ordered conjunctions may include implications as conjuncts.
+% \begin{equation*}
+%   \begin{lgathered}
+%     \eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+%     \bit{0} \fuse \dec \lrimp \monad[auto]{
+%                                 \dec \fuse \parens[auto, align=c@{\,}l]{
+%                                                  & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+%                                            \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
+%     \bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc}
+%   \end{lgathered}
+% \end{equation*}
 
-\begin{align*}
-  \MoveEqLeft[0.5]
-  \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
-    &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \parens[auto, align=c@{\,}l]{
-                                                               & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
-                                                         \with & (\suc \limp \monad{\bit{1} \fuse \suc})} \\
-    &\trans \eps \fuse \bit{0} \fuse \mathul{\suc \fuse \parens[auto, align=c@{\,}l]{
-                                                              & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
-                                                        \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
-    &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \suc \\
-    &\ntrans
-\end{align*}
+% \begin{align*}
+%   \MoveEqLeft[0.5]
+%   \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
+%     &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \parens[auto, align=c@{\,}l]{
+%                                                                & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+%                                                          \with & (\suc \limp \monad{\bit{1} \fuse \suc})} \\
+%     &\trans \eps \fuse \bit{0} \fuse \mathul{\suc \fuse \parens[auto, align=c@{\,}l]{
+%                                                               & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+%                                                         \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
+%     &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \suc \\
+%     &\ntrans
+% \end{align*}
 
 
 

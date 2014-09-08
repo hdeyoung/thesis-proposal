@@ -12,8 +12,8 @@
 
 \NewPredicate {\eps} [ {\smash[b]{\mathsf{eps}}} ] {0}
 
-\exp_args:Nc \NewPredicate { bit0 } [ bit\sb{0} ] {0}
-\exp_args:Nc \NewPredicate { bit1 } [ bit\sb{1} ] {0}
+\exp_args:Nc \NewPredicate { bit0 } [ bit0 ] {0}
+\exp_args:Nc \NewPredicate { bit1 } [ bit\mkern-1mu 1 ] {0}
 \NewPredicate {\bitp} [ bit ] {0}
 \NewDocumentCommand \bit { O{} m O{} }
   {
@@ -26,7 +26,9 @@
 \NewPredicate {\dec} {0}
 \NewPredicate {\zero} {0}
 \NewPredicate {\fail} {0}
-\NewPredicate {\suc} [ succ ] {0}
+\NewPredicate {\suc} [ ok ] {0}
+
+\NewPredicate {\incm} {0}
 
 \NewPredicate \zeroq [ zero? ] {0}
 \NewPredicate \pos {0}
