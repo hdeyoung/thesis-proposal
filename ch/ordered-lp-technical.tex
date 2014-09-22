@@ -43,7 +43,7 @@
 
 \subsection{Technical details}\label{sec:ordered-lp:technical}
 
-The previous \lcnamecrefs{sec:olp-intuition:binary-counter} have hopefully served to provide intuition for forward-chaining ordered logic programming.
+The previous \lcnamecrefs{sec:olp-intuition:binary-counter} have hopefully served to provide intuition for ordered logical specifications.
 In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details, confining ourselves to a propositional fragment but otherwise generally following the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}.
 
 \subsubsection{Propositions, terms, and traces}\label{sec:props-terms-traces}
@@ -59,7 +59,7 @@ The positive propositions, $A^+$, are those whose left rules are invertible, whe
 % As an example, the ordered implications $A^+ \rimp B^-$ and $A^+ \limp B^-$ are classified as negative because the $\rlab{\rimp}$ and $\rlab{\limp}$ rules are invertible.
 
 Positive atomic propositions $\p^+$ stand in for arbitrary positive propositions. 
-The lax modality, $\monad{A^+}$, gives logical force to the separation of the two classes of propositions, yet still allows positive propositions to be included in negative ones.
+The lax modality, or monad, $\monad{A^+}$, gives logical force to the separation of the two classes of propositions, yet still allows positive propositions to be included in negative ones.
 The lax modality will be responsible for typing traces (\cref{??}).
 % Second, negative propositions can similiarly be treated as positive ones via the implicit inclusion $A^-$.
 
@@ -72,7 +72,7 @@ The lax modality will be responsible for typing traces (\cref{??}).
 
 \paragraph{Terms.}\label{sec:terms}
 
-As previously mentioned, a focused proof-search strategy~\autocite{Andreoli:JLC92} forms the basis of ordered logic programming.
+As previously mentioned, a focused proof-construction strategy~\autocite{Andreoli:JLC92} forms the basis of ordered logical specifications.
 In this focused calculus, there are several forms of sequent%
 %---inversion sequents, right-focused sequents, and left-focused sequents---
 , each corresponding to a syntactic class of proof terms.

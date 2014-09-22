@@ -80,7 +80,7 @@ Increment instructions are represented by $\inc$ atoms at the counter's least si
 % Also interspersed are $\inc$ atoms, each of which serves as an increment instruction sent to the counter given by the more significant bits.
 Thus, $\eps \fuse \bit{1} \fuse \inc$ represents a counter with value $1$ that has been instructed to increment once.
 
-Operationally, increments are described by three clauses, which together constitute the program, or \vocab{signature}, $\sig_{\inc}$.
+Operationally, increments are described by three clauses, which together constitute the specification's \vocab{signature}, $\sig_{\inc}$.
 The first of these clauses is
 \begin{equation*}
   % \begin{lpsig}
@@ -186,22 +186,20 @@ according to the upper path or the lower path in the following diagram.
 \end{equation*}
 
 However, because these two rewritings are independent, they should be considered morally concurrent.
-Rather than giving a truly concurrent semantics for string rewriting, we can treat different interleavings of independent steps as indistinguishable.
+Rather than giving a truly concurrent semantics for string rewriting, we can treat different interleavings of independent steps as indistinguishable.%
+\footnote{In the above example, indistinguishability of the two different interleavings is tantamount to requiring the diagram to commute.}
 Then, because we can't observe which rewriting occurred first, the two rewritings appear to happen concurrently.
-
-In the above example, indistinguishability of the two different interleavings is tantamount to requiring the diagram to commute.
-
-This is the idea of \vocab{concurrent equality} from {CLF}~\autocite{Watkins+:CMU02}, borrowed for ordered logic programming.
-Concurrent equality justifies adopting true concurrency as an abstraction.
+This is the idea of \vocab{concurrent equality} from {CLF}~\autocite{Watkins+:CMU02}, borrowed for ordered, rather than linear, logical specifications.
+% Concurrent equality justifies adopting true concurrency as an abstraction.
 
 
 \subsection{Example: Binary counter with decrements}\label{sec:olp-intuition:decrements}
 
-As a further example, it's also possible to add support for decrements to the binary counter.
+As a further example, it's also possible to extend the binary counter specification with support for decrements.
 % above ordered logic program.
 Like increments, a decrement instruction is represented by a $\dec$ atom at the counter's least significant end.
 To perform the decrement, a $\dec$ begins propagating up the counter.
-As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$s to indicate that they are waiting to borrow from their more significant neighbors:
+As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$ atoms to indicate that they are waiting to borrow from their more significant neighbors:
 \begin{equation*}
   \bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \,.
 \end{equation*}
@@ -212,7 +210,7 @@ Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\dec$ is replaced w
     \bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc} \,.
   \end{lgathered}
 \end{equation*}
-Then the $\fail$ or $\suc$ travels back over all of the $\bit[']{0}$s that were waiting to borrow.
+Then the $\fail$ or $\suc$ travels back over all of the $\bit[']{0}$ atoms that were waiting to borrow.
 In the case of $\fail$, the bits are returned to their original $\bit{0}$ state because no borrow was possible;
 in the case of $\suc$, a borrow was performed and so the bits are set to $\bit{1}$:
 \begin{equation*}
@@ -337,9 +335,9 @@ Among the infinite traces now possible is
 Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$ substring, instead always choosing to rewrite $\incs$.
 Because of its scheduling bias against rewriting $\eps \fuse \inc$, we say that the trace is \vocab{(weakly) transition-unfair}.
 
-Transition unfairness is fundamentally at odds with\fxnote{\ \st{true}} concurrency.
-Because\fxnote{\ \st{true}} concurrency allows multiple independent events to occur simultaneously, one event cannot preclude another independent event;
-in the above example, for instance, rewriting the $\incs$ atom would not preclude rewriting the independent $\eps \fuse \inc$ substring.
+Transition unfairness is fundamentally at odds with concurrency.
+Because concurrency allows multiple independent events to occur simultaneously, one event should not preclude another independent event;
+in the above example, for instance, rewriting the $\incs$ atom should not preclude rewriting the independent $\eps \fuse \inc$ substring.
 Therefore, to maintain the pretense of true concurrency, we must require all traces to be transition-fair.
 
 
@@ -408,149 +406,149 @@ Therefore, to maintain the pretense of true concurrency, we must require all tra
 % \end{center}
 
 
-\subsection{Committed choice}\label{sec:olp-intuition:committed-choice}
+% \subsection{Committed choice}\label{sec:olp-intuition:committed-choice}
 
-% In our forward-chaining ordered logic programming language, we assume a \vocab{committed-choice} semantics, meaning that when multiple rewritings are possible at a given site the choice is never reconsidered.
-In forward-chaining logic programming, one often assumes a \vocab{committed-choice} semantics, meaning that when several rewritings are possible at a given site, one is chosen and that choice is never reconsidered.
-For our purpose, this semantics is reasonable because we are interested in \emph{simulating} concurrent systems, not in generating all possible executions for model-checking.
-
-
-Committed choice is not readily apparent in the binary counter example;
-instead, consider a single-player game in which the player wins if a
-% each of two coin tosses land heads.
-coin toss lands heads.
-As a forward-chaining ordered logic program, this game is specified by the signature $\sig_{\coin}$, consisting of four clauses:
-\begin{equation*}
-  \sig_{\coin} =
-  \!\begin{aligned}[t]
-    &\coin \lrimp \monad{\heads} \,, \\
-    &\coin \lrimp \monad{\tails} \,, \\
-    &\heads \lrimp \monad{\win} \,, \\
-    &\tails \lrimp \monad{\loss}
-    \,.
-  \end{aligned}
-\end{equation*}
-The first two clauses specify that a $\coin$ may land either $\heads$ or $\tails$, and the remaining clauses specify the winning condition.
-
-% One way in which the starting string $\coin \fuse \coin$ of two coins can be maximally rewritten is
-One way in which the initial string, $\coin$, can be maximally rewritten is
-\begin{equation*}
-  \mathul{\coin}
-    \trans \mathul{\tails}
-    \trans \loss
-    \ntrans
-  \,.
-\end{equation*}
-In other words, here the $\coin$ toss lands $\tails$, resulting in a $\loss$.
-To get a $\win$, we'd like to somehow take back the toss and have it instead land $\heads$.
-% Here the first $\coin$ lands $\tails$ and the second $\coin$ lands $\heads$, resulting in a $\loss$.
-% To get a $\win$, we'd like to somehow take back the first toss and have it instead land $\heads$.
-This violation of the game's rules is exactly what the committed-choice semantics proscribes: once the coin is tossed, we must commit to that toss's outcome.
+% % In our forward-chaining ordered logic programming language, we assume a \vocab{committed-choice} semantics, meaning that when multiple rewritings are possible at a given site the choice is never reconsidered.
+% In forward-chaining logic programming, one often assumes a \vocab{committed-choice} semantics, meaning that when several rewritings are possible at a given site, one is chosen and that choice is never reconsidered.
+% For our purpose, this semantics is reasonable because we are interested in \emph{simulating} concurrent systems, not in generating all possible executions for model-checking.
 
 
-% \subsection{Example: Binary counter with zero-tests}\label{sec:olp-intuition:zero-tests}
-
-% It's also possible to add support for zero-tests to the counters.
-% Like increment instructions, a zero-test instruction is represented by a $\zeroq$ atom at the counter's least significant end.
-% To perform the test, the $\zeroq$ query begins propagating up the counter.
-% As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$s to indicate that they are waiting to borrow from their more significant neighbors:
+% Committed choice is not readily apparent in the binary counter example;
+% instead, consider a single-player game in which the player wins if a
+% % each of two coin tosses land heads.
+% coin toss lands heads.
+% As a forward-chaining ordered logic program, this game is specified by the signature $\sig_{\coin}$, consisting of four clauses:
 % \begin{equation*}
-%   \bit{0} \fuse \zeroq \lrimp \monad{\zeroq \fuse \bit[']{0}} \,.
+%   \sig_{\coin} =
+%   \!\begin{aligned}[t]
+%     &\coin \lrimp \monad{\heads} \,, \\
+%     &\coin \lrimp \monad{\tails} \,, \\
+%     &\heads \lrimp \monad{\win} \,, \\
+%     &\tails \lrimp \monad{\loss}
+%     \,.
+%   \end{aligned}
 % \end{equation*}
-% Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\zeroq$ is replaced with either $\zero$ or $\pos$, respectively, to show whether the counter has a value that is $0$ or positive:
-% \begin{align*}
-%   &\eps \fuse \zeroq \lrimp \monad{\eps \fuse \zero} \\
-%   &\bit{1} \fuse \zeroq \lrimp \monad{\bit{1} \fuse \pos} \,.
-% \end{align*}
-% Then the $\zero$ or $\pos$ travels back over all of the $\bit[']{0}$s that were waiting to borrow.
-% In the case of $\zero$, the bits are returned to their original $\bit{0}$ state because no borrow was possible;
-% in the case of $\suc$, a borrow was performed and so the bits are set to $\bit{1}$:
-% \begin{align*}
-%   &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
-%   &\suc \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \suc} \,.
-% \end{align*}
+% The first two clauses specify that a $\coin$ may land either $\heads$ or $\tails$, and the remaining clauses specify the winning condition.
 
-% For example, the counter $\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$ can be maximally rewritten as
-% \begin{align*}
-%   \MoveEqLeft[0.5]
-%   \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
-%     &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
-%     &\trans \eps \fuse \bit{0} \fuse \mathul{\suc \fuse \bit[']{0}} \\
-%     &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \suc \\
-%     &\ntrans
-% \end{align*}
-% Once again, there are possibilities for concurrency.
-% For example, the following two traces are indistinguishable because they differ only in the order of independent rewrites:
-% \begin{align*}
-%   &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
-%   %
-%   \shortintertext{and}
-%   %
-%   &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0}
-% \end{align*}
-% This justifies treating those two rewrites as concurrent.
-
-
-% \begin{figure}[t]
-%   \centering
-%   \subcaptionbox{Increments}{$\displaystyle
-%     \sig_{\inc} =
-%     \!\begin{aligned}[t]
-%       &\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}} \,, \\
-%       &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \,, \\
-%       &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \\
-%       &{}
-%     \end{aligned}
-%   $}%
-%   \qquad\qquad
-%   \subcaptionbox{Decrements}{$\displaystyle
-%     \mathllap{\sig_{\zeroq}} =
-%     \!\begin{aligned}[t]
-%       &\bit{0} \fuse \zeroq \lrimp \monad{\zeroq \fuse \bit[']{0}} \,, \\
-%       &\eps \fuse \zeroq \lrimp \monad{\eps \fuse \zero} \,, \\
-%       &\bit{1} \fuse \zeroq \lrimp \monad{\bit{1} \fuse \pos} \,, \\
-%       &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \,, \\
-%       &\pos \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \pos}
-%     \end{aligned}
-%     $}
-%   \caption{Summary of binary counter example\label{fig:binary-counter-summary}}
-% \end{figure}
-
-
-% \subsection{Generalizing string rewriting}\label{sec:olp-intuition:gener-string-rewr}
-
-% In a rewriting setting, strings are comprised of letters, and strings, as we've seen, correspond to ordered conjunctions of atomic propositions.
-% Forward-chaining ordered logic programming generalizes string rewriting by allowing rewriting rules themselves to appear as \enquote{letters}.
-% Logically, ordered conjunctions may include implications as conjuncts.
+% % One way in which the starting string $\coin \fuse \coin$ of two coins can be maximally rewritten is
+% One way in which the initial string, $\coin$, can be maximally rewritten is
 % \begin{equation*}
-%   \begin{lgathered}
-%     \eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
-%     \bit{0} \fuse \dec \lrimp \monad[auto]{
-%                                 \dec \fuse \parens[auto, align=c@{\,}l]{
-%                                                  & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
-%                                            \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
-%     \bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc}
-%   \end{lgathered}
+%   \mathul{\coin}
+%     \trans \mathul{\tails}
+%     \trans \loss
+%     \ntrans
+%   \,.
 % \end{equation*}
+% In other words, here the $\coin$ toss lands $\tails$, resulting in a $\loss$.
+% To get a $\win$, we'd like to somehow take back the toss and have it instead land $\heads$.
+% % Here the first $\coin$ lands $\tails$ and the second $\coin$ lands $\heads$, resulting in a $\loss$.
+% % To get a $\win$, we'd like to somehow take back the first toss and have it instead land $\heads$.
+% This violation of the game's rules is exactly what the committed-choice semantics proscribes: once the coin is tossed, we must commit to that toss's outcome.
 
-% \begin{align*}
-%   \MoveEqLeft[0.5]
-%   \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
-%     &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \parens[auto, align=c@{\,}l]{
-%                                                                & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
-%                                                          \with & (\suc \limp \monad{\bit{1} \fuse \suc})} \\
-%     &\trans \eps \fuse \bit{0} \fuse \mathul{\suc \fuse \parens[auto, align=c@{\,}l]{
-%                                                               & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
-%                                                         \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
-%     &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \suc \\
-%     &\ntrans
-% \end{align*}
+
+% % \subsection{Example: Binary counter with zero-tests}\label{sec:olp-intuition:zero-tests}
+
+% % It's also possible to add support for zero-tests to the counters.
+% % Like increment instructions, a zero-test instruction is represented by a $\zeroq$ atom at the counter's least significant end.
+% % To perform the test, the $\zeroq$ query begins propagating up the counter.
+% % As it passes over any $\bit{0}$s at the least significant end, they are marked as $\bit[']{0}$s to indicate that they are waiting to borrow from their more significant neighbors:
+% % \begin{equation*}
+% %   \bit{0} \fuse \zeroq \lrimp \monad{\zeroq \fuse \bit[']{0}} \,.
+% % \end{equation*}
+% % Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\zeroq$ is replaced with either $\zero$ or $\pos$, respectively, to show whether the counter has a value that is $0$ or positive:
+% % \begin{align*}
+% %   &\eps \fuse \zeroq \lrimp \monad{\eps \fuse \zero} \\
+% %   &\bit{1} \fuse \zeroq \lrimp \monad{\bit{1} \fuse \pos} \,.
+% % \end{align*}
+% % Then the $\zero$ or $\pos$ travels back over all of the $\bit[']{0}$s that were waiting to borrow.
+% % In the case of $\zero$, the bits are returned to their original $\bit{0}$ state because no borrow was possible;
+% % in the case of $\suc$, a borrow was performed and so the bits are set to $\bit{1}$:
+% % \begin{align*}
+% %   &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \\
+% %   &\suc \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \suc} \,.
+% % \end{align*}
+
+% % For example, the counter $\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$ can be maximally rewritten as
+% % \begin{align*}
+% %   \MoveEqLeft[0.5]
+% %   \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
+% %     &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+% %     &\trans \eps \fuse \bit{0} \fuse \mathul{\suc \fuse \bit[']{0}} \\
+% %     &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \suc \\
+% %     &\ntrans
+% % \end{align*}
+% % Once again, there are possibilities for concurrency.
+% % For example, the following two traces are indistinguishable because they differ only in the order of independent rewrites:
+% % \begin{align*}
+% %   &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+% %   %
+% %   \shortintertext{and}
+% %   %
+% %   &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0}
+% % \end{align*}
+% % This justifies treating those two rewrites as concurrent.
+
+
+% % \begin{figure}[t]
+% %   \centering
+% %   \subcaptionbox{Increments}{$\displaystyle
+% %     \sig_{\inc} =
+% %     \!\begin{aligned}[t]
+% %       &\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}} \,, \\
+% %       &\eps \fuse \inc \lrimp \monad{\eps \fuse \bit{1}} \,, \\
+% %       &\bit{0} \fuse \inc \lrimp \monad{\bit{1}} \\
+% %       &{}
+% %     \end{aligned}
+% %   $}%
+% %   \qquad\qquad
+% %   \subcaptionbox{Decrements}{$\displaystyle
+% %     \mathllap{\sig_{\zeroq}} =
+% %     \!\begin{aligned}[t]
+% %       &\bit{0} \fuse \zeroq \lrimp \monad{\zeroq \fuse \bit[']{0}} \,, \\
+% %       &\eps \fuse \zeroq \lrimp \monad{\eps \fuse \zero} \,, \\
+% %       &\bit{1} \fuse \zeroq \lrimp \monad{\bit{1} \fuse \pos} \,, \\
+% %       &\zero \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \zero} \,, \\
+% %       &\pos \fuse \bit[']{0} \lrimp \monad{\bit{0} \fuse \pos}
+% %     \end{aligned}
+% %     $}
+% %   \caption{Summary of binary counter example\label{fig:binary-counter-summary}}
+% % \end{figure}
+
+
+% % \subsection{Generalizing string rewriting}\label{sec:olp-intuition:gener-string-rewr}
+
+% % In a rewriting setting, strings are comprised of letters, and strings, as we've seen, correspond to ordered conjunctions of atomic propositions.
+% % Forward-chaining ordered logic programming generalizes string rewriting by allowing rewriting rules themselves to appear as \enquote{letters}.
+% % Logically, ordered conjunctions may include implications as conjuncts.
+% % \begin{equation*}
+% %   \begin{lgathered}
+% %     \eps \fuse \dec \lrimp \monad{\eps \fuse \zero} \\
+% %     \bit{0} \fuse \dec \lrimp \monad[auto]{
+% %                                 \dec \fuse \parens[auto, align=c@{\,}l]{
+% %                                                  & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+% %                                            \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
+% %     \bit{1} \fuse \dec \lrimp \monad{\bit{0} \fuse \suc}
+% %   \end{lgathered}
+% % \end{equation*}
+
+% % \begin{align*}
+% %   \MoveEqLeft[0.5]
+% %   \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \\
+% %     &\trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \parens[auto, align=c@{\,}l]{
+% %                                                                & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+% %                                                          \with & (\suc \limp \monad{\bit{1} \fuse \suc})} \\
+% %     &\trans \eps \fuse \bit{0} \fuse \mathul{\suc \fuse \parens[auto, align=c@{\,}l]{
+% %                                                               & (\zero \limp \monad{\bit{0} \fuse \zero}) \\
+% %                                                         \with & (\suc \limp \monad{\bit{1} \fuse \suc})}} \\
+% %     &\trans \eps \fuse \bit{0} \fuse \bit{1} \fuse \suc \\
+% %     &\ntrans
+% % \end{align*}
 
 
 
 \subsection{Adequacy and generative invariants}\label{sec:olp-intuition:gener-invar}
 
-Thus far, we have used ordered logic programs to specify concurrent systems, whereas the non-modal fragment of ordered logic was originally developed by \textcite{Lambek:AMM58} to describe sentence structure.
+Thus far, we have used ordered logic to specify concurrent systems, whereas the non-modal fragment of ordered logic was originally developed by \textcite{Lambek:AMM58} to describe sentence structure.
 However, these two modes of use of ordered logic are not as different as they might first appear.
 
 Recall that, in our running example of an incrementable binary counter, the counter is represented as a string of $\bit{0}$, $\bit{1}$, and $\inc$ atoms terminated at the most significant end by an $\eps$.

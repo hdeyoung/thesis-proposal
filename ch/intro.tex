@@ -56,7 +56,7 @@ Examples abound: lax logic for monadic computation~\autocite{Benton:JFP98};
 temporal logic for functional reactive programming~\autocite{Jeffrey:PLPV12}; linear logic for graph-based algorithms~\autocite{Cruz+:ICLP14}; etc.
 
 % Can a computation-as-deduction approach make it similarly easier to write clear, expressive, provably correct concurrent programs?
-Can a computation-as-deduction approach make it similarly easier to clearly and concisely specify and correctly implement concurrent programs?
+Can a computation-as-deduction approach make it similarly easier to clearly and concisely specify, as well as correctly implement, concurrent programs?
 % improve the clarity and expressiveness and ensure the correctness of concurrent computations?
 
 \vspace{0.25\baselineskip}
@@ -68,7 +68,7 @@ Computation-as-deduction
 % principle
 comes in two flavors, \vocab{proof-construction-as-computation} and \vocab{proof-reduction-as-computation}.
 % , each of which has been (separately) applied to the problem of clearly specifying and correctly simulating or implementing concurrent systems.
-Proof-construction-as-computation stresses the search for a proof, according to a fixed strategy, as the origin of computation, and is the foundation for logic programming~\autocites{Miller+:PAL91}{Andreoli:JLC92};
+Proof-construction-as-computation views the search for a proof, according to a fixed strategy, as the basis [source] [origin] of computation, and is the foundation for logic programming~\autocites{Miller+:PAL91}{Andreoli:JLC92};
 % \relax[, such as the Prolog and Datalog languages];
 proof-reduction-as-computation revolves around a correspondence, known as the Curry--Howard Isomorphism~\autocite{Howard:Curry80}, between propositions and types, proofs and programs, and proof simplification, or reduction, and program evaluation, and is the foundation for typed functional programming~\autocite{Martin-Lof:LMPS80}.
 % [, such as the ML and Haskell languages].
@@ -76,7 +76,8 @@ proof-reduction-as-computation revolves around a correspondence, known as the Cu
 
 Both the proof-construction and proof-reduction approaches [perspectives] have been applied to concurrent programming.
 \acifused{CLF}{\Ac{CLF}}{The \ac{CLF}}~\autocite{Watkins+:CMU02}, based on proof construction in linear logic, has been used to specify a variety of concurrent systems, ranging from the $\pi$-calculus to security protocols such as Needham--Schroeder~\autocite{Cervesato+:CMU02}.
-And, using the Lollimon~\autocite{Lopez+:PPDP05} and Celf~\autocite{Schack-Nielsen:ITU11} logic programming engines that derive from \ac{CLF}, these same concurrent systems can be simulated according to their \ac{CLF} specifications.
+% And, using the Lollimon~\autocite{Lopez+:PPDP05} and Celf~\autocite{Schack-Nielsen:ITU11} logic programming engines that derive from \ac{CLF}, these same concurrent systems can be simulated according to their \ac{CLF} specifications.
+Although these same concurrent systems can be simulated according to their \ac{CLF} specifications by the Lollimon~\autocite{Lopez+:PPDP05} and Celf~\autocite{Schack-Nielsen:ITU11} logic programming engines, the programs ultimately remain specifications, not distributed implementations.
 
 Taking the proof-reduction tack,
 % [perspective],
@@ -85,10 +86,21 @@ Taking the proof-reduction tack,
 processes, between proof reduction and concurrent process execution.
 Moreover, in this most recent line of work, the correspondence is a full Curry--Howard isomorphism in that intuitionistic linear propositions are also types---%
 \vocab{session types}~\autocite{Honda:CONCUR93} that describe the protocol to which a process adheres.
-% session types that describe a process's behavior throughout a protocol 
+% % session types that describe a process's behavior throughout a protocol 
+% ---and that it yields actual distributed implementations~\autocite{Toninho+:ESOP13}.
+Moreover, the proof-reduction approach yields actual distributed implementations~\autocite{Toninho+:ESOP13}.
 
+At first glance, the proof-construction and proof-reduction approaches to concurrent computation appear strikingly disparate in spite of their common [logical] basis in linear logic.
+The two have different dynamics, provide different guarantees, and serve different roles in software engineering practice.
+Proof construction is better suited to specification, whereas proof reduction is better suited to implementation.
 
-In other words, proof construction is more suited to specification, whereas proof reduction is more suited to implementation.
+Despite their apparent disparity, is there perhaps some \emph{fragment} of linear logic in which [the dynamics of] proof construction and proof reduction coincide?
+Identifying such a fragment would provide a better understanding of the relationship between proof construction and proof reduction
+Such a fragment would be of philosophical [conceptual] interest, but would also provide practical benefit
+
+Nevertheless, is there some \emph{fragment} of linear logic in which proof reduction and proof construction coincide---in which [well-typed] implementations can be mechanically extracted from specifications?
+
+% In other words, proof construction is more suited to specification, whereas proof reduction is more suited to implementation.
 
 
 

@@ -1,8 +1,8 @@
-% arara: pdflatex
-% arara: pdflatex
+% arara: lualatex
+% arara: lualatex
 % arara: biber
-% arara: pdflatex
-% arara: pdflatex
+% arara: lualatex
+% arara: lualatex
 % \documentclass{../hdeyoung-proposal}
 \documentclass[
   class=../hdeyoung-proposal,
@@ -16,8 +16,8 @@
 \usepackage{mathpartir}
 
 \usepackage{tikz}
-% \usetikzlibrary{shapes.misc,graphs,graphdrawing}
-% \usegdlibrary{trees}
+\usetikzlibrary{shapes.misc,graphs,quotes,graphdrawing}
+\usegdlibrary{trees}
 
 \ExplSyntaxOn
 
@@ -158,9 +158,8 @@
   short-format = \scshape\MakeLowercase
 }
 \DeclareAcronym{SILL}{
-  short = \MakeLowercase{SILL},
-  long = session-typed intuitionistic linear logic,
-  short-format = \scshape
+  short = SILL,
+  long = session-typed intuitionistic linear logic
 }
 
 \addbibresource{../proposal.bib}
@@ -197,52 +196,114 @@
 
 \begin{document}
 
+Thus far, we have followed a proof-construction approach to computation, having in \cref{?} reviewed an interpretation of ordered logical specifications as concurrent string rewriting and in \cref{?} identified a fragment in which specifications have a message-passing character.
+
 \section{}
 
 In a session-based model of concurrency, pairs of processes interact in well-defined sessions, with one process offering a service that its session partner uses.
-Session types, pioneered by \textcite{Honda:CONCUR93}, describe the interaction protocol to which a process adheres when offering its service the processes in that session must adhere.
+Session types, pioneered by \textcite{Honda:CONCUR93}, describe the interaction protocol to which a process adheres when offering its service.
+% the processes in that session must adhere.
 When processes interact, the session type changes: one process now offers, and the other uses, the continuation of the initial service.
-The logical reading of session-based concurrency is linear logic exactly because it can express this change of state.
+As shown by \textcite{Caires+:MSCS13}, the logical reading of session-based concurrency is linear logic exactly because it can express this change of state.
 
-Because a process offers its service along a distinguished channel, \ac{SILL}'s basic session-typing judgment is $P :: c{:}A$, meaning \enquote{process $P$ offers service of type $A$ along channel $c$}.
+Because a process offers its service along a distinguished channel, \ac{SILL}'s basic session-typing judgment is $P :: x{:}A$, meaning \enquote{process $P$ offers service of type $A$ along channel $x$}.
 However, $P$ itself may rely on services offered by yet other processes, and so, more generally, \ac{SILL}'s session-typing judgment is a linear sequent annotated as
 \begin{equation*}
   \underbrace{
-    c_0{:}A_0 , c_1{:}A_1 , \dots , c_n{:}A_n
+    x_0{:}A_0 , x_1{:}A_1 , \dots , x_n{:}A_n
   }_{\textstyle \lctx}
   \vdash
-  P :: c{:}A
+  P :: x{:}A
+  \quad
+  \text{($n \geq 0$)}
 \end{equation*}
 % where the channel names, $x_i$, are needed to unambiguously refer to hypotheses and the consequent.
-meaning \enquote{Using services $A_i$ offered along channels $c_i$, the process $P$ offers service $A$ along channel $c$.}
-(The channels $c_i$ and $c$ must all be distinct and are binding occurrences with scope over the process $P$.)
+meaning \enquote{Using services $A_i$ offered along channels $x_i$, the process $P$ offers service $A$ along channel $x$.}
+(The channels $x_i$ and $x$ must all be distinct and are binding occurrences with scope over the process $P$.)
 
-With this session-typing judgment, the inference rules of the linear sequent calculus become \ac{SILL} session-typing rules for concurrent processes.
-For instance, the cut rule of \ac{SILL} types a parallel composition of processes (shown in $\pi$-calculus syntax here):
+The linear sequent calculus's inference rules thus become session-typing rules for \ac{SILL} processes.
+Just as the inference rules arrange sequents in a proof tree, so do the session-typing rules arrange \ac{SILL} processes in a tree-shaped network, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
+The following is one such example.
+% The way in which \ac{SILL} processes use and offer services along distinct channels thus arranges processes in a tree-shaped network, such as the following, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
 \begin{equation*}
-  \infer[\cut{A}]{\lctx , \lctx' \vdash (\nu x)(P \mid Q) :: z{:}C}{
-    \lctx \vdash P :: x{:}A &
-    \lctx' , x{:}A \vdash Q :: z{:}C}
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped}]
+    \graph [
+      tree layout, grow=left, math nodes, % empty nodes,
+      nodes={
+        rounded rectangle, rounded rectangle left arc=none,
+        draw, minimum size=2ex,
+      }
+    ] {
+      / [draw=none] <-["$\scriptstyle x$"' channel]
+      / ["$P$"] <- { / [> {"$\scriptstyle x_0$"' channel}] <- / <- { / , / } ,
+             / [> {"$\scriptstyle x_1$"' channel}] ,
+             / [> {"$\scriptstyle x_2$" channel}] <- { / , / <- / } };
+    };
+  \end{tikzpicture}
 \end{equation*}
-Top-level $\cut{}$s thus arrange processes in a tree-shaped network, such as the following, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
+% Each edge in the above \ac{SILL} tree represents a top-level $\cut{}$, and each top-level $\cut{}$ corresponds to a hypothesis that serves as its principal formula.
+
+% With this session-typing judgment, the inference rules of the linear sequent calculus become \ac{SILL} session-typing rules for concurrent processes.
+% For instance, the cut rule of \ac{SILL} types a parallel composition of processes (shown in $\pi$-calculus syntax here):
+% \begin{equation*}
+%   \infer[\cut{A}]{\lctx , \lctx' \vdash (\nu x)(P \mid Q) :: z{:}C}{
+%     \lctx \vdash P :: x{:}A &
+%     \lctx' , x{:}A \vdash Q :: z{:}C}
+% \end{equation*}
+% Top-level $\cut{}$s thus arrange processes in a tree-shaped network, such as the following, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
+% \begin{equation*}
+%   % \begin{tikzpicture}
+%   %   \graph [
+%   %     tree layout, grow=left, math nodes, % empty nodes,
+%   %     nodes={
+%   %       rounded rectangle, rounded rectangle left arc=none,
+%   %       draw, minimum size=2ex,
+%   %     }
+%   %   ] {
+%   %     / [draw=none] <-
+%   %     Q <- { "P_1" <- / <- { / , / } ,
+%   %            / ,
+%   %            / <- { / , / <- / } };
+%   %   };
+%   % \end{tikzpicture}
+% \end{equation*}
+% Each edge in the above \ac{SILL} tree represents a top-level $\cut{}$, and each top-level $\cut{}$ corresponds to a hypothesis that serves as its principal formula.
+% % Each hypothesis gives rise to a top-level $\cut{}$, represented as an edge in the above graph. 
+
+Recall that the goal of this thesis proposal is to establish a connection between ordered logical specifications and 
+
+In this thesis proposal, we are interested in a restriction of \ac{SILL} that will match ordered logical specifications.
+To match the ordered context of these specifications, we cannot directly use \ac{SILL}---we instead want a restriction of \ac{SILL} in which process networks are chains, not general trees.
+
+
+One might expect that process chains should arise from ordered logic.
+But, taking into account how the structure of the \ac{SILL} session-typing judgment induces a tree-shape for process networks, it becomes apparant that process chains arise when processes are restricted to use at most one service each.
+That is, when contexts $\lctx$ are restricted to be either empty or singletons, the session-typing judgment becomes
 \begin{equation*}
-  % \begin{tikzpicture}
-  %   \graph [
-  %     tree layout, grow=left, math nodes, % empty nodes,
-  %     nodes={
-  %       rounded rectangle, rounded rectangle left arc=none,
-  %       draw, minimum size=2ex,
-  %     }
-  %   ] {
-  %     / [draw=none] <-
-  %     Q <- { "P_1" <- / <- { / , / } ,
-  %            / ,
-  %            / <- { / , / <- / } };
-  %   };
-  % \end{tikzpicture}
+  \lctxe \vdash P :: x{:}A
+  \quad\text{or}\quad
+  x_0{:}A_0 \vdash P :: x{:}A
 \end{equation*}
-Each edge in the above \ac{SILL} tree represents a top-level $\cut{}$, and each top-level $\cut{}$ corresponds to a hypothesis that serves as its principal formula.
-% Each hypothesis gives rise to a top-level $\cut{}$, represented as an edge in the above graph. 
+and the process networks are necessarily chains:
+\begin{equation*}
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped}]
+    \graph [
+      tree layout, grow=left, math nodes, % empty nodes,
+      nodes={
+        rounded rectangle, rounded rectangle left arc=none,
+        draw, minimum size=2ex,
+      }
+    ] {
+      / [draw=none] <-["$\scriptstyle x$"' channel]
+      / ["$P$" text height=0] <-
+      / [> {"$\scriptstyle x_0$"' channel}] <-
+      / <-
+      / ;
+    };
+  \end{tikzpicture}
+\end{equation*}
+
+This is a Curry--Howard isomophism in that the same restriction---contexts must be empty or singletons---still yields a well-defined logic when applied to linear logic.
 
 In this note, we are interested in developing a restriction of \ac{SILL} in which the process networks are linearly ordered:
 \begin{center}
@@ -269,7 +330,10 @@ In this special case, sequents have one of the simpler forms
 \subsection{Additive conjunction as branching}\label{sec:addit-conj-as-branch}
 
 So far we have discussed only a judgmental principle that applies to all services; specifc services are defined by the right and left rules of the logical connectives.
-When restricted to singleton or empty anticidents, the linear sequent calculus rules for the additive conjunction $A_1 \with A_2$ are as follows.
+The singleton linear sequent calculus rules for the additive conjunction $A_1 \with A_2$ are as follows;
+they are the rules from the linear sequent calculus, but restricted to contexts with at most one hypothesis.  
+
+When restricted to singleton or empty antecedents, the linear sequent calculus rules for the additive conjunction $A_1 \with A_2$ are as follows.
 Note that in this case the left rules' contexts are forced to be the singleton $A_1 \with A_2$.
 \begin{mathpar}
   \infer[\rrule{\with}]{\oseq{\lctx |- A_1 \with A_2}}{
