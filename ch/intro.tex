@@ -66,39 +66,46 @@ Can a computation-as-deduction approach make it similarly easier to clearly and 
 \noindent
 Computation-as-deduction
 % principle
-comes in two flavors, \vocab{proof-construction-as-computation} and \vocab{proof-reduction-as-computation}.
+comes in two flavors: \vocab{proof-construction-as-computation} and \vocab{proof-reduction-as-computation}.
 % , each of which has been (separately) applied to the problem of clearly specifying and correctly simulating or implementing concurrent systems.
-Proof-construction-as-computation views the search for a proof, according to a fixed strategy, as the basis [source] [origin] of computation, and is the foundation for logic programming~\autocites{Miller+:PAL91}{Andreoli:JLC92};
+Proof-construction-as-computation views the search for a proof, according to a fixed strategy, as the basis of computation; it is the foundation for logic programming~\autocites{Miller+:PAL91}{Andreoli:JLC92}.
 % \relax[, such as the Prolog and Datalog languages];
-proof-reduction-as-computation revolves around a correspondence, known as the Curry--Howard Isomorphism~\autocite{Howard:Curry80}, between propositions and types, proofs and programs, and proof simplification, or reduction, and program evaluation, and is the foundation for typed functional programming~\autocite{Martin-Lof:LMPS80}.
+Proof-reduction-as-computation, on the other hand, revolves around a correspondence, known as the Curry--Howard Isomorphism~\autocite{Howard:Curry80}, between propositions and types, proofs and programs, and proof simplification, or reduction, and program evaluation;
+it is the foundation for typed functional programming~\autocite{Martin-Lof:LMPS80}.
 % [, such as the ML and Haskell languages].
 % originates from the {BHK} interpretation of intuitionistic logic.
 
-Both the proof-construction and proof-reduction approaches [perspectives] have been applied to concurrent programming.
-\acifused{CLF}{\Ac{CLF}}{The \ac{CLF}}~\autocite{Watkins+:CMU02}, based on proof construction in linear logic, has been used to specify a variety of concurrent systems, ranging from the $\pi$-calculus to security protocols such as Needham--Schroeder~\autocite{Cervesato+:CMU02}.
+Both the proof-construction and proof-reduction approaches have been applied to concurrent programming, stemming from \citeauthor{Girard:TCS87}'s~\autocite*{Girard:TCS87} suggestion of connections between linear logic and concurrency.
+In the proof-construction vein, \acifused{CLF}{\ac{CLF}~\autocite{Watkins+:CMU02}}{the \acl{CLF}~\autocite[\acs{CLF};][]{Watkins+:CMU02}} has been used to specify a variety of concurrent systems, ranging from the $\pi$-calculus to security protocols, such as Needham--Schroeder, and even emergent story narratives~\autocites{Cervesato+:CMU02}{Martens+:LPNMR13}.
 % And, using the Lollimon~\autocite{Lopez+:PPDP05} and Celf~\autocite{Schack-Nielsen:ITU11} logic programming engines that derive from \ac{CLF}, these same concurrent systems can be simulated according to their \ac{CLF} specifications.
-Although these same concurrent systems can be simulated according to their \ac{CLF} specifications by the Lollimon~\autocite{Lopez+:PPDP05} and Celf~\autocite{Schack-Nielsen:ITU11} logic programming engines, the programs ultimately remain specifications, not distributed implementations.
+Although these same concurrent systems can be simulated according to their \ac{CLF} specifications by the Lollimon~\autocite{Lopez+:PPDP05} and Celf~\autocite{Schack-Nielsen:ITU11} logic programming engines, the programs ultimately remain specifications, not actual distributed implementations.
 
 Taking the proof-reduction tack,
 % [perspective],
-\textcite{Abramsky:TCS93}, \textcite{Bellin+Scott:TCS94}, and later \textcite{Caires+Pfenning:CONCUR10} with Toninho~\autocites*{Caires+:TLDI12}{Caires+:MSCS13} have given correspondences between proofs in linear logic and
+\textcite{Abramsky:TCS93}, \textcite{Bellin+Scott:TCS94}, and later \textcite{Caires+Pfenning:CONCUR10} with Toninho~\autocites*{Caires+:TLDI12}{Caires+:MSCS13} have given correspondences between sequent calculus proofs or proof nets in linear logic and
 % [concurrent] 
-processes, between proof reduction and concurrent process execution.
-Moreover, in this most recent line of work, the correspondence is a full Curry--Howard isomorphism in that intuitionistic linear propositions are also types---%
+processes, between cut elimination and concurrent process execution.
+Moreover, in \citeauthor{Caires+:MSCS13}'s work, the correspondence is a full Curry--Howard isomorphism in that intuitionistic linear propositions are also types---%
 \vocab{session types}~\autocite{Honda:CONCUR93} that describe the protocol to which a process adheres.
 % % session types that describe a process's behavior throughout a protocol 
 % ---and that it yields actual distributed implementations~\autocite{Toninho+:ESOP13}.
-Moreover, the proof-reduction approach yields actual distributed implementations~\autocite{Toninho+:ESOP13}.
+Unlike proof construction, the proof-reduction approach yields actual distributed implementations~\autocite{Toninho+:ESOP13}.
 
-At first glance, the proof-construction and proof-reduction approaches to concurrent computation appear strikingly disparate in spite of their common [logical] basis in linear logic.
-The two have different dynamics, provide different guarantees, and serve different roles in software engineering practice.
+In spite of their common [logical] basis in linear logic, the proof-construction and proof-reduction approaches to concurrent computation appear at first glance to be strikingly disparate.
+They have different dynamics (?); they offer different guarantees (progress for proof reduction); and, perhaps most importantly, they serve very different roles in programming [practice].
+Although these same concurrent systems can be simulated according to their \ac{CLF} specifications by the Lollimon~\autocite{Lopez+:PPDP05} and Celf~\autocite{Schack-Nielsen:ITU11} logic programming engines, the programs ultimately remain specifications, not actual distributed implementations.
+%
 Proof construction is better suited to specification, whereas proof reduction is better suited to implementation.
+
+To ..., we'd like to minimize the gap between specification and implementation.
+Despite the apparent disparity between proof construction and proof reduction, is there perhaps some fragment of linear logic in which the two coincide?
+Stated differently, is there a class of concurrent specifications from which distributed concurrent implementations can be automatically extracted?
 
 Despite their apparent disparity, is there perhaps some \emph{fragment} of linear logic in which [the dynamics of] proof construction and proof reduction coincide?
 Identifying such a fragment would provide a better understanding of the relationship between proof construction and proof reduction
 Such a fragment would be of philosophical [conceptual] interest, but would also provide practical benefit
 
-Nevertheless, is there some \emph{fragment} of linear logic in which proof reduction and proof construction coincide---in which [well-typed] implementations can be mechanically extracted from specifications?
+% Nevertheless, is there some \emph{fragment} of linear logic in which proof reduction and proof construction coincide---in which [well-typed] implementations can be mechanically extracted from specifications?
 
 % In other words, proof construction is more suited to specification, whereas proof reduction is more suited to implementation.
 
@@ -106,15 +113,15 @@ Nevertheless, is there some \emph{fragment} of linear logic in which proof reduc
 
 
 
-The proof-constuction and proof-reduction approaches each have their own advantages and disadvantages.
-Proof construction leads to concurrent programs that are more declarative [clear] but may get stuck in an ill-defined state.
-Proof reduction, on the other hand, provides progress and preservation properties that ensure well-typed concurrent processes never get stuck, but process definitions are less declarative.
-% The proof-construction approach is more declarative [clear] than the proof-reduction approach, but proof reduction comes with its own advantages.
-% Whereas proof construction may get stuck in an ill-defined state, proof reduction can always progress.
+% The proof-constuction and proof-reduction approaches each have their own advantages and disadvantages.
+% Proof construction leads to concurrent programs that are more declarative [clear] but may get stuck in an ill-defined state.
+% Proof reduction, on the other hand, provides progress and preservation properties that ensure well-typed concurrent processes never get stuck, but process definitions are less declarative.
+% % The proof-construction approach is more declarative [clear] than the proof-reduction approach, but proof reduction comes with its own advantages.
+% % Whereas proof construction may get stuck in an ill-defined state, proof reduction can always progress.
 
-% As always greedy researchers, 
-But is there some \emph{fragment} of linear logic in which proof construction and proof reduction coincide---in which the advantages of \emph{both} approaches, proof-construction and proof-reduction, are retained?
-%---can we have our cake and eat it too?
+% % As always greedy researchers, 
+% But is there some \emph{fragment} of linear logic in which proof construction and proof reduction coincide---in which the advantages of \emph{both} approaches, proof-construction and proof-reduction, are retained?
+% %---can we have our cake and eat it too?
 
 \vspace{0.25\baselineskip}
 \noindent \hspace*{\fill}\scalebox{0.75}{\color{black!50}\ding{70}}\hspace*{\fill}
@@ -128,21 +135,43 @@ Thesis statement.
 \itshape Session types form a bridge between distinct notions of concurrency in computational interpretations of intuitionistic linear logic based on proof construction, on one hand, and proof reduction, on the other hand.
 % Session types form a bridge between different notions of concurrency that arise in computational interpretations of linear logic: computation-as-proof-search, on one hand, and computation-as-proof-reduction, on the other hand.
 \end{quotation}
+
+The contributions of this thesis can be viewed from several perspectives.
+\begin{itemize}
+\item This work can be seen as a proof-theoretic [logical] reconstruction of multiparty session types~\autocite{Honda+:POPL08}.
+In multiparty session types, binary session types are generalized to conversations among several parties.
+Conversations in their entirety are specified using global session types.
+Global types can be projected to binary session types for each pair of participants, which very nearly are implementations.
+\item This work can be seen to further understanding of proof construction and proof reduction.
+\item Gives types to logic programs.
+Guarantees deadlock-freedom.
+\end{itemize}
+In addition to the practical benefit of 
+
+
 The remainder of this document aims to establish this thesis as a plausible one.
 % To do so, we turn our attention from linear logic to (non-modal) intuitionistic ordered logic~\autocites{Lambek:AMM58}{Polakow+Pfenning:MFPS99}, a restriction of linear logic in which [the context of] hypotheses are totally ordered, forming a list rather than a multiset.
 To do so, we turn our attention from linear logic to (non-modal) intuitionistic ordered logic~\autocites{Lambek:AMM58}{Polakow+Pfenning:MFPS99}---a restriction of linear logic in which the context of hypotheses forms a list rather than a multiset or bag---and defend the thesis in this restricted setting.
-The proposed research is to extend the argument to linear logic.
-
+% The proposed research is to extend the argument to linear logic.
+The proposed thesis research is to relax the restrictions and expand the ideas in this document to intuitionistic linear logic.
 
 Specifically, this document describes ... as depicted in \cref{fig:outline}.
 First, \cref{?} reviews a string rewriting interpretation of proof construction in a [non-modal] fragment of intuitionistic ordered logic~\autocite{Simmons:CMU12}.
-String rewriting specifications in this fragment are equipped with a natural notion of concurrency based on equivalence classes of proofs.
+String rewriting specifications in this fragment are equipped with a natural notion of concurrency based on treating  as equivalent the different interleavings of independent rewriting steps.
+[equivalence classes of proofs.]
 
-Despite being concurrent, the string rewriting specifications of \cref{?} lack an immediate notion of \emph{process} or \emph{process identity}.
-Toward this end, \cref{?} introduces \vocab{choreographies}, a further restriction of string rewriting specifications in which atomic propositions are assigned roles as either process-like atoms or message-like atoms.
+Despite being concurrent, these string rewriting specifications lack an immediate notion of \emph{process} or \emph{process identity}.
+Toward this end, \cref{?} introduces \vocab{choreographies}, a further restriction of string rewriting specifications obtained when [in which] atomic propositions are assigned roles as either process-like atoms or message-like atoms.
 (Message-like atoms, such as $\inc[<-]$ in \cref{fig:outline}, are indicated with an arrow decoration.)
-A specification may admit several choreographies, but, as described in \cref{?}, a well-formed choreography must be lock-step-equivalent with the specification.
+A specification may admit several choreographies, but, as described in \cref{?}, a well-formed choreography must be (lock-step) equivalent with the specification.
 % \Cref{?} also describes a lock-step equivalence that must hold between a specification and its well-formed choreography.
+
+Even with process-like atoms, choreographies remain string rewriting specifications, not actual distributed implementations of processes.
+Nevertheless, choreographies are a stepping-stone to process implementations. 
+In \cref{?}, we develop a session-typed process calculus from a Curry--Howard interpretation of a fragment of linear logic; 
+\Cref{?} shows how choreographies can be compiled to 
+
+
 
 Choreographies serve as a stepping stone to full-fledged process definitions.
 
@@ -182,7 +211,7 @@ Choreographies serve as a stepping stone to full-fledged process definitions.
     \graph [edges={node font=\footnotesize}] {
       (srs) ->["role assignment"]
       (ch) ->["session types"]
-      (proc) ->["partial evaluation\\using SSOS"' align=center]
+      (proc) ->["SSOS"' align=center]
       (ssos) ->["specialization"]
       (srs);
     };
