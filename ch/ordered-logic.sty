@@ -40,8 +40,9 @@
 \NewDocumentCommand{\octx}{}{\Omega}
 \NewDocumentCommand{\octxe}{}{\cdot}
 
-\NewDocumentCommand{\omatch}{O{} m}{\Theta#1\lbrace#2\rbrace}
-\NewDocumentCommand{\ofill}{O{} m}{\Theta#1\lbrace#2\rbrace}
+\NewDocumentCommand{\ofrm}{}{\Theta}
+\NewDocumentCommand{\omatch}{O{} m}{\ofrm#1\lbrace#2\rbrace}
+\NewDocumentCommand{\ofill}{O{} m}{\ofrm#1\lbrace#2\rbrace}
 
 \NewDocumentCommand \susp { m m } { \susp:Nn #1 {#2} }
 \cs_new:Npn \susp:Nn #1#2 { \langle #2 \rangle }

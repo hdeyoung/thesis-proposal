@@ -174,8 +174,16 @@
 \NewDocumentCommand \call { m } { \call:n {#1} }
 \cs_new:Npn \call:n #1 { \mathsf{call} \mskip\thinmuskip #1 }
 
-\NewDocumentCommand \compile { m m } { \compile:nn {#1} {#2} }
+\NewDocumentCommand \cmp { m m } { \compile:nn {#1} {#2} }
 \cs_new:Npn \compile:nn #1#2 { \llbracket #1 \rrbracket = #2 }
+
+\NewDocumentCommand \trans { o } {
+  \IfValueTF {#1}
+    { \trans:n {#1} }
+    { \trans: }
+}
+\cs_new:Npn \trans: { \longrightarrow }
+\cs_new:Npn \trans:n #1 { \overset {#1} { \trans: } }
 
 \ExplSyntaxOff
 
@@ -185,54 +193,71 @@
 \section{}
 
 \begin{mathpar}
-  \infer{\compile{A^+_1 \fuse A^+_2}{\spawn{P_1 ; P_2}}}{
-    \compile{A^+_1}{P_1} &
-    \compile{A^+_2}{P_2}}
+  \infer{\cmp{A^+ \fuse \matom[->]}{\selectR{\matom[->] ; P}}}{
+    \cmp{A^+}{P}}
   \and
-  \infer{\compile{\one}{\fwd}}{
+  \infer{\cmp{\matom[<-] \fuse A^+}{\selectL{\matom[<-] ; P}}}{
+    \cmp{A^+}{P}}
+  \and
+  \infer{\cmp{\patom}{\call{\patom}}}{
     }
   \\
-  \infer{\compile{\patom}{\call{\patom}}}{
-    }
+  \infer{\cmp{A^+_1 \fuse A^+_2}{\spawn{P_1 ; P_2}}}{
+    \cmp{A^+_1}{P_1} &
+    \cmp{A^+_2}{P_2}}
   \and
-  \infer{\compile{\matom[->]}{\selectR{\matom[->] ; \fwd}}}{
-    }
-  \and
-  \infer{\compile{\matom[<-]}{\selectL{\matom[<-] ; \fwd}}}{
+  \infer{\cmp{\one}{\fwd}}{
     }
 \end{mathpar}
 
 \begin{mathpar}
-  \infer{\compile{\with*{\matom[->]_i \limp \monad{A^+_i}}[i \in I]}{\caseL*{\matom[->]_i => P_i}[i \in I]}}{
-    \bagged{\compile{A^+_i}{P_i}}[i \in I]}
+  \infer{\cmp{\monad{A^+}}{P}}{
+    \cmp{A^+}{P}}
   \and
-  \infer{\compile{\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]}{\caseR*{\matom[<-]_i => P_i}[i \in I]}}{
-    \bagged{\compile{A^+_i}{P_i}}[i \in I]}
+  \infer{\cmp{\with*{\matom[->]_i \limp \monad{A^+_i}}[i \in I]}{\caseL*{\matom[->]_i => P_i}[i \in I]}}{
+    \bagged{\cmp{A^+_i}{P_i}}[i \in I]}
   \and
-  \infer{\compile{\monad{A^+}}{P}}{
-    \compile{A^+}{P}}
+  \infer{\cmp{\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]}{\caseR*{\matom[<-]_i => P_i}[i \in I]}}{
+    \bagged{\cmp{A^+_i}{P_i}}[i \in I]}
 \end{mathpar}
 
 \begin{mathpar}
-  \infer{\compile{\octx_1, \octx_2}{\octx'_1, \octx'_2}}{
-    \compile{\octx_1}{\octx'_1} &
-    \compile{\octx_2}{\octx'_2}}
-  \and
-  \infer{\compile{\octxe}{\octxe}}{
+  \infer{\cmp{\matom[->]}{\msg{\matom[->]}}}{
     }
   \and
-  \infer{\compile{A^+}{\exec{P}}}{
-    \compile{A^+}{P}}
-  \\
-  \infer{\compile{\susp+{\patom}}{\exec{P}}}{
+  \infer{\cmp{\matom[<-]}{\msg{\matom[<-]}}}{
+    }
+  \and
+  \infer{\cmp{\patom}{\exec{P}}}{
     \patom \lrimp A^- \in \sig &
-    \compile{A^-}{P}}
+    \cmp{A^-}{P}}
+  \\
+  \infer{\cmp{A^+}{\exec{P}}}{
+    \cmp{A^+}{P}}
   \and
-  \infer{\compile{\susp+{\matom[->]}}{\msg{\matom[->]}}}{
-    }
+  \infer{\cmp{A^-}{\exec{P}}}{
+    \cmp{A^-}{P}}
   \and
-  \infer{\compile{\susp+{\matom[<-]}}{\msg{\matom[<-]}}}{
+  \infer{\cmp{\octx_1, \octx_2}{\lctx_1, \lctx_2}}{
+    \cmp{\octx_1}{\lctx_1} &
+    \cmp{\octx_2}{\lctx_2}}
+  \and
+  \infer{\cmp{\octxe}{\octxe}}{
     }
 \end{mathpar}
+
+\begin{theorem}[Completeness]\mbox{}
+  \begin{itemize}
+  \item If $\octx \trans \octx'$ and $\cmp{\octx}{\lctx}$, then $\lctx \trans \lctx'$ for some $\lctx'$ such that $\cmp{\octx'}{\lctx'}$.
+  \item If $\octx \fboxsep=0pt\fbox{$\trans[\smash{\raisebox{-0.5ex}{$\scriptstyle\tau$}}]}^? \trans^? \octx'$ and $\cmp{\octx}{\lctx}$, then $\cmp{\octx'}{\lctx}$ also.
+  \end{itemize}
+\end{theorem}
+
+\begin{theorem}[Soundness]\mbox{}
+  \begin{itemize}
+  \item If $\lctx \trans \lctx'$ and $\cmp{\octx}{\lctx}$, then $\octx \trans \octx'$ for some $\octx'$ such that $\cmp{\octx'}{\lctx'}$.
+  \item If $\lctx, \exec{(\call{\patom})} \trans \lctx, \exec{P}$ and $\cmp{\octx}{\lctx}$, then $\patom \lrimp A^- \in \sig$ for some $A^-$ such that $\cmp{A^-}{P}$.
+  \end{itemize}
+\end{theorem}
 
 \end{document}

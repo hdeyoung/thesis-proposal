@@ -44,7 +44,8 @@
 \subsection{Technical details}\label{sec:ordered-lp:technical}
 
 The previous \lcnamecrefs{sec:olp-intuition:binary-counter} have hopefully served to provide intuition for ordered logical specifications.
-In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details, confining ourselves to a propositional fragment but otherwise generally following the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}.
+In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details, generally following the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}, but confining ourselves to a propositional fragment and using a weakly focused proof-construction strategy~\autocite{Simmons+Pfenning:CMU11}.
+The reader should feel free to skip this \lcnamecref{sec:ordered-lp:technical}, since the technical details are not critical to an understanding of the rest of this proposal.
 
 \subsubsection{Propositions, terms, and traces}\label{sec:props-terms-traces}
 
@@ -52,135 +53,159 @@ In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details, 
 
 Propositions are polarized into \vocab{positive} and \vocab{negative} classes:
 \begin{alignat*}{2}
-  &\text{Positive propositions}\quad & A^+ &::= \p^+ \mid A^+ \fuse B^+ \mid \one \\
+  &\text{Positive propositions}\quad & A^+ &::= \p^+ \mid A^- \mid A^+ \fuse B^+ \mid \one \\
   &\text{Negative propositions}      & A^- &::= A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+}
 \end{alignat*}
 The positive propositions, $A^+$, are those whose left rules are invertible, whereas the negative propositions, $A^-$, are those whose right rules are invertible.
 % As an example, the ordered implications $A^+ \rimp B^-$ and $A^+ \limp B^-$ are classified as negative because the $\rlab{\rimp}$ and $\rlab{\limp}$ rules are invertible.
 
-Positive atomic propositions $\p^+$ stand in for arbitrary positive propositions. 
-The lax modality, or monad, $\monad{A^+}$, gives logical force to the separation of the two classes of propositions, yet still allows positive propositions to be included in negative ones.
-The lax modality will be responsible for typing traces (\cref{??}).
+Positive atomic propositions, $\p^+$, stand in for arbitrary positive propositions.
+Negative propositions, $A^-$, are included in positive ones.
+The lax modality, or monad, $\monad{A^+}$, will be responsible for typing traces; it gives logical force to the separation of the two classes of propositions, yet still allows positive propositions to be included in negative ones.
 % Second, negative propositions can similiarly be treated as positive ones via the implicit inclusion $A^-$.
 
 \paragraph{Contexts.}\label{sec:contexts}
-
+The set of all ordered contexts, $\octx$, forms the free monoid over the alphabet of hypotheses $x{:}A^+$ and $x{:}A^-$: concatenation is written as $\octx_1, \octx_2$ and its unit is the empty context, $\octxe$.
 \begin{alignat*}{2}
-  &\text{Ordered contexts}\quad & \octx &::= \octxe \mid x{:}\susp+{\p^+} \mid x{:}A^- \mid \octx_1, \octx_2
+  &\text{Ordered contexts}\quad & \octx &::= \octxe \mid x{:}A^+ \mid x{:}A^- \mid \octx_1, \octx_2
 \end{alignat*}
+Because the proof-construction strategy is weakly focused, non-atomic positive propositions, such as $A^+ \fuse B^+$, are indeed permissible hypotheses.
 
+In addition to ordered contexts, we include \vocab{frames}.
+Frames, $\ofrm$, can be thought of as ordered contexts with one hole; i.e., $\ofrm$ is morally the same as $\octx_L, \Box, \octx_R$, for some $\octx_L$ and $\octx_R$.
+The hole may be filled with an ordered context, so that $\ofill{\octx}$ is the ordered context $\octx_L, \octx, \octx_R$.
+To ease the notational clutter in typing rules, we also allow contexts to be matched against filled frames.
 
 \paragraph{Terms.}\label{sec:terms}
 
 As previously mentioned, a focused proof-construction strategy~\autocite{Andreoli:JLC92} forms the basis of ordered logical specifications.
-In this focused calculus, there are several forms of sequent%
-%---inversion sequents, right-focused sequents, and left-focused sequents---
-, each corresponding to a syntactic class of proof terms.
+Specifically, we choose a weakly focused strategy~\autocite{Simmons+Pfenning:CMU11}.
+Each form of sequent in the weakly focused calculus corresponds to a syntactic class of terms.
 
-\begin{figure}[!tbp]
-  \begin{infers}[Inversion: $\octx \seq \nof{N : A^-}$][ with $\octx$ stable]
-    \infer[\rlab{\rimp}]{\octx \seq \nof{\rlam{p.N} : A^+ \rimp B^-}}{
-      \octx_{A^+} \pseq \pof{p : A^+} &
-      \octx, \octx_{A^+} \seq \nof{N : B^-}}
-    \and
-    \infer[\rlab{\limp}]{\octx \seq \nof{\llam{p.N} : A^+ \limp B^-}}{
-      \octx_{A^+} \pseq \pof{p : A^+} &
-      \octx_{A^+}, \octx \seq \nof{N : B^-}}
-    \and
-    \infer[\rlab{\with}]{\octx \seq \nof{\pair{N_1 , N_2} : A^-_1 \with A^-_2}}{
-      \octx \seq \nof{N_1 : A^-_1} &
-      \octx \seq \nof{N_2 : A^-_2}}
-    \and
-    \infer[\rlab{\monad{}}]{\octx \seq \nof{\lett{T in V} : \monad{A^+}}}{
-      \tof{T :: \octx \trans* \octx'} &
-      \octx' \seq \vof{V : [A^+]}}
-  \end{infers}
-  \caption{Normal terms\label{fig:normal-terms}}
-\end{figure}
-
-\begin{figure}
-  \begin{infers}[Pattern: $\octx \pseq \pof{p : A^+}$]
-    \infer{x{:}\susp+{\p^+} \pseq \pof{x : \p^+}}{
-      }
-    \and
-    \infer{\octx_1, \octx_2 \pseq \pof{\pfuse{p_1}{p_2} : A^+_1 \fuse A^+_2}}{
-      \octx_1 \pseq \pof{p_1 : A^+_1} &
-      \octx_2 \pseq \pof{p_2 : A^+_2}}
-    \and
-    \infer{\octxe \pseq \pof{\pone : \one}}{
-      }
-  \end{infers}
-  \caption{Patterns}
-\end{figure}
-
-Normal terms $N$ are typed by inversion sequents, $\octx \seq \nof{N : A^-}$ (\cref{fig:normal-terms}).
-Inversion proceeds by eagerly applying right rules, which are invertible because the succedent $A^-$ is of negative polarity.
-Rather than \enquote{inlining} invertible left rules along the derivation's trunk, the focused calculus maintains the invariant that the ordered context $\octx$ in an inversion sequent $\octx \seq \nof{N : A^-}$ is stable.
-% the rules for inversion sequents maintain the invariant that the ordered context $\octx$ is stable.
-It's for this reason that the lambda abstractions $\rlam{p.N}$ and $\llam{p.N}$ bind patterns $p$ instead of single variables---the patterns ensure that the argument is fully left-inverted.
-% Among the normal terms are the lambda abstractions $\rlam{p.N}$ and $\llam{p.N}$, which are typed by the right rules for the ordered implications.
-% These abstractions bind patterns, $p$, instead of single variables because, rather than \enquote{inlining} left inversion along the derivation's trunk, this judgment's rules maintain the invariant that the ordered context $\octx$ is stable.
-
-Eventually, inversion terminates with a lax modality, $\monad{A^+}$, as the succedent.
-Forward-chaining to construct a trace $T$ begins here.
-
+We begin in \cref{fig:traces} with traces, $T$, which are typed with a judgment $\tof{T :: \octx \trans* \octx'}$ that describes the change of state that the trace effects.
 \begin{figure}
   \begin{infers}[$\tof{T :: \octx \trans* \octx'}$]
+    \begin{alignedat}{3}
+      &\text{Traces} &\quad&& T &::= \tnil \mid \tseq{T_1; T_2} \mid S
+    \end{alignedat}
+    \\
     \infer{\tof{\tnil :: \octx \trans* \octx}}{
       }
     \and
-    \infer{\tof{\tstep{p <- R; T} :: \omatch{\octx} \trans* \octx'}}{
-      \octx \seq \aof{R : \susp-{\monad{A^+}}} &
-      \octx_{A^+} \pseq \pof{p : A^+} &
-      \tof{T :: \ofill{\octx_{A^+}} \trans* \octx'}}
+    \infer{\tof{\tseq{T_1; T_2} :: \octx \trans* \octx''}}{
+      \tof{T_1 :: \octx \trans* \octx'} &
+      \tof{T_2 :: \octx' \trans* \octx''}}
+    \and
+    \infer{\tof{S :: \octx \trans* \octx'}}{
+      \tof{S :: \octx \trans \octx'}}
   \end{infers}
   \caption{Traces\label{fig:traces}}
 \end{figure}
-
-Traces $T$ are possibly empty sequences of steps $\tstep{p <- R}$.
-
-
-
+Traces are either empty, $\tnil$, or the (nominally) sequential composition of two traces, $\tseq{T_1; T_2}$, or a single step, $S$.
+The empty trace effects no change to the state;
+the sequential composition $\tseq{T_1; T_2}$ first carries out trace $T_1$, and then continues with the remainder of the trace, $T_2$.
+A single step is also typed by the change of state that it effects: $\tof{S :: \octx \trans \octx'}$ (\cref{fig:steps}).
 \begin{figure}
-  \begin{infers}[Stable: $\octx \seq \aof{R : \susp-{C^-}}$]
-    \infer{\omatch{x{:}A^-} \seq \aof{\atm{x . S} : \susp-{C^-}}}{
-      \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}
+  \begin{infers}[$\tof{S :: \octx \trans \octx'}$]
+    \begin{alignedat}{3}
+      &\text{Steps} &\quad&& S &::= \tstep{x <- R} \mid \tinv{\pfuse{y_1}{y_2} <- x} \mid \tinv{\pone <- x}
+    \end{alignedat}
+    \\
+    \infer{\tof{\tstep{x <- R} :: \omatch{\octx} \trans \ofill{x{:}A^+}}}{
+      \octx \seq \aof{R : \susp-{\monad{A^+}}}}
+    \\
+    \infer{\tof{\tinv{\pfuse{y_1}{y_2} <- x} :: \omatch{x{:}A^+_1 \fuse A^+_2} \trans \ofill{y_1{:}A^+_1 , y_2{:}A^+_2}}}{
+      }
     \and
-    \infer{\omatch{\octxe} \seq \aof{\atm{c . S} : \susp-{C^-}}}{
+    \infer{\tof{\tinv{\pone <- x} :: \omatch{x{:}\one} \trans \ofill{\octxe}}}{
+      }
+    \and
+  \end{infers}
+  \caption{Steps\label{fig:steps}}
+\end{figure}
+Each step is either a left-focusing phase, with term $\tstep{x <- R}$, or one of two inversion steps, with terms $\tinv{\pfuse{y_1}{y_2} <- x}$ and $\tinv{\pone <- x}$.
+In a left-focusing phase, if some piece of state $\octx$ within $\omatch{\octx}$ satisfies the requirements imposed by atomic term $R$ of type $\monad{A^+}$, then $\octx$ is replaced with $x{:}A^+$---no inversion is performed because the proof-construction stategy is weakly focused.
+The inversion occurs as discrete steps that decompose non-atomic positive propositions.
+
+% \Cref{fig:patterns} gives the typing rules for patterns $p$.
+% \begin{figure}
+%   \begin{infers}[Patterns: $\octx \pseq \pof{p : A^+}$]
+%     \infer{x{:}\susp+{\p^+} \pseq \pof{x : \p^+}}{
+%       }
+%     \and
+%     \infer{\octx_1, \octx_2 \pseq \pof{\pfuse{p_1}{p_2} : A^+_1 \fuse A^+_2}}{
+%       \octx_1 \pseq \pof{p_1 : A^+_1} &
+%       \octx_2 \pseq \pof{p_2 : A^+_2}}
+%     \and
+%     \infer{\octxe \pseq \pof{\pone : \one}}{
+%       }
+%   \end{infers}
+%   \caption{Patterns\label{fig:patterns}}
+% \end{figure}
+% These rules correspond to the left inversion pattern rules of higher-order focusing~\autocite{Zeilberger:POPL08}.
+% Patterns are either variables, $x$, 
+
+The typing rules for atomic terms, $R$, according to the judgement $\octx \seq \aof{R : \susp-{C^-}}$ are shown in \cref{fig:atomic-terms}.
+\begin{figure}
+  \begin{infers}[$\octx \seq \aof{R : \susp-{C^-}}$]
+    \begin{alignedat}{3}
+      &\text{Atomic terms} &\quad&& R &::= \atm{c . \spine} \mid \atm{x . \spine}
+    \end{alignedat}
+    \\
+    \infer{\omatch{\octxe} \seq \aof{\atm{c . \spine} : \susp-{C^-}}}{
       c{:}A^- \in \sig &
-      \ofill{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}}    
+      \ofill{\lfoc{A^-}} \seq \sof{\spine : \susp-{C^-}}}    
+    \and
+    \infer{\omatch{x{:}A^-} \seq \aof{\atm{x . \spine} : \susp-{C^-}}}{
+      \ofill{\lfoc{A^-}} \seq \sof{\spine : \susp-{C^-}}}
   \end{infers}
   \caption{Atomic terms\label{fig:atomic-terms}}
 \end{figure}
+These rules correspond to those for beginning a left-focusing phase from a stable sequent.
+Atomic terms consist of a head---either a constant $c$ or variable $x$---followed by a spine, $\spine$, that completes the focusing phase.
 
-Rather than introducing terms for individual left-invertible rules
-
+Spines, as shown in \cref{fig:spines}, are either empty ($\snil$), a value application followed by a spine ($\app{V ; \spine}$), or a projection followed by a spine ($\fst{\spine}$ or $\snd{\spine}$).
 \begin{figure}[!t]
-  \begin{infers}[Left-focus: $\omatch{\lfoc{A^-}} \seq \sof{S : \susp-{C^-}}$]
-    \infer{\omatch{\lfoc{A^-}} \seq \sof{\snil : \susp-{A^-}}}{
+  \begin{infers}[$\omatch{\lfoc{A^-}} \seq \sof{\spine : \susp-{C^-}}$]
+    \begin{alignedat}{3}
+      &\text{Spines} &\quad&& \spine &::= \snil \mid \app{V ; \spine} \mid \fst{\spine} \mid \snd{\spine}
+    \end{alignedat}
+    \\
+    \infer{\lfoc{A^-} \seq \sof{\snil : \susp-{A^-}}}{
       }
-    \and
-    \infer{\omatch{\lfoc{A^+ \rimp B^-}, \octx} \seq \sof{\rapp{V ; S} : \susp-{C^-}}}{
+    \\
+    \infer{\omatch{\lfoc{A^+ \rimp B^-}, \octx} \seq \sof{\app{V ; \spine} : \susp-{C^-}}}{
       \octx \seq \vof{V : \rfoc{A^+}} &
-      \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
+      \ofill{\lfoc{B^-}} \seq \sof{\spine : \susp-{C^-}}}
     \and
-    \infer{\omatch{\octx, \lfoc{A^+ \limp B^-}} \seq \sof{\lapp{V ; S} : \susp-{C^-}}}{
+    \infer{\omatch{\octx, \lfoc{A^+ \limp B^-}} \seq \sof{\app{V ; \spine} : \susp-{C^-}}}{
       \octx \seq \vof{V : \rfoc{A^+}} &
-      \ofill{\lfoc{B^-}} \seq \sof{S : \susp-{C^-}}}
+      \ofill{\lfoc{B^-}} \seq \sof{\spine : \susp-{C^-}}}
     \and
-    \infer{\omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\fst{S} : \susp-{C^-}}}{
-      \ofill{\lfoc{A^-_1}} \seq \sof{S : \susp-{C^-}}}
+    \infer{\omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\fst{\spine} : \susp-{C^-}}}{
+      \ofill{\lfoc{A^-_1}} \seq \sof{\spine : \susp-{C^-}}}
     \and
-    \infer{\omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\snd{S} : \susp-{C^-}}}{
-      \ofill{\lfoc{A^-_2}} \seq \sof{S : \susp-{C^-}}}    
+    \infer{\omatch{\lfoc{A^-_1 \with A^-_2}} \seq \sof{\snd{\spine} : \susp-{C^-}}}{
+      \ofill{\lfoc{A^-_2}} \seq \sof{\spine : \susp-{C^-}}}    
   \end{infers}
-  \caption{Spines}
+  \caption{Spines\label{fig:spines}}
 \end{figure}
+The spine typing judgement $\omatch{\lfoc{A^-}} \seq \sof{\spine : \susp-{C^-}}$ corresponds to the left-focused sequent form.
+Notice that spine typing can succeed even at non-atomic propositions, provided that the proposition under focus matches the consequent.
+Also, value applications require that values, $V$, be typed by positive propositions under focus.
 
+The value typing judgment, $\octx \seq \vof{V : \rfoc{A^+}}$, is shown in \cref{fig:values}.
 \begin{figure}
-  \begin{infers}[Right-focus: $\octx \seq \vof{V : \rfoc{A^+}}$]
-    \infer{x{:}\susp+{\p^+} \seq \vof{x : \rfoc{\p^+}}}{
+  \begin{infers}[$\octx \seq \vof{V : \rfoc{A^+}}$]
+    \begin{alignedat}{3}
+      &\text{Values} &\quad&& V &::= x \mid N \mid \vfuse{V_1}{V_2} \mid \vone
+    \end{alignedat}
+    \\
+    \infer{x{:}\p^+ \seq \vof{x : \rfoc{\p^+}}}{
       }
+    \and
+    \infer{\octx \seq \vof{N : \rfoc{A^-}}}{
+      \octx \seq \nof{N : A^-}}
     \and
     \infer{\octx_1, \octx_2 \seq \vof{\vfuse{V_1}{V_2} : \rfoc{A^+_1 \fuse A^+_2}}}{
       \octx_1 \seq \vof{V_1 : \rfoc{A^+_1}} &
@@ -189,46 +214,126 @@ Rather than introducing terms for individual left-invertible rules
     \infer{\octxe \seq \vof{\vone : \rfoc{\one}}}{
       }
   \end{infers}
-  \caption{Values}
+  \caption{Values\label{fig:values}}
 \end{figure}
+Of particular note is that normal terms, $N$, are included as values that type negative propositions that are included as positive ones.
 
-Traces $T$ are sequences of steps $\tstep{p <- R}$, where the atomic term $R$ specifies the transition's inputs and $p$ matchs the transition's outputs.   
-\begin{alignat*}{2}
-  &\text{Normal terms}\quad & N &::= \rlam{p.N} \mid \llam{p.N} \mid \pair{N_1, N_2} \mid \lett{T in V} \\
-  &\text{Atomic terms}\quad & R &::= \atm{c . S} \mid \atm{x . S} \\
-  &\text{Spines} & S &::= \rapp{V ; S} \mid \lapp{V ; S} \mid \fst{S} \mid \snd{S} \mid \snil \\
-  &\text{Values} & V &::= x \mid \vfuse{V_1}{V_2} \mid \vone \\
-  &\text{Patterns} & p &::= x \mid \pfuse{p_1}{p_2} \mid \pone \\
-  &\text{Traces} & T &::= \tnil \mid \tstep{p <- R; T}
-\end{alignat*}
+Normal terms, $N$, are typed by negative propositions, $A^-$, under the judgment $\octx \seq \nof{N : A^-}$ shown in \cref{fig:normal-terms}.
+\begin{figure}
+  \begin{infers}[$\octx \seq \nof{N : A^-}$]
+    \begin{alignedat}{3}
+      &\text{Normal terms} &\quad&& N &::= \lam{x.N} \mid \pair{N_1, N_2} \mid \lett{T in V}
+    \end{alignedat}
+    \\
+    \infer{\octx \seq \nof{\lam{x.N} : A^+ \rimp B^-}}{
+      \octx, x{:}A^+ \seq \nof{N : B^-}}
+    \and
+    \infer{\octx \seq \nof{\lam{x.N} : A^+ \limp B^-}}{
+      x{:}A^+, \octx \seq \nof{N : B^-}}
+    \and
+    \infer{\octx \seq \nof{\pair{N_1, N_2} : A^-_1 \with A^-_2}}{
+      \octx \seq \nof{N_1 : A^-_1} &
+      \octx \seq \nof{N_2 : A^-_2}}
+    \and
+    \infer{\octx \seq \nof{\lett{T in V} : \monad{A^+}}}{
+      \tof{T :: \octx \trans* \octx'} &
+      \octx' \seq \vof{V : \rfoc{A^+}}}
+  \end{infers}
+  \caption{Normal terms\label{fig:normal-terms}}
+\end{figure}
+Each normal term is either an abstraction ($\lam{x.N}$), a pair ($\pair{N_1, N_2}$), or a trace capped by a value ($\lett{T in V}$).
+The typing judgment for normal terms corresponds to eager inversion on the right.
+
+% \begin{alignat*}{3}
+%   &\text{Traces} &\quad&& T &::= \tnil \mid \tstep{p <- R; T} \\
+%   &\text{Atomic terms} &&& R &::= \atm{c . S} \mid \atm{x . S} \\
+%   &\text{Spines} &&& S &::= \rapp{V ; S} \mid \lapp{V ; S} \mid \fst{S} \mid \snd{S} \mid \snil \\
+%   &\text{Values} &&& V\! &::= x \mid \vfuse{V_1}{V_2} \mid \vone \\
+%   &\text{Patterns} &&& p &::= x \mid \pfuse{p_1}{p_2} \mid \pone
+% \end{alignat*}
 
 
 
 \subsubsection{Concurrent equality}\label{sec:concurrent-equality}
 
+\NewDocumentCommand{\inputs}{m}{\prescript{\mathord{\bullet}}{}{#1}}
+\NewDocumentCommand{\outputs}{m}{#1^{\mathord{\bullet}}}
+\NewDocumentCommand{\set}{m}{\{#1\}}
+\NewDocumentCommand{\FV}{m}{\mathop{\mathrm{FV}}#1}
+
+As described in \cref{sec:olp-intuition:concurrency}, \vocab{concurrent equality} formalizes the idea that different interleavings of independent rewritings should be indistinguishable.
+
+As described in \cref{sec:olp-intuition:concurrency}, the different interleavings of independent rewritings should be indistinguishable.
+Traces $T$ thus form a trace monoid in which independent rewriting steps commute.
+Following \textcite{Cervesato+:LFMTP12}, this independence relation is defined on the sets of input and output variables, $\inputs{S}$ and $\outputs{S}$, of a step $S$.
+
+Specifically, $\inputs{S}$ and $\outputs{S}$ are given by: 
+\begin{alignat*}{3}
+  \inputs{(\tstep{x <- R})} &= \FV{(R)} &\qquad&& \outputs{(\tstep{x <- R})} &= \set{x} \\
+  \inputs{(\tinv{\pfuse{y_1}{y_2} <- x})} &= \set{x} &&& \outputs{(\tinv{\pfuse{y_1}{y_2} <- x})} &= \set{y_1, y_2} \\
+  \inputs{(\tinv{\pone <- x})} &= \set{x} &&& \outputs{(\tinv{\pone <- x})} &= \emptyset
+\end{alignat*}
+
+Consider the trace $\tseq{S_1; S_2}$.
+These two neighboring steps are independent and commute if $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$.
+In other words, if $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$, then $\tof{\tseq{S_1; S_2} :: \octx \trans* \octx''}$ if and only if $\tof{\tseq{S_2; S_1} :: \octx \trans* \octx''}$.
+Concurrent equality is the congruence relation that is obtained by associativity and unit axioms and this partial commutativity.
+
+% Step $S_1$ must precede step $S_2$ if $S_1$ binds as outputs any variables that are used by $S_2$, i.e., if $\outputs{S_1{}} \cap \inputs{S_2} \neq \emptyset$.
+% Conversely, steps $S_1$ and $S_2$ may be permuted if $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$.
+% So, the traces $\tcons{S_1; \tcons{S_2; T}}$ and $\tcons{S_2; \tcons{S_1; T}}$ are equivalent whenever $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$.
+
+
+
+
+% Following \textcite{Cervesato+:LFMTP12}, concurrent equality is defined by characterizing the steps in a trace that may be permuted.
+
+
+
+% Traces can be adapted to a trace monoid with the independence relation defined on the sets of input and output variables, $\inputs{S}$ and $\outputs{S}$, of a step $S$.
+
+
+
+% Consider the trace $\tcons{S_1; \tcons{S_2; T}}$.
+% Step $S_1$ must precede step $S_2$ if $S_1$ binds as outputs any variables that are used by $S_2$, i.e., if $\outputs{S_1{}} \cap \inputs{S_2} \neq \emptyset$.
+% Conversely, steps $S_1$ and $S_2$ may be permuted if $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$.
+% So, the traces $\tcons{S_1; \tcons{S_2; T}}$ and $\tcons{S_2; \tcons{S_1; T}}$ are equivalent whenever $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$.
+
+% This
+
+% Step $S_2$ depends on following step $S_1$ if $S_2$ uses variables that are bound as outputs of $S_1$, i.e., if $\outputs{S_1} \cap \inputs{S_2} \neq \emptyset$.
+
+Bound variables can always be renamed to be distinct from the input and output variables of previous steps in the trace.
 
 
 
 
 
-\subsubsection{Fairness}\label{sec:fairness}
 
-\NewDocumentCommand{\headpath}{m}{(#1)^p}
-A trace $\tof{T :: \octx_0 \trans[\omega][]}$ is unfair if there exist $i$ and $R'_i, R'_{i+1}, \dotsc$ such that:
-\begin{enumerate}[label=\alph*., ref=\alph*]
-\item for all $j \geq i$, there exist $p'_j$ and $\octx'_j$ such that $\tof{\tstep{p'_j <- R'_j} :: \octx_j \trans \octx'_j}$;
-\item $\headpath{R'_j} = \headpath{R'_{j+1}}$ for all $j \geq i$;
-\item $\headpath{R_j} \neq \headpath{R'_j}$ for all $j \geq i$.
-\end{enumerate}
+% \subsubsection{Fairness}\label{sec:fairness}
 
+% \NewDocumentCommand{\head}{m}{#1^\flat}
+% \begin{definition}[Weak Transition-Fairness]
+%   A trace $\tof{T :: \octx_0 \trans[\omega][]}$ is \vocab{weakly transition-unfair} if there exists an $i$ such that:
+%   \begin{itemize}
+%   \item for every $j \geq i$, there is a step $\tof{S'_j :: \octx_j \trans \octx'_j}$ for which $\head{(S'_j)} = \head{(S'_i)} \neq \head{(S_j)}$.
+%   \end{itemize}
+% \end{definition}
+% In other words, trace $T$ is weakly transition-unfair if there is some transition $\head{(S'_i)}$ that is eventually (viz.\ from $i$ onward) persistently enabled but never taken by trace $T$.
 
-\begin{equation*}
-  \octx_j = \omatch[_j]{\octx_{R_j}}
-\end{equation*}
+% Transitions are defined from steps $S$ using the $\head{(-)}$ function:
+% \begin{equation*}
+%   \!\begin{aligned}
+%     \head{(\tstep{p <- R})} &= \head{R} \\
+%     %
+%       \head{(\rapp{V ; S})} &= \rapp{\square ; \head{S}} \\
+%       \head{(\lapp{V ; S})} &= \lapp{\square ; \head{S}} \\
+%       \head{(\fst{S})} &= \fst{\head{S}} \\
+%       \head{(\snd{S})} &= \snd{\head{S}} \\
+%       \head{(\snil)} &= \snil
+%     \end{aligned}
+% \end{equation*}
 
-\begin{equation*}
-  \octx_{R_j} \seq \aof{R_j : \susp-{\monad{A^+_j}}}
-\end{equation*}
 \end{document}
 
 %%% Local Variables:

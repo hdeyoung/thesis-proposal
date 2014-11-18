@@ -1,0 +1,434 @@
+% arara: pdflatex
+\documentclass{article}
+
+\usepackage[lining,semibold]{libertine}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{stmaryrd}
+\usepackage{mathtools}
+\usepackage[libertine]{newtxmath}
+\useosf
+
+\newtheorem*{theorem}{Theorem}
+\newtheorem*{claim}{Claim}
+\theoremstyle{definition}
+\newtheorem*{example}{Example}
+
+\usepackage{mathpartir}
+\usepackage{proof}
+
+\usepackage{graphicx}
+\usepackage{xparse}
+
+
+\newcommand* \sig {\Sigma}
+\newcommand* \state {\mathcal{S}}
+\newcommand* \lctx { \Delta }
+\newcommand* \lctxe { \cdot }
+\NewDocumentCommand \octx {g}{ \IfValueTF{#1}{\Theta\{#1\}}{\Omega} }
+\newcommand* \octxe { \cdot }
+\newcommand* \susp [1]{ \langle #1\rangle }
+
+\newcommand* \fuse { \mathbin{\bullet} }
+\newcommand* \one { \mathord{\mathbf{1}} }
+\newcommand* \with { \mathbin{\binampersand} }
+\newcommand* \rimp { \twoheadrightarrow }
+\newcommand* \limp { \rightarrowtail }
+\newcommand* \lrimp { \rightarrowtriangle }
+\newcommand* \monad [1]{ \{#1\} }
+
+\newcommand* \cmp [1]{ \llbracket #1\rrbracket }
+
+\newcommand* \trans { \longrightarrow }
+\newcommand* \ntrans { \longarrownot\trans }
+\newcommand* \exec [1]{ \mathsf{exec}\, #1 }
+\newcommand* \msg [1]{ \mathsf{msg}\, #1 }
+
+\newcommand* \lcons { , }
+\newcommand* \ocons { , }
+
+\newcommand* \selectL [1]{ \mathsf{selectL}\, #1 }
+\newcommand* \caseR [1]{ \mathsf{caseR}(#1) }
+\newcommand* \selectR [1]{ \mathsf{selectR}\, #1 }
+\newcommand* \caseL [1]{ \mathsf{caseL}(#1) }
+\newcommand* \spawn [1]{ \mathsf{spawn}\, #1 }
+\newcommand* \call [1]{ \mathsf{call}\, #1 }
+\newcommand* \fwd { \mathord{\leftrightarrow} }
+
+\newcommand* \dashV { \mathrel{\reflectbox{$\mathord{\Vdash}$}} }
+
+\usepackage{tikz-cd}
+\usetikzlibrary{quotes}
+
+\begin{document}
+
+\section{}
+
+\noindent\fbox{$\cmp{A^+} = P$}
+\begin{mathpar}
+  \infer{\cmp{p} = \call{p}}{
+    }
+  \and
+  \infer{\cmp{m^\shortleftarrow} = \selectL{m^\shortleftarrow ; \fwd}}{
+    }
+  \and
+  \infer{\cmp{m^\shortrightarrow} = \selectR{m^\shortrightarrow ; \fwd}}{
+    }
+  \and
+  \infer{\cmp{A^+_1 \fuse A^+_2} = \spawn{P_1 ; P_2}}{
+    \cmp{A^+_1} = P_1 &
+    \cmp{A^+_2} = P_2}
+  \and
+  \infer{\cmp{\one} = \fwd}{
+    }
+\end{mathpar}
+
+\noindent\fbox{$\cmp{A^-} = P$}
+\begin{mathpar}
+  \infer{\cmp{\monad{A^+}} = P}{
+    \cmp{A^+} = P}
+  \and
+  \infer{\cmp{\with_{i \in I}(m^\shortleftarrow_i \rimp \{A^+_i\})} = \caseR{m^\shortleftarrow_i \Rightarrow P_i}}{
+    \cmp{A^+_i} = P_i}
+  \and
+  \infer{\cmp{\with_{i \in I}(m^\shortrightarrow_i \limp \{A^+_i\})} = \caseL{m^\shortrightarrow_i \Rightarrow P_i}}{
+    \cmp{A^+_i} = P_i}
+\end{mathpar}
+
+\noindent\fbox{$\cmp{\octx} = \lctx$}
+\begin{mathpar}
+  \infer{\cmp{\octxe} = \lctxe}{
+    }
+  \and
+  \infer{\cmp{\octx_1 \ocons \octx_2} = \lctx_1 \lcons \lctx_2}{
+    \cmp{\octx_1} = \lctx_1 &
+    \cmp{\octx_2} = \lctx_2}
+  \\
+  \infer{\cmp{A^-} = \exec{P}}{
+    \cmp{A^-} = P}
+  \and
+  \infer{\cmp{\susp{m}} = \msg{m}}{
+    }
+  \and
+  \infer{\cmp{\susp{p}} = \exec{P}}{
+    p \lrimp A^- \in \sig &
+    \cmp{A^-} = P}
+    % \exec{P} \mathrel{\mathord{\overset{\tau}{\trans}}{}^*} \lctx}
+  \\
+  \infer{\cmp{A^+} = \exec{P}}{
+    \cmp{A^+} = P}
+\end{mathpar}
+
+
+\subsection{}
+
+\begin{theorem}[Completeness]\mbox{}
+  \begin{itemize}
+  \item If $\octx \trans \octx'$ (with $\octx$ and $\octx'$ stable) and $\cmp{\octx} = \lctx$, then $\lctx \trans^+ \lctx'$ for some $\lctx'$ such that $\cmp{\octx'} = \lctx'$.
+  \item If $\octx' \Vdash A^+$ and $\cmp{A^+} = P$, then $\exec{P} \trans^+ \lctx'$ for some $\lctx'$ such that $\cmp{\octx'} = \lctx'$.
+  \end{itemize}
+\end{theorem}
+
+\begin{example}\mbox{}
+  \begin{center}\begin{tikzcd}[arrow style=math font]
+    m^\shortleftarrow \ar[rr, -{Bar[sep] . Bar[]}] \dar[dash, "\cmp{\cdot}"'] && \susp{m^\shortleftarrow} \dar[dash, gray, "\cmp{\cdot}"] \\
+    \exec{(\selectL{m^\shortleftarrow ; \fwd})} \rar[gray] & \msg{m^\shortleftarrow} \lcons \exec{\fwd} \rar[gray] & \msg{m^\shortleftarrow}
+  \end{tikzcd}\end{center}
+
+  \begin{center}\begin{tikzcd}[arrow style=math font]
+    \monad{m^\shortleftarrow} \rar \dar[dash, "\cmp{\cdot}"'] & \susp{m^\shortleftarrow} \dar[dash, gray, "\cmp{\cdot}"] \\
+    \exec{(\selectL{m^\shortleftarrow ; \fwd})} \rar[gray, "2" at end] & \msg{m^\shortleftarrow}
+  \end{tikzcd}\end{center}
+\end{example}
+
+\begin{example}\mbox{}
+  \begin{center}\begin{tikzcd}[arrow style=math font]
+    \susp{p} \ocons \susp{m^\shortleftarrow_k} \ar[rr] \dar[dash, "\cmp{\cdot}"'] && \octx' \dar[dash, gray, "\cmp{\cdot}"] \\
+    \exec{(\caseR{m^\shortleftarrow_i \Rightarrow P_i})} \lcons \msg{m^\shortleftarrow_k} \rar[gray] & \exec{P_k} \rar[gray, "+" at end] & \lctx'
+  \end{tikzcd}\end{center}
+  provided that $p \lrimp \with_i(m^\shortleftarrow_i \rimp \monad{A^+_i}) \in \sig$ and $\cmp{A^+_k} = P_k$ and $\octx' \Vdash A^+_k$ and $\cmp{\octx'} = \lctx'$.
+\end{example}
+
+
+\subsection{}
+
+\begin{claim}[Soundness]\mbox{}
+  \begin{itemize}
+  \item If $\lctx \trans \lctx'$ and $\cmp{\octx} = \lctx$ (with $\octx$ stable), then $\octx \trans\Vdash \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+  %
+  \item If $\exec{P} \trans \lctx'$ and $\cmp{A^+} = P$, then $A^+ \dashV\Vdash \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+  \end{itemize}
+\end{claim}
+
+\begin{example}\mbox{}
+  \begin{center}\begin{tikzcd}[arrow style=math font]
+    \exec{(\spawn{\fwd ; \fwd})} \rar \dar[dash, "\cmp{\cdot}"'] & \exec{\fwd} \lcons \exec{\fwd} \dar[dash, "\cmp{\cdot}"', gray] \ar[rr] && \exec{\fwd} \dar[dash, "\cmp{\cdot}"', gray] \ar[rr] && \lctxe \dar[dash, "\cmp{\cdot}"', gray] \\
+    \monad{\one \fuse \one} \rar[shorten >=0.55em, "\textstyle\Vdash" {at end, right=-0.75em}, gray] & \one \ocons \one \rar[-{Bar[sep] . Bar[]}, shorten >=-0.35em, gray] & {} \rar[{Bar[] . Bar[sep]}-, shorten <=-0.35em, gray] & \one \rar[-{Bar[sep] . Bar[]}, shorten >=-0.35em, gray] & {} \rar[{Bar[] . Bar[sep]}-, shorten <=-0.35em, gray] & \cdot 
+  \end{tikzcd}\end{center}
+\end{example}
+
+\begin{example}\mbox{}
+  \begin{center}\small\begin{tikzcd}[arrow style=math font]
+    \exec{(\spawn{\fwd ; \fwd})} , \exec{\fwd} \rar \dar[dash, "\cmp{\cdot}"'] & \exec{\fwd} \lcons \exec{\fwd} , \exec{\fwd} \dar[dash, "\cmp{\cdot}"', gray] \ar[rr] && \exec{\fwd} , \exec{\fwd} \dar[dash, "\cmp{\cdot}"', gray] \rar & \exec{\fwd} \dar[dash, "\cmp{\cdot}"', gray] \ar[rr] && \lctxe \dar[dash, "\cmp{\cdot}"', gray] \\
+    \monad{\one \fuse \one} , \monad{\one} \rar[shorten >=0.55em, "\textstyle\Vdash" {at end, right=-0.75em}, gray] & \one \ocons \one , \monad{\one} \rar[-{Bar[sep] . Bar[]}, shorten >=-0.35em, gray] & {} \rar[{Bar[] . Bar[sep]}-, shorten <=-0.35em, gray] & \one , \monad{\one} \rar[shorten >=0.55em, "\textstyle\Vdash" {at end, right=-0.75em}, gray] & \one \rar[-{Bar[sep] . Bar[]}, shorten >=-0.35em, gray] & {} \rar[{Bar[] . Bar[sep]}-, shorten <=-0.35em, gray] & \cdot 
+  \end{tikzcd}\end{center}
+\end{example}
+
+% \begin{claim}[Soundness]\mbox{}
+%   \begin{itemize}
+%   \item If $\lctx \trans \lctx'$ and $\cmp{\octx} = \lctx$ (with $\octx$ stable), then $\octx \trans \octx'$ for some (possibly unstable) $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+%   %
+%   \item If $\exec{P} \trans \lctx'$ and $\cmp{A^+} = P$, then $A^+ \trans \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+%   \end{itemize}
+% \end{claim}
+
+% \begin{example}\mbox{}
+%   \begin{center}\begin{tikzcd}[arrow style=math font]
+%     \exec{(\selectL{m^\shortleftarrow ; \fwd})} \rar \dar[dash, "\cmp{\cdot}"'] & \msg{m^\shortleftarrow} \lcons \exec{\fwd} \dar[dash, "\cmp{\cdot}", gray] \\
+%     \monad{m^\shortleftarrow} \rar[gray] & {?}
+%   \end{tikzcd}\end{center}
+% \end{example}
+
+% \begin{example}\mbox{}
+%   \begin{center}\begin{tikzcd}[arrow style=math font]
+%     \exec{(\selectL{m^\shortleftarrow ; P})} \ar[rr] \dar[dash, "\cmp{\cdot}"'] && \msg{m^\shortleftarrow} \lcons \exec{P} \dar[dash, "\cmp{\cdot}", gray] \\
+%     \monad{m^\shortleftarrow \fuse A^+} \rar[gray] & m^\shortleftarrow \fuse A^+ \rar[gray] & m^\shortleftarrow \ocons A^+ 
+%   \end{tikzcd}\end{center}
+% \end{example}
+
+
+
+% \section{Weak focusing}
+
+% \begin{mathpar}
+%   \infer{\octx{A^-} \vdash J}{
+%     \octx{\lfoc{A^-}} \vdash J}
+%   \and
+%   \infer{\octx{\lfoc{\monad{A^+}}} \vdash C^+ \lax}{
+%     \octx{A^+} \vdash C^+ \lax}
+% \end{mathpar}
+
+% \begin{itemize}
+% \item $\octx{\octx_1, A^-, \octx_2} \trans \octx{B^+}$ if $\octx_1, A^-, \octx_2 \overset{\mathsf{lfoc}}{\trans} B^+$
+% \item $\octx{A^+_0} \trans \octx{\octx_1}$ if $A^+_0 \overset{\mathsf{inv}}{\trans} \octx_1$
+% \end{itemize}
+
+
+
+\section{Weakly-focused steps}
+
+Suppose that we wish to have the soundness theorem use weakly-focused steps for the choreographies, instead of the quasi-step $\octx \trans\Vdash \octx'$.
+Consider the following situation.
+\begin{equation*}
+  \begin{tikzcd}[arrow style=math font]
+    \exec{(\selectL{m^\shortleftarrow ; \fwd})} \rar \dar[dash, "\cmp{\cdot}"'] & \msg{m^\shortleftarrow} , \exec{\fwd} \dar[dash, "\cmp{\cdot}", gray] \\
+    %
+    \monad{m^\shortleftarrow} \rar[gray] & m^\shortleftarrow
+  \end{tikzcd}
+\end{equation*}
+In a weakly-focused calculus, positive atoms, like $m^\shortleftarrow$, would usually be considered stable.
+In that case, there would be no weakly-focused step from $m^\shortleftarrow$ to match the SSOS step $\msg{m^\shortleftarrow} , \exec{\fwd} \trans \msg{m^\shortleftarrow}$.
+
+Assuming that we continue to use weakly-focused steps, there are two possible solutions:
+\begin{itemize}
+\item
+  \emph{As a proposition, allow only $m^\shortleftarrow \fuse A^+$, but retain $m^\shortleftarrow$ as a stable hypothesis.}
+  The rules would be 
+  \begin{mathpar}
+    \infer{\cmp{m^\shortleftarrow \fuse A^+} = \selectL{m^\shortleftarrow ; P}}{
+      \cmp{A^+} = P}
+    \and
+    \infer{\cmp{A^+} = \exec{P}}{
+      \cmp{A^+} = P}
+    \and
+    \infer{\cmp{m^\shortleftarrow} = \msg{m^\shortleftarrow}}{
+      }
+  \end{mathpar}
+
+  With these changes, the above diagram becomes:
+  \begin{equation*}
+    \begin{tikzcd}[arrow style=math font]
+      \exec{(\selectL{m^\shortleftarrow ; \fwd})} \ar[rr] \dar[dash, "\cmp{\cdot}"'] && \msg{m^\shortleftarrow} , \exec{\fwd} \dar[dash, "\cmp{\cdot}", gray] \\
+      %
+      \monad{m^\shortleftarrow \fuse \one} \rar[gray] & m^\shortleftarrow \fuse \one \rar[gray] & m^\shortleftarrow , \one
+    \end{tikzcd}
+  \end{equation*}
+  Now the SSOS step $\msg{m^\shortleftarrow} , \exec{\fwd} \trans \msg{m^\shortleftarrow}$ can be matched by the weakly-focused step $m^\shortleftarrow , \one \trans m^\shortleftarrow$.
+
+  Notice that we must allow at most one inversion step ($m^\shortleftarrow \fuse \one \trans m^\shortleftarrow , \one$) to follow the focusing phase ($\monad{m^\shortleftarrow \fuse \one} \trans m^\shortleftarrow \fuse \one$) if the above is to work.
+  But that was anyway necessary to handle the more general $\monad{A^+ \fuse B^+}$:
+  \begin{equation*}
+    \begin{tikzcd}[arrow style=math font]
+      \exec{(\spawn{P ; Q})} \ar[rr] \dar[dash, "\cmp{\cdot}"'] && \exec{P} , \exec{Q} \dar[dash, "\cmp{\cdot}", gray] \\
+      %
+      \monad{A^+ \fuse B^+} \rar[gray] & A^+ \fuse B^+ \rar[gray] & A^+ , B^+
+    \end{tikzcd}
+  \end{equation*}
+  \begin{theorem}[Soundness]\mbox{}
+    \begin{itemize}
+    \item If $\lctx \trans \lctx'$ and $\cmp{\octx} = \lctx$ (with $\octx$ stable), then $\octx \trans\trans^? \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+    \item If $\exec{P} \trans \lctx'$ and $\cmp{P} = A^+$, then $A^+ \trans \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+    \end{itemize}
+  \end{theorem}
+  \begin{theorem}[Completeness]\mbox{}
+    \begin{itemize}
+    \item If $\octx \trans \octx'$ and $\cmp{\octx} = \lctx$ (with $\octx$ stable), then $\lctx \trans^? \lctx'$ for some $\lctx'$ such that $\cmp{\octx'} = \lctx'$.
+    \item If $A^+ \trans \octx'$ and $\cmp{A^+} = P$, then $\exec{P} \trans \lctx'$ for some $\lctx'$ such that $\cmp{\octx'} = \lctx'$.
+    \end{itemize}
+  \end{theorem}
+%
+\item
+  \emph{Do not consider positive atoms to be stable; only their suspensions are stable.}
+  This requires that a hypothesis $\susp{m^\shortleftarrow}$ may be translated in two different ways: either as $\msg{m^\shortleftarrow}$ or as $\msg{m^\shortleftarrow} , \exec{\fwd}$.
+  Specifically, the rules would be 
+  \begin{mathpar}
+    \infer{\cmp{m^\shortleftarrow} = \selectL{m^\shortleftarrow ; \fwd}}{
+      }
+    \and
+    \infer{\cmp{A^+} = \exec{P}}{
+      \cmp{A^+} = P}
+    \\
+    \infer{\cmp{\susp{m^\shortleftarrow}} = \msg{m^\shortleftarrow}}{
+      }
+    \and
+    \infer{\cmp{\susp{m^\shortleftarrow}} = \msg{m^\shortleftarrow} , \exec{\fwd}}{
+      }
+  \end{mathpar}
+
+  With these changes, the above diagram becomes:
+  \begin{equation*}
+    \begin{tikzcd}[arrow style=math font]
+      \exec{(\selectL{m^\shortleftarrow ; \fwd})} \ar[rr] \dar[dash, "\cmp{\cdot}"'] && \msg{m^\shortleftarrow} , \exec{\fwd} \dar[dash, "\cmp{\cdot}", gray] \\
+      %
+      \monad{m^\shortleftarrow} \rar[gray] & m^\shortleftarrow \rar[gray] & \susp{m^\shortleftarrow}
+    \end{tikzcd}
+  \end{equation*}
+  However, the subsequent SSOS step $\msg{m^\shortleftarrow} , \exec{\fwd} \trans \msg{m^\shortleftarrow}$ cannot be matched by a weakly-focused step because $\susp{m^\shortleftarrow}$ is already stable.
+  In other words, by allowing $\susp{m^\shortleftarrow}$ to be translated in two different ways, we are pushed toward a weak bisimulation.
+  \begin{equation*}
+    \begin{tikzcd}[arrow style=math font]
+      \exec{(\selectL{m^\shortleftarrow ; \fwd})} \ar[rr] \dar[dash, "\cmp{\cdot}"'] && \msg{m^\shortleftarrow} , \exec{\fwd} \rar \dar[dash, "\cmp{\cdot}"', gray] & \msg{m^\shortleftarrow} \ar[dl, dash, "\cmp{\cdot}" near start, gray] \\
+      %
+      \monad{m^\shortleftarrow} \rar[gray] & m^\shortleftarrow \rar[gray] & \susp{m^\shortleftarrow} \mathrlap{\text{\textcolor{gray}{${} \ntrans {}$}}}
+    \end{tikzcd}
+  \end{equation*}
+
+  \begin{theorem}[Soundness]\mbox{}
+    \begin{itemize}
+    \item If $\lctx \trans \lctx'$ and $\cmp{\octx} = \lctx$ (with $\octx$ stable), then either: $\octx \trans\trans^? \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$; or $\cmp{\octx} = \lctx'$.
+    \item If $\exec{P} \trans \lctx'$ and $\cmp{A^+} = P$, then $A^+ \trans \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+    \end{itemize}
+  \end{theorem}
+\end{itemize}
+
+
+\section{Weak bisimulation}
+
+For a labeled transition system, relation $\mathcal{R}$ is a weak simulation if it satisfies:
+\begin{equation*}
+  \begin{tikzcd}[arrow style=math font]
+    P \ar[rrr, "\alpha"] \dar[dash, "\mathcal{R}"'] &&& P' \dar[dash, "\mathcal{R}", gray] \\
+    Q \rar["\tau", "*" at end, gray] & \rar["\alpha", gray] & \rar["\tau", "*" at end, gray] & Q'
+  \end{tikzcd}
+  \qquad\qquad
+  \begin{tikzcd}[arrow style=math font]
+    P \rar["\tau"] \dar[dash, "\mathcal{R}"'] & P' \dar[dash, "\mathcal{R}", gray] \\
+    Q \rar["\tau", "*" at end, gray] & Q'
+  \end{tikzcd}
+\end{equation*}
+Relation $\mathcal{R}$ is a weak bisimulation if both $\mathcal{R}$ and $\mathcal{R}^{-1}$ are weak simulations.
+
+\subsection{}
+
+Recall that the proposed rule for translating $\monad{A^+}$ ignores the monad:
+\begin{equation*}
+  \infer{\cmp{\monad{A^+}} = P}{
+    \cmp{A^+} = P}
+  \,.
+\end{equation*}
+This suggests that (weakly-focused) transitions $\monad{A^+} \trans A^+$ % and $p \trans A^+$, where $p \lrimp \monad{A^+} \in \sig$, 
+should be silent.
+
+\begin{theorem}[Completeness]\mbox{}
+  \begin{itemize}
+  \item If $\octx \trans \octx'$ and $\cmp{\octx} = \lctx$ (with $\monad{A^+} \notin \octx$), then $\lctx \trans\mathrel{\overset{\tau}{\mathord{\trans}}{}^?} \lctx'$ for some $\lctx'$ such that $\cmp{\octx'} = \lctx'$.
+  % \item If $A^+ \trans \octx'$ and $\cmp{A^+} = P$, then $\exec{P} \trans \lctx'$ for some $\lctx'$ such that $\cmp{\octx'} = \lctx'$.
+  \item If $\monad{A^+} \trans \octx'$ and $\cmp{A^+} = P$, then $\cmp{\octx'} = \exec{P}$.
+  \end{itemize}
+\end{theorem}
+
+\begin{example}\mbox{}
+\begin{equation*}
+  \begin{tikzcd}[arrow style=math font]
+    \monad{m^\shortleftarrow} \rar["\tau"] \dar[dash, "\cmp{\cdot}"']
+    & m^\shortleftarrow \rar \ar[dl, dash, "\cmp{\cdot}"' near end, gray]
+    & \susp{m^\shortleftarrow} \dar[dash, "\cmp{\cdot}"', gray]
+    \\
+    \exec{(\selectL{m^\shortleftarrow ; \fwd})} \rar[gray]
+    & \msg{m^\shortleftarrow} , \exec{\fwd} \rar["\tau", gray]
+    & \msg{m^\shortleftarrow}
+  \end{tikzcd}
+\end{equation*}
+\end{example}
+
+\begin{example}\mbox{}
+\begin{equation*}
+  \begin{tikzcd}[arrow style=math font]
+    \monad{p} \rar["\tau"] \dar[dash, "\cmp{\cdot}"']
+    & p \rar \ar[dl, dash, "\cmp{\cdot}"' near end, gray]
+    & \susp{p} \dar[dash, "\cmp{\cdot}"', gray]
+    \\
+    \exec{(\call{p})} \ar[rr, gray]
+    && \exec{P}
+  \end{tikzcd}
+\end{equation*}
+\end{example}
+
+
+\begin{claim}[Soundness]\mbox{}
+  \begin{itemize}
+  \item If $\lctx \trans \lctx'$ and $\cmp{\octx} = \lctx$, then $\octx \mathrel{\mathord{\overset{\tau}{\trans}}{}^?} \trans \octx'$ for some $\octx'$ such that $\cmp{\octx'} = \lctx'$.
+  \item If $\lctx \overset{\tau}{\trans} \lctx'$ and $\cmp{\octx} = \lctx$, then $\cmp{\octx} = \lctx'$.
+  \end{itemize}
+\end{claim}
+
+\begin{example}\mbox{}
+\begin{equation*}
+  \begin{tikzcd}[arrow style=math font]
+    \msg{m^\shortleftarrow} , \exec{\fwd} \rar["\tau"] \dar[dash, "\cmp{\cdot}"']
+    & \msg{m^\shortleftarrow} \ar[dl, dash, "\cmp{\cdot}", gray]
+    \\
+    \susp{m^\shortleftarrow}
+  \end{tikzcd}
+\end{equation*}
+\end{example}
+
+\begin{example}\mbox{}
+\begin{equation*}
+  \begin{tikzcd}[arrow style=math font]
+    \msg{m^\shortleftarrow} , \exec{\fwd} \rar["\tau"] \dar[dash, "\cmp{\cdot}"']
+    & \msg{m^\shortleftarrow} \dar[dash, "\cmp{\cdot}", gray]
+    \\
+    \susp{m^\shortleftarrow} , \one \rar["\tau", gray]
+    & \susp{m^\shortleftarrow}
+  \end{tikzcd}
+\end{equation*}
+\end{example}
+
+
+
+% \subsection{}
+
+% Suppose instead that $\monad{A^+} \trans A^+$ is \emph{not} silent.
+% \begin{equation*}
+%   x
+% \end{equation*}
+
+% \section{}
+
+% \begin{equation*}
+%  \cmp{A^+ \fuse B^+} \mathrel{\mathord{\overset{\mathsf{u}}{\trans}}{}^*} \lctx'_1, \lctx'_2
+% \end{equation*}
+\end{document}

@@ -138,7 +138,7 @@ We frequently omit the index when it is clear from the context.}
 \end{equation*}
 where at each step the sites amenable to rewriting have been underlined.
 This trace computes $1 + 1 = 2$ in binary representation.
-More generally, the clauses adequately specify an increment operation, as will be described further in \cref{sec:gener-invar}.
+More generally, the clauses adequately specify an increment operation, as discussed further in \cref{sec:gener-invar}.
 
 \subsection{Concurrency}\label{sec:olp-intuition:concurrency}
 
@@ -189,7 +189,7 @@ However, because these two rewritings are independent, they should be considered
 Rather than giving a truly concurrent semantics for string rewriting, we can treat different interleavings of independent steps as indistinguishable.%
 \footnote{In the above example, indistinguishability of the two different interleavings is tantamount to requiring the diagram to commute.}
 Then, because we can't observe which rewriting occurred first, the two rewritings appear to happen concurrently.
-This is the idea of \vocab{concurrent equality} from {CLF}~\autocite{Watkins+:CMU02}, borrowed for ordered, rather than linear, logical specifications.
+This is the idea of \vocab{concurrent equality} from the {CLF}~\autocite{Watkins+:CMU02} linear logical specification framework, adapted by \textcite{Simmons:CMU12} for ordered logical specifications.
 % Concurrent equality justifies adopting true concurrency as an abstraction.
 
 
@@ -312,7 +312,8 @@ This justifies treating those two rewritings as concurrent.
 
 
 
-\subsection{Infinite traces and fairness}\label{sec:olp-intuition:infinite-traces}
+\subsection{Infinite traces% and fairness
+}\label{sec:olp-intuition:infinite-traces}
 
 \NewPredicate{\incs}{0}%
 Thus far, all traces have been finite, but this is not necessarily so.
@@ -335,10 +336,13 @@ Among the infinite traces now possible is
 Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$ substring, instead always choosing to rewrite $\incs$.
 Because of its scheduling bias against rewriting $\eps \fuse \inc$, we say that the trace is \vocab{(weakly) transition-unfair}.
 
-Transition unfairness is fundamentally at odds with concurrency.
-Because concurrency allows multiple independent events to occur simultaneously, one event should not preclude another independent event;
-in the above example, for instance, rewriting the $\incs$ atom should not preclude rewriting the independent $\eps \fuse \inc$ substring.
-Therefore, to maintain the pretense of true concurrency, we must require all traces to be transition-fair.
+Transition unfairness is fundamentally at odds with concurrency because it allows the possibility that one event precludes another, independent event, as does the persistant rewriting of $\incs$ preclude the rewriting of the independent $\eps \fuse \inc$.
+Therefore, we implicitly assume that all traces are weakly transition-fair.
+
+% Transition unfairness is fundamentally at odds with concurrency.
+% Because concurrency allows multiple independent events to occur simultaneously, one event should not preclude another independent event;
+% in the above example, for instance, rewriting the $\incs$ atom should not preclude rewriting the independent $\eps \fuse \inc$ substring.
+% Therefore, to maintain the pretense of true concurrency, we must require all traces to be transition-fair.
 
 
 % Transition unfairness is fundamentally at odds with true concurrency
@@ -546,226 +550,228 @@ Therefore, to maintain the pretense of true concurrency, we must require all tra
 
 
 
-\subsection{Adequacy and generative invariants}\label{sec:olp-intuition:gener-invar}
+% \subsection{Adequacy and generative invariants}\label{sec:olp-intuition:gener-invar}
 
-Thus far, we have used ordered logic to specify concurrent systems, whereas the non-modal fragment of ordered logic was originally developed by \textcite{Lambek:AMM58} to describe sentence structure.
-However, these two modes of use of ordered logic are not as different as they might first appear.
+% \textcolor{red}{Move this section to proposed work.}
 
-Recall that, in our running example of an incrementable binary counter, the counter is represented as a string of $\bit{0}$, $\bit{1}$, and $\inc$ atoms terminated at the most significant end by an $\eps$.
-More precisely, a string is a well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the context-free grammar
-\begin{equation*}
-  \Cntr ::= \eps \mid \Cntr \fuse \bit{0} \mid \Cntr \fuse \bit{1} \mid \Cntr \fuse \inc
-  \,,
-\end{equation*}
-which is notation for four distinct productions.
+% Thus far, we have used ordered logic to specify concurrent systems, whereas the non-modal fragment of ordered logic was originally developed by \textcite{Lambek:AMM58} to describe sentence structure.
+% However, these two modes of use of ordered logic are not as different as they might first appear.
 
-Building on \citeauthor{Lambek:AMM58}'s work, the same context-free grammar can be described in ordered logic using \vocab{generative signatures}~\autocite{Simmons:CMU12}.
-Each production in the grammar (below, left) becomes a clause (below, right), with the atomic proposition $\cntr$ acting as the nonterminal:
-\begin{equation*}
-  \left.
-  \!\begin{aligned}
-    &\Cntr \to \eps \\
-    &\Cntr \to \Cntr \fuse \bit{0} \\
-    &\Cntr \to \Cntr \fuse \bit{1} \\
-    &\Cntr \to \Cntr \fuse \inc
-  \end{aligned}
-  \qquad\middle\vert\qquad
-  \!\begin{aligned}
-    &\cntr \lrimp \monad{\eps} \\
-    &\cntr \lrimp \monad{\cntr \fuse \bit{0}} \\
-    &\cntr \lrimp \monad{\cntr \fuse \bit{1}} \\
-    &\cntr \lrimp \monad{\cntr \fuse \inc}
-    \,.
-  \end{aligned}
-  \right.
-\end{equation*}
-Just as all binary counters are generated from the $\Cntr$ nonterminal according to the above productions, so too are all binary counters generated as maximal rewritings of the $\cntr$ atom according to these clauses.
-
-% For example, the maximal trace
+% Recall that, in our running example of an incrementable binary counter, the counter is represented as a string of $\bit{0}$, $\bit{1}$, and $\inc$ atoms terminated at the most significant end by an $\eps$.
+% More precisely, a string is a well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the context-free grammar
 % \begin{equation*}
-%   \mathul{\cntr}
-%     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \inc
-%     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \bit{1} \fuse \inc
-%     \trans[\sig_{\cntr}] \eps \fuse \bit{1} \fuse \inc
-%     \ntrans[\sig_{\cntr}]
-%   \,.
+%   \Cntr ::= \eps \mid \Cntr \fuse \bit{0} \mid \Cntr \fuse \bit{1} \mid \Cntr \fuse \inc
+%   \,,
 % \end{equation*}
-% witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter.
-% Note how important the choice of signature is: if we also allowed increment clauses from $\sig_{\inc}$ here, this trace would no longer be maximal.
+% which is notation for four distinct productions.
 
-\begingroup
-  \RenewPredicate{\cntr}[Cntr]{1}%
-In fact, generative signatures generalize context-free grammars.
-For example, here $\cntr{}$ could be predicated on a natural number, effectively generalizing the context-free grammar to have a countably infinite family of nonterminals:
-% One slight generalization would be to predicate $\cntr{}$ on a natural number, effectively giving a countably infinite family of nonterminals:
-\begin{equation*}
-  \sig_{\cntr{}} =
-  \!\begin{aligned}[t]
-    &\cntr{0} \lrimp \monad{\eps} \,, \\
-    &\cntr{(2N)} \lrimp \monad{\cntr{N} \fuse \bit{0}} \,, \\
-    &\cntr{(2N{+}1)} \lrimp \monad{\cntr{N} \fuse \bit{1}} \,, \\
-    &\cntr{(N{+}1)} \lrimp \monad{\cntr{N} \fuse \inc}
-    \,.
-  \end{aligned}
-\end{equation*}
+% Building on \citeauthor{Lambek:AMM58}'s work, the same context-free grammar can be described in ordered logic using \vocab{generative signatures}~\autocite{Simmons:CMU12}.
+% Each production in the grammar (below, left) becomes a clause (below, right), with the atomic proposition $\cntr$ acting as the nonterminal:
+% \begin{equation*}
+%   \left.
+%   \!\begin{aligned}
+%     &\Cntr \to \eps \\
+%     &\Cntr \to \Cntr \fuse \bit{0} \\
+%     &\Cntr \to \Cntr \fuse \bit{1} \\
+%     &\Cntr \to \Cntr \fuse \inc
+%   \end{aligned}
+%   \qquad\middle\vert\qquad
+%   \!\begin{aligned}
+%     &\cntr \lrimp \monad{\eps} \\
+%     &\cntr \lrimp \monad{\cntr \fuse \bit{0}} \\
+%     &\cntr \lrimp \monad{\cntr \fuse \bit{1}} \\
+%     &\cntr \lrimp \monad{\cntr \fuse \inc}
+%     \,.
+%   \end{aligned}
+%   \right.
+% \end{equation*}
+% Just as all binary counters are generated from the $\Cntr$ nonterminal according to the above productions, so too are all binary counters generated as maximal rewritings of the $\cntr$ atom according to these clauses.
 
-This generative signature allows us to formally state and prove adequacy of the incrementable binary counter program, $\sig_{\inc}$.
-First, we need a few \lcnamecrefs{def:counter-wf}.
-%
-\begin{definition}[Counter well-formedness and other properties]\label{def:counter-wf}
-  \mbox{}
-  \begin{itemize}[nosep]
-  \item String $S$ is a well-formed counter that represents natural number $N$ (or, more simply, $S$ represents $N$) if $S$ is a maximal rewriting of $\cntr{N}$ under the signature $\sig_{\cntr{}}$, that is, if $\cntr{N} \trans+[\sig_{\cntr{}}] S \ntrans[\sig_{\cntr{}}]$.
-  \item String $S$ is a well-formed counter if there is some $N$ for which $S$ represents $N$.
-  \item Well-formed counter $S$ is $\inc$-free if the well-formedness trace does not use the $\inc$ clause from the $\sig_{\cntr{}}$ signature.
-  \item Likewise, well-formed counter $S$ has no leading $\bit{0}$s if the well-formedness trace uses the $\bit{0}$ clause only when $N > 0$.
-  \end{itemize}
-\end{definition}
-%
-For example, the maximal trace
-\begin{equation*}
-  \mathul{\cntr{2}}
-    \trans[\sig_{\cntr{}}] \mathul{\cntr{1}} \fuse \inc
-    \trans[\sig_{\cntr{}}] \mathul{\cntr{0}} \fuse \bit{1} \fuse \inc
-    \trans[\sig_{\cntr{}}] \eps \fuse \bit{1} \fuse \inc
-    \ntrans[\sig_{\cntr{}}]
-\end{equation*}
-witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter that represents $2$; it is not $\inc$-free, but it does have no leading $\bit{0}$s.
-Note how important the choice of signature is: if we also allowed increment clauses from $\sig_{\inc}$ here, this trace would no longer be maximal.
+% % For example, the maximal trace
+% % \begin{equation*}
+% %   \mathul{\cntr}
+% %     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \inc
+% %     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \bit{1} \fuse \inc
+% %     \trans[\sig_{\cntr}] \eps \fuse \bit{1} \fuse \inc
+% %     \ntrans[\sig_{\cntr}]
+% %   \,.
+% % \end{equation*}
+% % witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter.
+% % Note how important the choice of signature is: if we also allowed increment clauses from $\sig_{\inc}$ here, this trace would no longer be maximal.
 
-With these \lcnamecrefs{def:counter-wf} in hand, we can establish a bijection between the natural numbers and equivalence classes of well-formed counters.
-\begin{theorem}[Adequacy of counters]\label{thm:counter-adequacy}
-  \mbox{}
-  \begin{subtheorems}{theorem}[nosep]
-  \item\label{thm:counter-adequacy:value}
-    For each natural number $N$, there is a unique well-formed counter $S$ that represents $N$, is $\inc$-free, and has no leading $\bit{0}$s.
-  \item\label{thm:counter-adequacy:counter}
-    For each well-formed counter $S$, there is a unique natural number $N$ such that $S$ represents $N$.
-  \end{subtheorems}
-\end{theorem}
-\begin{proof}
-  \Cref{thm:counter-adequacy:value} is by induction on $N$, and \cref{thm:counter-adequacy:counter} is by induction on the structure of the maximal trace that witnesses the well-formedness of $S$.
-\end{proof}
-%
-As the following \lcnamecrefs{thm:counter-adequacy} show, the represented value is invariant under $\sig_{\inc}$-rewriting and $\sig_{\inc}$-rewriting always terminates in an $\inc$-free counter.
-It follows that $\inc$s adequately specify increments.
-%
-% \begin{lemma}
+% \begingroup
+%   \RenewPredicate{\cntr}[Cntr]{1}%
+% In fact, generative signatures generalize context-free grammars.
+% For example, here $\cntr{}$ could be predicated on a natural number, effectively generalizing the context-free grammar to have a countably infinite family of nonterminals:
+% % One slight generalization would be to predicate $\cntr{}$ on a natural number, effectively giving a countably infinite family of nonterminals:
+% \begin{equation*}
+%   \sig_{\cntr{}} =
+%   \!\begin{aligned}[t]
+%     &\cntr{0} \lrimp \monad{\eps} \,, \\
+%     &\cntr{(2N)} \lrimp \monad{\cntr{N} \fuse \bit{0}} \,, \\
+%     &\cntr{(2N{+}1)} \lrimp \monad{\cntr{N} \fuse \bit{1}} \,, \\
+%     &\cntr{(N{+}1)} \lrimp \monad{\cntr{N} \fuse \inc}
+%     \,.
+%   \end{aligned}
+% \end{equation*}
+
+% This generative signature allows us to formally state and prove adequacy of the incrementable binary counter program, $\sig_{\inc}$.
+% First, we need a few \lcnamecrefs{def:counter-wf}.
+% %
+% \begin{definition}[Counter well-formedness and other properties]\label{def:counter-wf}
 %   \mbox{}
 %   \begin{itemize}[nosep]
-%   \item If $S_0 \fuse \bit{0} \trans[\sig_{\inc}] S'$, then $S' = S'_0 \fuse \bit{0}$ and $S_0 \trans[\sig_{\inc}] S'_0$.
-%   \item If $S_0 \fuse \bit{1} \trans[\sig_{\inc}] S'$, then $S' = S'_0 \fuse \bit{1}$ and $S_0 \trans[\sig_{\inc}] S'_0$.
-%   \item If $S_0 \fuse \inc \trans[\sig_{\inc}] S'$, then either:
-%     \begin{itemize}[nosep]
-%     \item $S' = S'_0 \fuse \inc$ and $S_0 \trans[\sig_{\inc}] S'_0$;
-%     \item $S_0 = \eps$ and $S' = \eps \fuse \bit{1}$;
-%     \item $S_0 = S_{00} \fuse \bit{0}$ and $S' = S_{00} \fuse \bit{1}$; or
-%     \item $S_0 = S_{00} \fuse \bit{1}$ and $S' = S_{00} \fuse \inc \fuse \bit{0}$.
-%     \end{itemize}
+%   \item String $S$ is a well-formed counter that represents natural number $N$ (or, more simply, $S$ represents $N$) if $S$ is a maximal rewriting of $\cntr{N}$ under the signature $\sig_{\cntr{}}$, that is, if $\cntr{N} \trans+[\sig_{\cntr{}}] S \ntrans[\sig_{\cntr{}}]$.
+%   \item String $S$ is a well-formed counter if there is some $N$ for which $S$ represents $N$.
+%   \item Well-formed counter $S$ is $\inc$-free if the well-formedness trace does not use the $\inc$ clause from the $\sig_{\cntr{}}$ signature.
+%   \item Likewise, well-formed counter $S$ has no leading $\bit{0}$s if the well-formedness trace uses the $\bit{0}$ clause only when $N > 0$.
 %   \end{itemize}
-% \end{lemma}
-% 
-\begin{theorem}[Preservation]\label{thm:counter-preservation}
-  For every well-formed counter $S$ that represents $N$, if $S \trans[\sig_{\inc}] S'$, then $S'$ is also a well-formed counter that represents $N$.
-  % \begin{enumerate}[nosep]
-  % \item For every well-formed counter $S$, if $S \trans[\sig_{\inc}] S'$, then $S'$ is a well-formed counter.
-  % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S \trans[\sig_{\inc}] S'$, then $S'$ also represents $N$.
-  % \end{enumerate}
-\end{theorem}
-\begin{proof}
-  By induction on the structure of the maximal trace that witnesses the well-formedness of $S$, relying on an inversion lemma for $\sig_{\inc}$-steps:
-  \begin{itemize}[nosep]
-  \item If $S_0 \fuse \bit[_{\mathit{b}}]{} \trans[\sig_{\inc}] S'$, then $S_0 \trans[\sig_{\inc}] S'_0$ and $S' = S'_0 \fuse \bit[_{\mathit{b}}]{}$.
-  \item If $S_0 \fuse \inc \trans[\sig_{\inc}] S'$, then either:
-    \begin{itemize}[nosep]
-    \item $S_0 \trans[\sig_{\inc}] S'_0$ and $S' = S'_0 \fuse \inc$;
-    \item $S_0 = \eps$ and $S' = \eps \fuse \bit{1}$;
-    \item $S_0 = S'_0 \fuse \bit{0}$ and $S' = S'_0 \fuse \bit{1}$; or
-    \item $S_0 = S'_0 \fuse \bit{1}$ and $S' = S'_0 \fuse \inc \fuse \bit{0}$.
-    \end{itemize}
-  \end{itemize}
-\end{proof}
+% \end{definition}
+% %
+% For example, the maximal trace
+% \begin{equation*}
+%   \mathul{\cntr{2}}
+%     \trans[\sig_{\cntr{}}] \mathul{\cntr{1}} \fuse \inc
+%     \trans[\sig_{\cntr{}}] \mathul{\cntr{0}} \fuse \bit{1} \fuse \inc
+%     \trans[\sig_{\cntr{}}] \eps \fuse \bit{1} \fuse \inc
+%     \ntrans[\sig_{\cntr{}}]
+% \end{equation*}
+% witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter that represents $2$; it is not $\inc$-free, but it does have no leading $\bit{0}$s.
+% Note how important the choice of signature is: if we also allowed increment clauses from $\sig_{\inc}$ here, this trace would no longer be maximal.
 
-% \begin{theorem}[Progress]
+% With these \lcnamecrefs{def:counter-wf} in hand, we can establish a bijection between the natural numbers and equivalence classes of well-formed counters.
+% \begin{theorem}[Adequacy of counters]\label{thm:counter-adequacy}
 %   \mbox{}
-%   \begin{enumerate}[nosep]
-%   \item For every well-formed counter $S$, if $S$ is $\inc$-free, then $S \ntrans[\sig_{\inc}]$.
-%   \item For every well-formed counter $S$, either $S$ is $\inc$-free or $S \trans[\sig_{\inc}] S'$ for some $S'$.
-%   \end{enumerate}
+%   \begin{subtheorems}{theorem}[nosep]
+%   \item\label{thm:counter-adequacy:value}
+%     For each natural number $N$, there is a unique well-formed counter $S$ that represents $N$, is $\inc$-free, and has no leading $\bit{0}$s.
+%   \item\label{thm:counter-adequacy:counter}
+%     For each well-formed counter $S$, there is a unique natural number $N$ such that $S$ represents $N$.
+%   \end{subtheorems}
 % \end{theorem}
 % \begin{proof}
-%   By induction on the structure of the maximal trace that generates $S$.
+%   \Cref{thm:counter-adequacy:value} is by induction on $N$, and \cref{thm:counter-adequacy:counter} is by induction on the structure of the maximal trace that witnesses the well-formedness of $S$.
+% \end{proof}
+% %
+% As the following \lcnamecrefs{thm:counter-adequacy} show, the represented value is invariant under $\sig_{\inc}$-rewriting and $\sig_{\inc}$-rewriting always terminates in an $\inc$-free counter.
+% It follows that $\inc$s adequately specify increments.
+% %
+% % \begin{lemma}
+% %   \mbox{}
+% %   \begin{itemize}[nosep]
+% %   \item If $S_0 \fuse \bit{0} \trans[\sig_{\inc}] S'$, then $S' = S'_0 \fuse \bit{0}$ and $S_0 \trans[\sig_{\inc}] S'_0$.
+% %   \item If $S_0 \fuse \bit{1} \trans[\sig_{\inc}] S'$, then $S' = S'_0 \fuse \bit{1}$ and $S_0 \trans[\sig_{\inc}] S'_0$.
+% %   \item If $S_0 \fuse \inc \trans[\sig_{\inc}] S'$, then either:
+% %     \begin{itemize}[nosep]
+% %     \item $S' = S'_0 \fuse \inc$ and $S_0 \trans[\sig_{\inc}] S'_0$;
+% %     \item $S_0 = \eps$ and $S' = \eps \fuse \bit{1}$;
+% %     \item $S_0 = S_{00} \fuse \bit{0}$ and $S' = S_{00} \fuse \bit{1}$; or
+% %     \item $S_0 = S_{00} \fuse \bit{1}$ and $S' = S_{00} \fuse \inc \fuse \bit{0}$.
+% %     \end{itemize}
+% %   \end{itemize}
+% % \end{lemma}
+% % 
+% \begin{theorem}[Preservation]\label{thm:counter-preservation}
+%   For every well-formed counter $S$ that represents $N$, if $S \trans[\sig_{\inc}] S'$, then $S'$ is also a well-formed counter that represents $N$.
+%   % \begin{enumerate}[nosep]
+%   % \item For every well-formed counter $S$, if $S \trans[\sig_{\inc}] S'$, then $S'$ is a well-formed counter.
+%   % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S \trans[\sig_{\inc}] S'$, then $S'$ also represents $N$.
+%   % \end{enumerate}
+% \end{theorem}
+% \begin{proof}
+%   By induction on the structure of the maximal trace that witnesses the well-formedness of $S$, relying on an inversion lemma for $\sig_{\inc}$-steps:
+%   \begin{itemize}[nosep]
+%   \item If $S_0 \fuse \bit[_{\mathit{b}}]{} \trans[\sig_{\inc}] S'$, then $S_0 \trans[\sig_{\inc}] S'_0$ and $S' = S'_0 \fuse \bit[_{\mathit{b}}]{}$.
+%   \item If $S_0 \fuse \inc \trans[\sig_{\inc}] S'$, then either:
+%     \begin{itemize}[nosep]
+%     \item $S_0 \trans[\sig_{\inc}] S'_0$ and $S' = S'_0 \fuse \inc$;
+%     \item $S_0 = \eps$ and $S' = \eps \fuse \bit{1}$;
+%     \item $S_0 = S'_0 \fuse \bit{0}$ and $S' = S'_0 \fuse \bit{1}$; or
+%     \item $S_0 = S'_0 \fuse \bit{1}$ and $S' = S'_0 \fuse \inc \fuse \bit{0}$.
+%     \end{itemize}
+%   \end{itemize}
 % \end{proof}
 
-\begin{theorem}[Termination]\label{thm:inc-termination}
-  \mbox{}
-  \begin{subtheorems}{theorem}[nosep]
-  \item\label{thm:inc-termination:inc-free}
-    For every well-formed counter $S$, string $S$ is $\inc$-free if and only if $S \ntrans[\sig_{\inc}]$.
-  \item\label{thm:inc-termination:finite}
-    For every well-formed counter $S$, there is no infinite $\sig_{\inc}$-rewriting of $S$.
-  \end{subtheorems}
-\end{theorem}
-\begin{proof}
-  \Cref{thm:inc-termination:inc-free} is by induction on the structure of the maximal trace that witnesses the well-formedness of $S$.
-  %
-  \DeclarePairedDelimiter{\meas}{\lVert}{\rVert}%
-  \DeclarePairedDelimiter{\size}{\lvert}{\rvert}%
-  To prove \cref{thm:inc-termination:finite}, define $\meas{S}$ to be a measure in which each $\inc$ in $S$ contributes an amount equal to the length of its higher-order substring:%
-  \footnote{If desired, this measure can also be defined using a generative signature.}
-  \begin{equation*}
-    \!\begin{aligned}[t]
-      \meas{\eps} &= 0 \\
-      \meas{S \fuse \bit[_{\mathit{b}}]{}} &= %\meas{S} \\
-      % \meas{S \fuse \bit{1}} = 
-      \meas{S} \\
-      \meas{S \fuse \inc} &= \meas{S} + \size{S}
-    \end{aligned}
-    \qquad
-    \!\begin{aligned}[t]
-      \size{\eps} &= 1 \\
-      \size{S \fuse \bit[_{\mathit{b}}]{}} &=
-      % \size{S \fuse \bit{1}} =
-      \size{S \fuse \inc} = \size{S} + 1
-    \end{aligned}
-  \end{equation*}
-  % Define
-  % \begin{align*}
-  %   &\meas{0,0} \lrimp \monad{\eps} \\
-  %   &\meas{M,(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \bit{0}} \\
-  %   &\meas{M,(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \bit{1}} \\
-  %   &\meas{(M{+}L),(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \inc}
-  % \end{align*}
-  One can show that $\meas{\mathord{-}}$ is strictly decreasing for each step $S \trans[\sig_{\inc}] S'$, from which \cref{thm:inc-termination:finite} follows.
-\end{proof}
+% % \begin{theorem}[Progress]
+% %   \mbox{}
+% %   \begin{enumerate}[nosep]
+% %   \item For every well-formed counter $S$, if $S$ is $\inc$-free, then $S \ntrans[\sig_{\inc}]$.
+% %   \item For every well-formed counter $S$, either $S$ is $\inc$-free or $S \trans[\sig_{\inc}] S'$ for some $S'$.
+% %   \end{enumerate}
+% % \end{theorem}
+% % \begin{proof}
+% %   By induction on the structure of the maximal trace that generates $S$.
+% % \end{proof}
 
-% Cntr 0 <- eps
-% Cntr N+1 <- Cntr N * bit0
-% Cntr 
+% \begin{theorem}[Termination]\label{thm:inc-termination}
+%   \mbox{}
+%   \begin{subtheorems}{theorem}[nosep]
+%   \item\label{thm:inc-termination:inc-free}
+%     For every well-formed counter $S$, string $S$ is $\inc$-free if and only if $S \ntrans[\sig_{\inc}]$.
+%   \item\label{thm:inc-termination:finite}
+%     For every well-formed counter $S$, there is no infinite $\sig_{\inc}$-rewriting of $S$.
+%   \end{subtheorems}
+% \end{theorem}
+% \begin{proof}
+%   \Cref{thm:inc-termination:inc-free} is by induction on the structure of the maximal trace that witnesses the well-formedness of $S$.
+%   %
+%   \DeclarePairedDelimiter{\meas}{\lVert}{\rVert}%
+%   \DeclarePairedDelimiter{\size}{\lvert}{\rvert}%
+%   To prove \cref{thm:inc-termination:finite}, define $\meas{S}$ to be a measure in which each $\inc$ in $S$ contributes an amount equal to the length of its higher-order substring:%
+%   \footnote{If desired, this measure can also be defined using a generative signature.}
+%   \begin{equation*}
+%     \!\begin{aligned}[t]
+%       \meas{\eps} &= 0 \\
+%       \meas{S \fuse \bit[_{\mathit{b}}]{}} &= %\meas{S} \\
+%       % \meas{S \fuse \bit{1}} = 
+%       \meas{S} \\
+%       \meas{S \fuse \inc} &= \meas{S} + \size{S}
+%     \end{aligned}
+%     \qquad
+%     \!\begin{aligned}[t]
+%       \size{\eps} &= 1 \\
+%       \size{S \fuse \bit[_{\mathit{b}}]{}} &=
+%       % \size{S \fuse \bit{1}} =
+%       \size{S \fuse \inc} = \size{S} + 1
+%     \end{aligned}
+%   \end{equation*}
+%   % Define
+%   % \begin{align*}
+%   %   &\meas{0,0} \lrimp \monad{\eps} \\
+%   %   &\meas{M,(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \bit{0}} \\
+%   %   &\meas{M,(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \bit{1}} \\
+%   %   &\meas{(M{+}L),(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \inc}
+%   % \end{align*}
+%   One can show that $\meas{\mathord{-}}$ is strictly decreasing for each step $S \trans[\sig_{\inc}] S'$, from which \cref{thm:inc-termination:finite} follows.
+% \end{proof}
 
-\begin{corollary}[Adequacy of $\inc$]
-  For all natural numbers $N$ and $N'$ and every well-formed counter $S$ that represents $N$, the equality $N + 1 = N'$ holds if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
-  % For all natural numbers $N$ and $N'$ and every well-formed counter $S$, if $S$ represents $N$, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
-  % % \begin{enumerate}
-  % % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
-  % % %
-  % % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
-  % % \end{enumerate}
-\end{corollary}
+% % Cntr 0 <- eps
+% % Cntr N+1 <- Cntr N * bit0
+% % Cntr 
 
-% \begin{falseclaim}
-%   For all natural numbers $N$ and $N'$ and well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S'$ represents $N'$ and is $\inc$-free, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$.
-%   % \begin{enumerate}
-%   % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
-%   % %
-%   % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
-%   % \end{enumerate}
-% \end{falseclaim}
+% \begin{corollary}[Adequacy of $\inc$]
+%   For all natural numbers $N$ and $N'$ and every well-formed counter $S$ that represents $N$, the equality $N + 1 = N'$ holds if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
+%   % For all natural numbers $N$ and $N'$ and every well-formed counter $S$, if $S$ represents $N$, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
+%   % % \begin{enumerate}
+%   % % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
+%   % % %
+%   % % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
+%   % % \end{enumerate}
+% \end{corollary}
 
-In this way, the generative signature $\sig_{\cntr{}}$ serves a similar purpose for logic programming as types do for functional programming~\autocite{Simmons:CMU12}: both enable preservation and progress properties for their respective notions of transition.
-We will return to this point in \cref{sec:proposed-work}.
+% % \begin{falseclaim}
+% %   For all natural numbers $N$ and $N'$ and well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S'$ represents $N'$ and is $\inc$-free, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$.
+% %   % \begin{enumerate}
+% %   % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
+% %   % %
+% %   % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
+% %   % \end{enumerate}
+% % \end{falseclaim}
 
-\endgroup
+% In this way, the generative signature $\sig_{\cntr{}}$ serves a similar purpose for logic programming as types do for functional programming~\autocite{Simmons:CMU12}: both enable preservation and progress properties for their respective notions of transition.
+% We will return to this point in \cref{sec:proposed-work}.
+
+% \endgroup
 
 
 
