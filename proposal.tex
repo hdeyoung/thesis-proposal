@@ -1,174 +1,13 @@
-% arara: pdflatex: { shell: yes }
+% arara: pdflatex
 % arara: biber
-% arara: pdflatex: { shell: yes }
-% arara: pdflatex: { shell: yes }
-\documentclass{article}
+% arara: pdflatex
+% arara: pdflatex
+\documentclass{hdeyoung-proposal}
 
-\usepackage{fixltx2e}
+\usepackage{ordered-logic}
+\usepackage{binary-counter}
 
-% \usepackage[semibold,tt=false,lining]{libertine}
-% \usepackage[T1]{fontenc}
-% \usepackage{textcomp}
-% \usepackage[varqu,varl,var0]{zi4}
-% \usepackage[scr=rsfso]{mathalfa}
-% \usepackage{bm}% load after all math to give access to bold math
-%After loading math package, switch to osf in text.
-
-
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-% \usepackage[varqu,varl,var0]{zi4}
-% \usepackage[sc,osf]{mathpazo}
-% \usepackage{tgpagella}
-% \linespread{1.05}
-\usepackage[semibold,tt=false,lining]{libertine}
-% \usepackage{fullpage}
-
-
-% \usepackage{unicode-math}% run with xelatex
-% \defaultfontfeatures{Ligatures=TeX}
-% \setmainfont[
-%  BoldFont=texgyrepagella-bold.otf,
-%  ItalicFont=texgyrepagella-italic.otf,
-%  BoldItalicFont=texgyrepagella-bolditalic.otf]{texgyrepagella-regular.otf}
-% \setmathfont{texgyrepagella-math.otf}
-
-\usepackage{microtype}
-
-\usepackage[american]{babel}
-\usepackage[english=american]{csquotes}
-
-\usepackage[inline]{enumitem}
-
-\usepackage[capitalize]{cleveref}
-
-\usepackage{xparse}
-
-\usepackage[
-  backend=biber,
-  style=authoryear-comp,
-  maxcitenames=2, uniquelist=false
-]{biblatex}
-\renewcommand*{\subtitlepunct}{:\ }
 \addbibresource{proposal.bib}
-
-\usepackage{acro}
-\DeclareAcronym{BHK}{
-  short = BHK,
-  long  = Brouwer-Heyting-Kolmogorov
-}
-\DeclareAcronym{JILL}{
-  short = JILL,
-  long  = judgmental intuitionistic linear logic
-}
-\DeclareAcronym{ILL}{
-  short = ILL,
-  long  = intuitionistic linear logic
-}
-\DeclareAcronym{SML}{
-  short = SML,
-  long  = Standard ML
-}
-\DeclareAcronym{SOS}{
-  short = SOS,
-  short-indefinite = an,
-  long = structural operational semantics
-}
-\DeclareAcronym{SSOS}{
-  short = SSOS,
-  short-indefinite = an,
-  long = substructural operational semantics
-}
-\DeclareAcronym{SILL}{
-  short = SILL,
-  long = session-typed intuitionistic linear logic
-}
-\DeclareAcronym{CLF}{
-  short = CLF,
-  long = the concurrent logical framework
-}
-
-\usepackage{array}
-\usepackage{booktabs}
-\usepackage{caption}[2013/01/01] % needs v3.3 or newer
-
-\usepackage{logic}
-
-% \usepackage[varg,bigdelims]{newpxmath}
-\usepackage[libertine,bigdelims]{newtxmath}
-\useosf
-
-\usepackage{predicates}
-\usepackage{msill}
-
-\usepackage{tikz}
-\usetikzlibrary{matrix, chains}
-\usepackage{tikz-cd}
-
-\usepackage{minted}
-\usepackage{verbments}
-% \NewDocumentEnvironment{smlcode}{}{\begin{pyglist}[language=sml,gobble=2]}{\end{pyglist}}
-\usepackage{listings}
-\crefname{listing}{listing}{listings}
-\Crefname{listing}{Listing}{Listings}
-
-\newlength{\mywidth}
-\settowidth{\mywidth}{\ttfamily A}
-\lstset{basicstyle=\ttfamily, basewidth=\mywidth}
-
-\captionsetup[lstlisting]{%
-  box=colorbox, boxcolor=gray,
-  font={normalfont, sf, color=white},
-  labelfont=bf,
-  justification=justified, singlelinecheck=false
-}
-
-\lstnewenvironment{sillcode}[1][]
-  {\lstset{language={},frame=bottomline,framerule=0.8ex,rulecolor=\color{gray},float,#1}}%
-  {}
-
-\lstnewenvironment{sillcode*}[1][]
-  {\lstset{language={},#1}}%
-  {}
-
-\NewDocumentCommand{\sml}{o}{%
-  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
-}
-\NewDocumentCommand{\msill}{o}{%
-  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
-}
-\NewDocumentCommand{\haskell}{o}{%
-  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
-}
-
-\usepackage{fixme}
-\fxsetup{inlineface=\color{blue}, nomargin, inline, status=draft}
-\makeatletter
-\renewcommand*\FXLayoutInline[3]{%
-  {\@fxuseface{inline}#2}}
-\makeatother
-\usepackage{soul}
-
-
-\NewDocumentCommand{\latin}{m}{\textit{#1}}
-\NewDocumentCommand{\ie}{}{\latin{i.e.}}
-\NewDocumentCommand{\eg}{}{\latin{e.g.}}
-\NewDocumentCommand{\vocab}{m}{\emph{#1}}
-\NewDocumentCommand{\wc}{m o}{%
-  #1%
-  \IfValueTF{#2}%
-    {\fxnote{\ #2\textsuperscript{?}}}%
-    {\fxnote{\textsuperscript{?}}}%
-}
-
-\NewDocumentCommand{\rulename}{m}{\text{\normalfont\ttfamily #1}}
-
-\NewDocumentCommand{\Chi}{}{X}
-\NewDocumentCommand{\chor}{}{\Chi}
-\NewDocumentCommand{\spec}{}{\Sigma}
-
-
-\includeonly{background,choreographies,compiling}
 
 \begin{document}
 
@@ -177,25 +16,20 @@
 \date{\today}
 \maketitle
 
-\begin{abstract}
-  % Although both logic programming and functional programming are rooted in proof theory, they each have distinct advantages and disadvantages.
-  % Logic programs are remarkably concise and expressive, whereas well-typed functional programs provide guarantees about their behavior.
-  % This thesis proposes to identify a class of (bottom-up) logic programs that do, in fact, enjoy the same kinds of behavioral guarantees as functional programs, thereby affording programmers the best of both worlds.
-\end{abstract}
-
 % \tableofcontents
 
-\include{intro}
+% \include{intro}
 
-\include{background}
+% \include{background}
 
-\include{choreographies}
+\include{ch/ordered-lp}
+\include{ch/choreographies}
 
-\include{compiling}
+% \include{compiling}
 
-\include{proposed-work}
+% \include{proposed-work}
 
-\include{related-work}
+% \include{related-work}
 
 %\nocite{*}
 
