@@ -25,10 +25,10 @@
 %% MATH
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
-% \RequirePackage{amsthm}
+\RequirePackage{amsthm}
 
-\PassOptionsToPackage{amsthm,thmmarks}{ntheorem}
-\RequirePackage{ntheorem}
+% \PassOptionsToPackage{amsthm,thmmarks}{ntheorem}
+% \RequirePackage{ntheorem}
 
 \PassOptionsToPackage{libertine,bigdelims}{newtxmath}
 \RequirePackage{newtxmath}
@@ -42,11 +42,12 @@
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
+\newtheorem*{theorem*}{Theorem}
 \newtheorem{lemma}{Lemma}
 \newtheorem{corollary}{Corollary}
 \newtheorem*{falseclaim}{False claim}
 \theoremstyle{definition}
-\theoremsymbol{\ensuremath{\Box}}
+% \theoremsymbol{\ensuremath{\Box}}
 \newtheorem{definition}{Definition}
 
 

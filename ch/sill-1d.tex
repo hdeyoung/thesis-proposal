@@ -147,7 +147,7 @@
 
 \RenewDocumentCommand \one {} { \mathord { \mathbf{1} } }
 
-\NewDocumentCommand \quitR {} { \mathsf{quitR} }
+\NewDocumentCommand \closeR {} { \mathsf{closeR} }
 \NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
 
 
@@ -173,6 +173,7 @@
 \NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
 \NewDocumentCommand \msgL { } { \mathsf{msgL} \mskip\thinmuskip }
 \NewDocumentCommand \msgR { } { \mathsf{msgR} \mskip\thinmuskip }
+\NewDocumentCommand \msgQ { } { \mathsf{msgQ} }
 
 \ExplSyntaxOff
 
@@ -227,14 +228,20 @@
 \NewDocumentCommand{\mbind}{>{\SplitArgument{1}{;}}m}{
   \use_i:nn#1 ; \use_ii:nn#1
 }
-\NewDocumentCommand{\mletrec}{m m}{
-  \mathsf{letrec} \mskip\thinmuskip #1 \mskip\thinmuskip \mathsf{in} \mskip\thinmuskip #2
+\NewDocumentCommand{\mletrec}{o m m}{
+  \mathsf{letrec}\IfValueT{#1}{\sb{#1}}
+  \mskip\thinmuskip
+  #2
+  \mskip\thinmuskip
+  \mathsf{in} \mskip\thinmuskip #3
 }
 \NewDocumentCommand{\mprocdef}{m}{
   #1
 }
 \ExplSyntaxOff
 
+
+\newcommand*\kay{k}
 
 
 
@@ -251,9 +258,12 @@ In this \lcnamecref{sec:sill}, we turn to a proof-reduction view of computation.
 Recently, \textcite{Caires+Pfenning:CONCUR10} with Toninho~\autocite*{Caires+:MSCS13} have established a Curry--Howard isomorphism, dubbed \acs{SILL}, between the sequent calculus for intuitionistic linear logic and a session-typed $\pi$-calculus, in which propositions are session types, proofs are session-typed processes, and cut reductions are process reductions.
 This gives a proof-reduction view of concurrency that differs from the proof-construction perspective.
 
-In this section, we present a reformulation of \citeauthor{Caires+:MSCS13}'s \ac{SILL} that
+In this section, we present a reformulation of \citeauthor{Caires+:MSCS13}'s \ac{SILL} for a restriction of intuitionistic linear logic, which we call singleton linear logic.
+As hinted below and further justified in \cref{?}, \ac{SISLL} is a better fit for comparisons with concurrent ordered logical specifications.
 
-\subsection{Why singleton linear logic?}
+We begin our presentation of \ac{SISLL} with a review of the session-typing judgements of \citeauthor{Caires+:MSCS13}'s \ac{SILL}.
+
+\subsection{Toward singleton linear logic}
 
 In a session-based model of concurrency, pairs of processes interact in well-defined sessions, with one process offering a service that its session partner uses.
 Session types, pioneered by \textcite{Honda:CONCUR93}, describe the interaction protocol to which a process adheres when offering its service.
@@ -328,14 +338,14 @@ The following is one such example.
 
 % Recall that the goal of this thesis proposal is to establish a connection between ordered logical specifications and 
 
-In this thesis proposal, we are interested in a restriction of \ac{SILL} that will match ordered logical specifications.
+In this thesis proposal, we are interested in a restriction of \ac{SILL} that will match concurrent ordered logical specifications.
 To match the ordered context of these specifications, we cannot directly use \ac{SILL}---at least not in its full generality.
 We instead want a restriction of \ac{SILL} in which process networks are chains, not arbitrary trees.
 
 
-One might expect that process chains should arise from ordered logic.
-But, taking into account how the structure of the \ac{SILL} session-typing judgment induces a tree-shape for process networks, it becomes apparant that process chains arise when processes are restricted to use at most one service each.
-That is, when contexts $\lctx$ are restricted to be either empty or singletons, the session-typing judgment becomes
+One might expect that process chains should arise from \emph{ordered} logic.
+But, taking into account the way that the structure of the \ac{SILL} session-typing judgment induces a tree-shape for process networks, it becomes apparant that process chains, in fact, arise when processes are restricted to use at most one service each---that is, when contexts $\lctx$ are restricted to be either empty or singletons.
+The session-typing judgment becomes
 \begin{equation*}
   \lctxe \vdash P :: x{:}A
   \quad\text{or}\quad
@@ -360,9 +370,20 @@ and the process networks are necessarily chains:
   \end{tikzpicture}
 \end{equation*}
 
-Its worth emphasizing that we still have a Curry--Howard isomorphism in the presence of the restriction to singleton antecedents: although we choose to present the logical rules and process assignment simultaneously, singleton linear logic is a well-defined logic
+Having made this restriction, we can simplify the judgments: if there are at most two channels, they can always be unambiguously named \enquote{left} and \enquote{right}, rather than bothering with fresh names like $x_1$ and $x$.
+Moreover, since the channel names are now fixed by position (rather like de~Bruijn indices), we may as well omit them altogether from the session-typing judgments:
+\begin{equation*}
+  \lctxe \vdash P :: A
+  \quad\text{or}\quad
+  A_1 \vdash P :: A
+  \,.
+\end{equation*}
 
-This is a Curry--Howard isomophism in that the same restriction---contexts must be empty or singletons---still yields a well-defined logic when applied to linear logic.
+
+Finally, it's worth emphasizing that we still have a Curry--Howard isomorphism in the presence of the restriction to singleton antecedents: although we choose to present the logical rules and process assignment simultaneously, singleton linear logic is indeed a well-defined logic in its own right.
+
+
+% This is a Curry--Howard isomophism in that the same restriction---contexts must be empty or singletons---still yields a well-defined logic when applied to linear logic.
 
 % In this note, we are interested in developing a restriction of \ac{SILL} in which the process networks are linearly ordered:
 % \begin{center}
@@ -442,7 +463,7 @@ Thus, to execute the $\spawn{}$, we execute the processes $P$ and $Q$ side-by-si
 
 \subsection{Additive conjunction as branching}\label{sec:addit-conj-as-branch}
 
-So far we have discussed only a judgmental principle that applies to all services; specific services are defined by the right and left rules of the logical connectives.
+So far we have discussed only cut, a judgmental principle that applies to all services\footnote{The other judgemental  principle, identity, is postponed to \cref{?} in the interest of presenting only what is necessary for a first, simple example.}; specific services are defined by the right and left rules of the logical connectives.
 
 The singleton linear sequent calculus rules for the additive conjunction $A_1 \with A_2$ are as follows.
 Other than the restriction to singleton or empty antecedents, these rules are the same as those from linear logic.
@@ -520,17 +541,17 @@ Notice that the $\rrule{\with}$ has a set of premises, one for each label $\ell 
   \qquad
   % \raisebox{0.5\baselineskip}{$\bagged{\,\raisebox{-0.5\baselineskip}{
   % \scaleleftright[0.4em]{\lbag}{
-    \infer[{\lrule{\with}}]{\oseq{\hypof{\with*{\ell: A_\ell}[\ell \in L]} |- \procof{\selectL{\ell'; Q}}{C}}}{
-      \oseq{\hypof{A_{\ell'}} |- \procof{Q}{C}} &
-      \text{($\ell' \in L$)}}
+    \infer[{\lrule{\with}}]{\oseq{\hypof{\with*{\ell: A_\ell}[\ell \in L]} |- \procof{\selectL{\kay; Q}}{C}}}{
+      \oseq{\hypof{A_{\kay}} |- \procof{Q}{C}} &
+      \text{($\kay \in L$)}}
   % }{\rbag}_{k \in I}
   % }}[k \in I]$}
   \\[2\jot]
   % \bagged{\,
   % \scaleleftright[0.4em]{\lbag}{
     \begin{lgathered}
-      \exec{(\selectL{\ell' ; Q})} \lrimp \monad{\msgL{\ell'} \fuse \exec{Q}} \\
-      \exec{(\caseR*{\ell => P_\ell}[\ell \in L])} \fuse \msgL{\ell'} \lrimp \monad{\exec{P_{\ell'}}} \mathrlap{\qquad\text{($\ell' \in L$)}}
+      \exec{(\selectL{\kay ; Q})} \lrimp \monad{\msgL{\kay} \fuse \exec{Q}} \\
+      \exec{(\caseR*{\ell => P_\ell}[\ell \in L])} \fuse \msgL{\kay} \lrimp \monad{\exec{P_{\kay}}} \mathrlap{\qquad\text{($\kay \in L$)}}
     \end{lgathered}
   % }{\rbag}_{k \in I}
   % \,}[k \in I]
@@ -539,7 +560,7 @@ Notice that the $\rrule{\with}$ has a set of premises, one for each label $\ell 
 
 Another possibility would be to simply treat $n$-ary labeled conjunctions as syntactic sugar for nested binary conjunctions, but this would
 % turn out to
-introduce a communication overhead because we would be sending multiple $\inj{\mathsf{1/2}}$s separately rather than a single label $\ell'$.
+introduce a communication overhead because we would be sending multiple $\inj{\mathsf{1/2}}$s separately rather than a single label $\kay$.
 
 
 \subsection{Recursive session types and process definitions}\label{sec:recurs-sess-types}
@@ -547,7 +568,7 @@ introduce a communication overhead because we would be sending multiple $\inj{\m
 Concurrent processes frequently exhibit unbounded or infinite, yet well-defined, behavior;
 for instance, we may wish to have a counter that offers an increment service indefinitely.
 \Textcite{Toninho+:TGC14} have proposed an extension of their \ac{SILL} type theory that incorporates inductive and coinductive session types.
-However, to keep matters simpler, we instead choose to rely on general recursion and must content ourselves with the departure from a pure Curry--Howard isomorphism.
+However, to keep matters simpler, we instead rely on general recursion here and choose to be content with the departure from a pure Curry--Howard isomorphism.
 
 Session types thus include general recursive types, $\mu t.A$, and type variables, $t$.
 The type $\mu t.A$ is interpreted equi-recursively, being identified with the unfolding $\subst{(\mu t.A)/t}{A}$.
@@ -575,7 +596,7 @@ the process bodies may refer to any of the mutually recursive processes via proc
 The typing rule is
 \begin{equation*}
   \infer[\text{\scshape letrec}]
-  {\oseq{\pctx ; \lctx |- \procof{\mletrec{\bagged{\mprocdef{X{:}\ctxmonad{A_X <- \lctx_X} = P_X}}[X \in \mathcal{X}]}{Q}}{C}}}{
+  {\oseq{\pctx ; \lctx |- \procof{\mletrec[X \in \mathcal{X}]{(\mprocdef{X{:}\ctxmonad{A_X <- \lctx_X} = P_X})}{Q}}{C}}}{
     \text{($\pctx' = \bagged{X{:}\ctxmonad{A_X <- \lctx_X}}[X \in \mathcal{X}]$)}
     &
     % \bagged{
@@ -587,13 +608,17 @@ The typing rule is
   \,.
 \end{equation*}
 
+The operational semantics of these constructs are as follows:
 \begin{equation*}
   \begin{lgathered}
-    \exec{(\mletrec{\bagged{\mprocdef{X = P_X}}[X \in \mathcal{X}]}{Q})} \lrimp \monad{\bagged{\bang \bnd{X = P_X}}[X \in \mathcal{X}] \fuse \exec{Q}}
+    \exec{(\mletrec[X \in \mathcal{X}]{(\mprocdef{X = P_X})}{Q})} \lrimp \monad{\bagged{\bang \bnd{X = P_X}}[X \in \mathcal{X}] \fuse \exec{Q}}
     \\
     \bang \bnd{X = P} \fuse \exec{X} \lrimp \monad{\exec{P}}
   \end{lgathered}
 \end{equation*}
+The environment of bindings of process varibles to process expressions is represented in the \ac{SSOS} as a collection of $\bnd{X = P}$ hypotheses.
+To execute a group of mutually recursive process definitions, $\mletrec[X \in \mathcal{X}]{(\mprocdef{X = P_X})}{Q}$, bindings are introduced for each of the process variables and then the body $Q$ is executed.
+To execute a free process variable $X$, instead execute the process expression to which $X$ is bound.
 
 
 %
@@ -693,9 +718,9 @@ Once again, to make the language more convenient for the programmer, we include 
 The typing rules and operational semantics are thus more generally
 \begin{gather*}
   % \bagged{
-    \infer[{\rrule{\ssor}}]{\oseq{\lctx |- \procof{\selectR{\ell'; P}}{\ssor*{\ell: A_\ell}[\ell \in L]}}}{
-      \oseq{\lctx |- \procof{P}{A_{\ell'}}} &
-      \text{($\ell' \in L$)}}
+    \infer[{\rrule{\ssor}}]{\oseq{\lctx |- \procof{\selectR{\kay; P}}{\ssor*{\ell: A_\ell}[\ell \in L]}}}{
+      \oseq{\lctx |- \procof{P}{A_{\kay}}} &
+      \text{($\kay \in L$)}}
 %   }[k \in I]
   \qquad
   \infer[\lrule{\ssor}]{\oseq{\ssor*{\ell: A_\ell}[\ell \in L] |- \procof{\caseL*{\ell => Q_\ell}[\ell \in L]}{C}}}{
@@ -703,8 +728,8 @@ The typing rules and operational semantics are thus more generally
   \\[2\jot]
   % \bagged{
     \begin{lgathered}
-      \exec{(\selectR{\ell'; P})} \lrimp \monad{\exec{P} \fuse \msgR{\ell'}} \\
-      \msgR{\ell'} \fuse \exec{(\caseL*{\ell => Q_\ell}[\ell \in L])} \lrimp \monad{\exec{Q_{\ell'}}} \mathrlap{\qquad\text{($\ell' \in L$)}}
+      \exec{(\selectR{\kay; P})} \lrimp \monad{\exec{P} \fuse \msgR{\kay}} \\
+      \msgR{\kay} \fuse \exec{(\caseL*{\ell => Q_\ell}[\ell \in L])} \lrimp \monad{\exec{Q_{\kay}}} \mathrlap{\qquad\text{($\kay \in L$)}}
     \end{lgathered}
   % }[k \in I]
 \end{gather*}
@@ -752,10 +777,11 @@ Once again, these adequacy properties are not enforced by the type \sillinline`C
 
 \subsection{Identity as forwarding}\label{sec:ident-as-forw}
 
-In singleton linear logic, there is also an identity principle that states that one way to obtain a resource is to directly use an existing resource.
+In singleton linear logic, in addition to the cut principle, there is an identity principle that states that one way to obtain a resource is to directly use an existing resource:
 \begin{equation*}
   \infer[\id{A}]{\oseq{A |- A}}{
     }
+  \,.
 \end{equation*}
 Under the process interpretation, a process can offer service $A$ by acting as a forwarding intermediary between its clients and another process that offers service $A$.
 The $\id{A}$ rule thus types a forwarding process between two channels:
@@ -770,10 +796,47 @@ Rather than making the forwarding explicit in the operational semantics, we can 
   \,.
 \end{equation*}
 
+\begin{sillcode}[
+  caption={A binary counter as a stream transformer},
+  label={lst:counter-bit},
+  floatplacement=tb,
+  gobble=2
+]
+  stype Bin = +{ eps: 1 , bit0: Bin , bit1: Bin }
+  
+  inc : {Bin |- Bin} =
+  { caseL of
+      eps => selectR bit1; selectR eps; <->
+    | bit0 => selectR bit1; <->
+    | bit1 => selectR bit0; inc }
+\end{sillcode}
+
+
 
 \subsection{Other session types}\label{sec:other-session-types}
 
 In addition to the those already mentioned, the other connectives of singleton linear logic correspond to session types.
+
+\paragraph{Multiplicative unit.}
+Like its \ac{SILL} cousin, the multiplicative unit $\one$ is the service that terminates without any interaction.
+Its right rule, $\rrule{\one}$, types a process that immediately terminates; its left rule, $\lrule{\one}$, types a process that waits for the left-hand side to terminate:
+\begin{mathpar}
+  \infer[\rrule{\one}]{\oseq{\lctxe |- \procof{\closeR}{\one}}}{
+    }
+  \and
+  \infer[\lrule{\one}]{\oseq{\one |- \procof{\waitL{Q}}{C}}}{
+    \oseq{\lctxe |- \procof{Q}{C}}}
+\end{mathpar}
+The operational semantics is asynchronous, with the $\closeR$ process sending a $\msgQ$ message:
+\begin{equation*}
+  \begin{lgathered}
+    \exec{\closeR} \lrimp \monad{\msgQ} \\
+    \msgQ \fuse \exec{(\waitL{Q})} \lrimp \monad{\exec{Q}}
+  \end{lgathered}
+\end{equation*}
+
+
+\paragraph{First-order universal and existential quantification.}
 The first-order quantifiers type processes that exchange functional values.
 A process offering service $\forall x{:}\tau. A_x$ (or using service $\exists x{:}\tau. A_x$) first inputs a value $x$ of functional type $\tau$ and then offers (resp., uses) service $A_x$.
 Dually, a process offering service $\exists x{:}\tau. A_x$ (or using service $\forall x{:}\tau. A_x$) asynchronously outputs the value of some functional term $M$ of type $\tau$ and then offers (resp., uses) service $\subst{M/x}{A_x}$. 
@@ -781,5 +844,10 @@ The first-order quantifiers are thus dependent session types; in the non-depende
 % The syntax for value inputs and outputs is $\recv x <- inputc;Pxand outputc M;Q.
 
 Since value inputs and outputs are not critical to the remainder of this proposal, the reader who is interested in further details of their static and dynamic semantics in \ac{SILL} should refer to the papers by \textcites{Toninho+:ESOP13}{Toninho+:PPDP11}; we leave the extrapolation to singleton linear logic as an exercise for the reader.
+
+\paragraph{Multiplicative conjunction and linear implication.}
+The restriction to sequents with singleton antecedents proves fatal to attempts to include multiplicative conjunction ($A \tensor B$) and linear implication ($A \lolli B$) as connectives in singleton linear logic.
+For multiplicative conjunction, the left rule is problematic because it breaks one hypothesis into two; for linear implication, the right rule is problematic because it introduces a new hypothesis even if one is already there.
+Fortunately, for the examples in which we are interested, the absence of $\tensor$ and $\lolli$ is not an issue.
 
 \end{document}
