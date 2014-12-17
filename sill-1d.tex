@@ -1,0 +1,853 @@
+% arara: lualatex
+% arara: lualatex
+% arara: biber
+% arara: lualatex
+% arara: lualatex
+% \documentclass{../hdeyoung-proposal}
+\documentclass[
+  class=../hdeyoung-proposal,
+  crop=false
+]{standalone}
+
+
+\usepackage{linear-logic}
+\usepackage{ordered-logic}
+\usepackage{proof}
+\usepackage{mathpartir}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.misc,graphs,quotes,graphdrawing}
+\usegdlibrary{trees}
+
+\usepackage{scalerel}
+
+\ExplSyntaxOn
+
+% \DeclarePairedDelimiter \parens { \lparen } { \rparen }
+\DeclarePairedDelimiter \braced:wn { \lbrace } { \rbrace }
+\NewDocumentCommand{ \braced }{ s o m o }
+  {
+    \IfBooleanTF {#1}
+      { \braced:wn* {#3} }
+      {
+        \IfValueTF {#2}
+          { \braced:wn[#2] {#3} }
+          { \braced:wn {#3} }
+      }
+    \IfValueT {#4} { \sb{#4} }
+  }
+
+\DeclarePairedDelimiter \bagged:wn { \lbag } { \rbag }
+\NewDocumentCommand{ \bagged }{ s o m o }
+  {
+    \IfBooleanTF {#1}
+      { \bagged:wn* {#3} }
+      {
+        \IfValueTF {#2}
+          { \bagged:wn[#2] {#3} }
+          { \bagged:wn {#3} }
+      }
+    \IfValueT {#4} { \sb{#4} }
+  }
+
+
+\NewDocumentCommand \oseq { >{ \SplitArgument{1}{|-} } m }
+  { \oseq:nn #1 }
+\cs_new:Npn \oseq:nn #1#2 { \oseq_ctxs:n {#1} \vdash #2 }
+\cs_new:Npn \oseq_ctxs:n #1 {
+  \seq_set_split:Nnn \l_tmpa_seq {;} {#1}
+  \seq_use:Nn \l_tmpa_seq { \mathrel{;} }
+}
+
+\NewDocumentCommand \procof { m m } { #1 \dblcolon #2 }
+\NewDocumentCommand \hypof { m } { #1 }
+
+
+\NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
+\NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
+
+\NewDocumentCommand \comp { >{ \SplitArgument{1}{|} } m }
+  { \comp:nn #1 }
+\cs_new:Npn \comp:nn #1#2 { #1 \parallel #2 }
+
+\NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
+
+
+\RenewDocumentCommand \with { s }
+  { \IfBooleanTF {#1} \with:n \with: }
+\cs_new:Npn \with:n #1 {
+  \mathord{\binampersand}
+  \braced {
+    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+    \seq_use:Nn \l_tmpa_seq {,}
+  }
+}
+\cs_new:Npn \with: { \mathbin{\binampersand} }
+
+\NewDocumentCommand \ssor { s }
+  { \IfBooleanTF {#1} \ssor:n \ssor: }
+\cs_new:Npn \ssor:n #1 {
+  \mathord{\ssor:}
+  \braced {
+    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+    \seq_use:Nn \l_tmpa_seq {,}
+  }
+}
+\cs_new:Npn \ssor: { \oplus }
+
+\NewDocumentCommand \caseR { s m o }
+  {
+    \IfBooleanTF {#1}
+      {
+        \IfValueTF {#3}
+          { \case:nNnn { \mathsf{caseR} } \parens {#2} { \sb{#3} } }
+          { \case:nNnn { \mathsf{caseR} } \parens {#2} {} }
+      }
+      { \case:nNnn { \mathsf{caseR} } \parens {#2} {} }
+  }
+\NewDocumentCommand \caseL { s m o }
+  {
+    \IfBooleanTF {#1}
+      {
+        \IfValueTF {#3}
+          { \case:nNnn { \mathsf{caseL} } \parens {#2} { \sb{#3} } }
+          { \case:nNnn { \mathsf{caseL} } \parens {#2} {} }
+      }
+      { \case:nNnn { \mathsf{caseL} } \parens {#2} {} }
+  }
+\cs_new:Npn \case:nNnn #1#2#3#4 {
+  #1#4 \mskip\thinmuskip
+  #2 {
+    \seq_set_split:Nnn \l_tmpa_seq {|} {#3}
+    \seq_clear:N \l_tmpb_seq
+    \seq_map_inline:Nn \l_tmpa_seq
+      { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
+    \seq_use:Nn \l_tmpb_seq { \talloblong }
+  }
+}
+\cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
+\cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
+  #1 \Rightarrow #2
+}
+
+\NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectL} } #1 }
+\NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectR} } #1 }
+\cs_new:Npn \select:nnn #1#2#3 {
+  \!\mathord{}\mathop{#1} #2 ; #3
+}
+
+
+\NewDocumentCommand \inj { m } { \mathsf{in}\sb{#1} }
+
+\NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
+\NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
+
+
+\RenewDocumentCommand \one {} { \mathord { \mathbf{1} } }
+
+\NewDocumentCommand \closeR {} { \mathsf{closeR} }
+\NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
+
+
+\NewDocumentCommand \rrule { o m } {
+  \IfValueTF {#1}
+    { \rrule:nn {#2} {#1} }
+    { \rrule:n {#2} }
+}
+\cs_new:Npn \rrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{R}}}\sb{#2} }
+\cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+
+\NewDocumentCommand \lrule { o m } {
+  \IfValueTF {#1}
+    { \lrule:nn {#2} {#1} }
+    { \lrule:n {#2} }
+}
+\cs_new:Npn \lrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{L}}}\sb{#2} }
+\cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+
+
+\NewDocumentCommand \bnd { >{\SplitArgument{1}{=}}m } { \bnd:nn #1 }
+\cs_new:Npn \bnd:nn #1#2 { \mathsf{bnd} \mskip\thinmuskip #1 \mskip\thinmuskip #2 }
+\NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
+\NewDocumentCommand \msgL { } { \mathsf{msgL} \mskip\thinmuskip }
+\NewDocumentCommand \msgR { } { \mathsf{msgR} \mskip\thinmuskip }
+\NewDocumentCommand \msgQ { } { \mathsf{msgQ} }
+
+\ExplSyntaxOff
+
+
+
+
+\addbibresource{../proposal.bib}
+
+\NewDocumentCommand{\ie}{}{i.e.}
+
+
+\usepackage{listings}
+\crefname{listing}{listing}{listings}
+\Crefname{listing}{Listing}{Listings}
+
+\newlength{\mywidth}
+\settowidth{\mywidth}{\ttfamily A}
+\lstset{basicstyle=\ttfamily, basewidth=\mywidth}
+
+\captionsetup[lstlisting]{%
+  box=colorbox, boxcolor=gray,
+  font={normalfont, sf, color=white},
+  labelfont=bf,
+  justification=justified, singlelinecheck=false
+}
+
+\lstnewenvironment{sillcode}[1][]
+  {\lstset{language={},frame=bottomline,framerule=0.8ex,rulecolor=\color{gray},float,#1}}%
+  {}
+
+\lstnewenvironment{sillcode*}[1][]
+  {\lstset{language={},#1}}%
+  {}
+
+\NewDocumentCommand{\sillinline}{o}{%
+  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
+}
+
+
+\NewDocumentCommand{\pctx}{}{\Psi}
+\ExplSyntaxOn
+\NewDocumentCommand{\ctxmonad}{>{\SplitArgument{1}{<-}}m}{
+  \{\use_ii:nn #1 \vdash \use_i:nn #1\}
+}
+\NewDocumentCommand \spawn { >{ \SplitArgument{1}{;} } m } { \spawn:nn #1 }
+\cs_new:Npn \spawn:nn #1#2 {
+  \mathsf{spawn}
+  \tl_if_empty:nF {#1} {
+    \mskip\thinmuskip #1 ; #2
+  }
+}
+\NewDocumentCommand{\mbind}{>{\SplitArgument{1}{;}}m}{
+  \use_i:nn#1 ; \use_ii:nn#1
+}
+\NewDocumentCommand{\mletrec}{o m m}{
+  \mathsf{letrec}\IfValueT{#1}{\sb{#1}}
+  \mskip\thinmuskip
+  #2
+  \mskip\thinmuskip
+  \mathsf{in} \mskip\thinmuskip #3
+}
+\NewDocumentCommand{\mprocdef}{m}{
+  #1
+}
+\ExplSyntaxOff
+
+
+\newcommand*\kay{k}
+
+
+
+\input{acronyms.tex}
+
+
+\begin{document}
+
+\section{Session-typed processes from singleton linear logic}\label{sec:sill}
+
+Thus far, we have followed a proof-construction approach to computation, having in \cref{?} reviewed an interpretation of ordered logical specifications as concurrent string rewriting and in \cref{?} identified a fragment in which those specifications have a message-passing character.
+In this \lcnamecref{sec:sill}, we turn to a proof-reduction view of computation.
+
+Recently, \textcite{Caires+Pfenning:CONCUR10} with Toninho~\autocite*{Caires+:MSCS13} have established a Curry--Howard isomorphism, dubbed \acs{SILL}, between the sequent calculus for intuitionistic linear logic and a session-typed $\pi$-calculus, in which propositions are session types, proofs are session-typed processes, and cut reductions are process reductions.
+This gives a proof-reduction view of concurrency that differs from the proof-construction perspective.
+
+In this section, we present a reformulation of \citeauthor{Caires+:MSCS13}'s \ac{SILL} for a restriction of intuitionistic linear logic, which we call singleton linear logic.
+As hinted below and further justified in \cref{?}, \ac{SISLL} is a better fit for comparisons with concurrent ordered logical specifications.
+
+We begin our presentation of \ac{SISLL} with a review of the session-typing judgements of \citeauthor{Caires+:MSCS13}'s \ac{SILL}.
+
+\subsection{Toward singleton linear logic}
+
+In a session-based model of concurrency, pairs of processes interact in well-defined sessions, with one process offering a service that its session partner uses.
+Session types, pioneered by \textcite{Honda:CONCUR93}, describe the interaction protocol to which a process adheres when offering its service.
+% the processes in that session must adhere.
+When processes interact, the session type changes: one process now offers, and the other uses, the continuation of the initial service.
+As shown by \textcite{Caires+:MSCS13}, the logical reading of session-based concurrency is linear logic exactly because it can express this change of state.
+
+Because a process offers its service along a distinguished channel, the basic session-typing judgment of \citeauthor{Caires+:MSCS13}'s \ac{SILL} is $P :: x{:}A$, meaning \enquote{process $P$ offers service of type $A$ along channel $x$}.
+However, $P$ itself may rely on services offered by yet other processes, and so, more generally, the \ac{SILL} session-typing judgment is a linear sequent annotated as
+\begin{equation*}
+  \underbrace{
+    x_1{:}A_1 , x_2{:}A_2 , \dots , x_n{:}A_n
+  }_{\textstyle \lctx}
+  \vdash
+  P :: x{:}A
+  \quad
+  \text{($n \geq 0$)}
+  \,,
+\end{equation*}
+% where the channel names, $x_i$, are needed to unambiguously refer to hypotheses and the consequent.
+meaning \enquote{Using services $A_i$ offered along channels $x_i$, the process $P$ offers service $A$ along channel $x$.}
+(The channels $x_i$ and $x$ must all be distinct and are binding occurrences with scope over the process $P$.)
+
+In \ac{SILL}, the linear sequent calculus's inference rules thus become session-typing rules for processes.
+Just as the inference rules arrange sequents in a proof tree, so do the \ac{SILL} session-typing rules arrange processes in a tree-shaped network in which some processes are clients of more than one process (i.e., some nodes have more than one child).
+The following is one such example.
+% The way in which \ac{SILL} processes use and offer services along distinct channels thus arranges processes in a tree-shaped network, such as the following, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
+\begin{equation*}
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped}]
+    \graph [
+      tree layout, grow=left, math nodes, % empty nodes,
+      nodes={
+        rounded rectangle, rounded rectangle left arc=none,
+        draw, minimum size=2ex,
+      }
+    ] {
+      / [draw=none] <-["$\scriptstyle x$"' channel]
+      / ["$P$"] <- { / [> {"$\scriptstyle x_1$"' channel}] <- / <- { / , / } ,
+             / [> {"$\scriptstyle x_2$"' channel}] ,
+             / [> {"$\scriptstyle x_3$" channel}] <- { / , / <- / } };
+    };
+  \end{tikzpicture}
+\end{equation*}
+% Each edge in the above \ac{SILL} tree represents a top-level $\cut{}$, and each top-level $\cut{}$ corresponds to a hypothesis that serves as its principal formula.
+
+% With this session-typing judgment, the inference rules of the linear sequent calculus become \ac{SILL} session-typing rules for concurrent processes.
+% For instance, the cut rule of \ac{SILL} types a parallel composition of processes (shown in $\pi$-calculus syntax here):
+% \begin{equation*}
+%   \infer[\cut{A}]{\lctx , \lctx' \vdash (\nu x)(P \mid Q) :: z{:}C}{
+%     \lctx \vdash P :: x{:}A &
+%     \lctx' , x{:}A \vdash Q :: z{:}C}
+% \end{equation*}
+% Top-level $\cut{}$s thus arrange processes in a tree-shaped network, such as the following, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
+% \begin{equation*}
+%   % \begin{tikzpicture}
+%   %   \graph [
+%   %     tree layout, grow=left, math nodes, % empty nodes,
+%   %     nodes={
+%   %       rounded rectangle, rounded rectangle left arc=none,
+%   %       draw, minimum size=2ex,
+%   %     }
+%   %   ] {
+%   %     / [draw=none] <-
+%   %     Q <- { "P_1" <- / <- { / , / } ,
+%   %            / ,
+%   %            / <- { / , / <- / } };
+%   %   };
+%   % \end{tikzpicture}
+% \end{equation*}
+% Each edge in the above \ac{SILL} tree represents a top-level $\cut{}$, and each top-level $\cut{}$ corresponds to a hypothesis that serves as its principal formula.
+% % Each hypothesis gives rise to a top-level $\cut{}$, represented as an edge in the above graph. 
+
+% Recall that the goal of this thesis proposal is to establish a connection between ordered logical specifications and 
+
+In this thesis proposal, we are interested in a restriction of \ac{SILL} that will match concurrent ordered logical specifications.
+To match the ordered context of these specifications, we cannot directly use \ac{SILL}---at least not in its full generality.
+We instead want a restriction of \ac{SILL} in which process networks are chains, not arbitrary trees.
+
+
+One might expect that process chains should arise from \emph{ordered} logic.
+But, taking into account the way that the structure of the \ac{SILL} session-typing judgment induces a tree-shape for process networks, it becomes apparant that process chains, in fact, arise when processes are restricted to use at most one service each---that is, when contexts $\lctx$ are restricted to be either empty or singletons.
+The session-typing judgment becomes
+\begin{equation*}
+  \lctxe \vdash P :: x{:}A
+  \quad\text{or}\quad
+  x_1{:}A_1 \vdash P :: x{:}A
+\end{equation*}
+and the process networks are necessarily chains:
+\begin{equation*}
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped}]
+    \graph [
+      tree layout, grow=left, math nodes, % empty nodes,
+      nodes={
+        rounded rectangle, rounded rectangle left arc=none,
+        draw, minimum size=2ex,
+      }
+    ] {
+      / [draw=none] <-["$\scriptstyle x$"' channel]
+      / ["$P$" text height=0] <-
+      / [> {"$\scriptstyle x_1$"' channel}] <-
+      / <-
+      / ;
+    };
+  \end{tikzpicture}
+\end{equation*}
+
+Having made this restriction, we can simplify the judgments: if there are at most two channels, they can always be unambiguously named \enquote{left} and \enquote{right}, rather than bothering with fresh names like $x_1$ and $x$.
+Moreover, since the channel names are now fixed by position (rather like de~Bruijn indices), we may as well omit them altogether from the session-typing judgments:
+\begin{equation*}
+  \lctxe \vdash P :: A
+  \quad\text{or}\quad
+  A_1 \vdash P :: A
+  \,.
+\end{equation*}
+
+
+Finally, it's worth emphasizing that we still have a Curry--Howard isomorphism in the presence of the restriction to singleton antecedents: although we choose to present the logical rules and process assignment simultaneously, singleton linear logic is indeed a well-defined logic in its own right.
+
+
+% This is a Curry--Howard isomophism in that the same restriction---contexts must be empty or singletons---still yields a well-defined logic when applied to linear logic.
+
+% In this note, we are interested in developing a restriction of \ac{SILL} in which the process networks are linearly ordered:
+% \begin{center}
+%   % \begin{tikzpicture}
+%   %   \graph [tree layout, grow=left, empty nodes, nodes={draw, circle}] {
+%   %     / [draw=none] <-
+%   %     x <- y <- z <- w;
+%   %   };
+%   % \end{tikzpicture}
+% \end{center}
+
+% Therefore, for the process network to be linearly ordered, contexts $\lctx$ must be either singletons or empty.
+% In this special case, sequents have one of the simpler forms
+% \begin{equation*}
+%   x_0{:}A_0 \vdash P :: x_1{:}A_1
+%   \quad\text{or}\quad
+%   \lctxe \vdash P :: x_1{:}A_1
+%   \,.
+% \end{equation*}
+
+
+% % exec(spawn P; Q) -> {exec P * exec Q}
+
+\subsection{Cut as composition}\label{sec:cut-as-composition}
+
+% Recall the $\cut{}$ rule for intuitionistic linear logic:
+% \begin{equation*}
+%   \infer[{\cut{A}}]{\oseq{\lctx, \lctx' |- \comp{x_0}{P_0 | P} :: C}}{
+%     \oseq{\lctx |- \procof{P_0}{x_0{:}A}} &
+%     \oseq{\lctx', x_0{:}A |- \procof{P}{x{:}C}}}
+% \end{equation*}
+% When restricted to empty or singleton antecedents, the $\cut{}$ rule becomes
+% \begin{equation*}
+%   \infer[\cut{A}]{\oseq{\lctx |- \comp{x_0}{P_0 | P} :: C}}{
+%     \oseq{\lctx |- \procof{P_0}{x_0{:}A}} &
+%     \oseq{x_0{:}A |- \procof{P}{x{:}C}}}
+% \end{equation*}
+
+The cut rule of intuitionistic linear logic composes a plan for obtaining resource $A$ with another plan that uses resource $A$:
+\begin{equation*}
+  \infer{\oseq{\lctx, \lctx' |- C}}{
+    \oseq{\lctx |- A} &
+    \oseq{\lctx', A |- C}}
+  \,.
+\end{equation*}
+When antecedents are restricted to be either empty or singletons, that rule becomes the cut rule for singleton linear logic;
+it retains the character of a composition:
+% The cut rule of (intuitionistic) singleton linear logic restricts the antecedent of each sequent to be either empty or a singleton, but still retains the character of a composition:
+\begin{equation*}
+  \infer[\cut{A}]{\oseq{\lctx |- C}}{
+    \oseq{\lctx |- A} &
+    \oseq{A |- C}}
+  \,.
+\end{equation*}
+
+Because proofs are to be processes, this suggests that the process interpretation of the cut rule should compose a process that offers service $A$ with another process that uses service $A$.
+The $\cut{A}$ rule thus becomes a typing rule for process composition:
+\begin{equation*}
+  \infer[\cut{A}]{\oseq{\lctx |- \procof{\spawn{P; Q}}{C}}}{
+    \oseq{\lctx |- \procof{P}{A}} &
+    \oseq{A |- \procof{Q}{C}}}
+  \,,
+\end{equation*}
+where $\spawn{P; Q}$ means \enquote{Spawn process $P$ to the left, and then continue as process $Q$.}
+% The syntax is reminiscent of do notation for monadic computations, with the channel c being bound within c <- spawnP <- ;Qc.
+
+To complete the description of $\spawn{}$, we must make its operational semantics precise.
+Rather than using \iacl*{SOS}, it is convenient to describe the semantics as an ordered logical specification~\autocites{Pfenning:APLAS04}{Pfenning+Simmons:LICS09}, in the style known as \iacf{SSOS}.
+In our \ac{SSOS}, we will use the atomic proposition $\exec{P}$ to represent an executing process $P$.
+The rule for executing a $\spawn{}$ is
+\begin{equation*}
+  \exec{(\spawn{P; Q})} \lrimp \monad{\exec{P} \fuse \exec{Q}}
+  \,.
+\end{equation*}
+Thus, to execute the $\spawn{}$, we execute the processes $P$ and $Q$ side-by-side, with process $P$ offering a service that $Q$ uses.
+
+
+\subsection{Additive conjunction as branching}\label{sec:addit-conj-as-branch}
+
+So far we have discussed only cut, a judgmental principle that applies to all services\footnote{The other judgemental  principle, identity, is postponed to \cref{?} in the interest of presenting only what is necessary for a first, simple example.}; specific services are defined by the right and left rules of the logical connectives.
+
+The singleton linear sequent calculus rules for the additive conjunction $A_1 \with A_2$ are as follows.
+Other than the restriction to singleton or empty antecedents, these rules are the same as those from linear logic.
+% Note that in this case the left rules' contexts are forced to be the singleton $A_1 \with A_2$.
+\begin{mathpar}
+  \infer[\rrule{\with}]{\oseq{\lctx |- A_1 \with A_2}}{
+    \oseq{\lctx |- A_1} &
+    \oseq{\lctx |- A_2}}
+  \and
+  \infer[{\lrule[1]{\with}}]{\oseq{A_1 \with A_2 |- C}}{
+    \oseq{A_1 |- C}}
+  \and
+  \infer[{\lrule[2]{\with}}]{\oseq{A_1 \with A_2 |- C}}{
+    \oseq{A_2 |- C}}
+\end{mathpar}
+The right rule, $\rrule{\with}$, says that to prove $A_1 \with A_2$ we must prove both $A_1$ and $A_2$ (using the same resource $\lctx$) so that we are prepared for whichever of the two resources, $A_1$ or $A_2$, is eventually chosen by a $\lrule[1]{\with}$ or $\lrule[2]{\with}$ left rule.
+
+Correspondingly, a process that offers service $A_1 \with A_2$ gives its client a choice of services $A_1$ and $A_2$; the process must be prepared to offer whichever service the client chooses.
+Based on this intuition, we interpret the $\rrule{\with}$ rule as typing a binary guarded choice:
+\begin{equation*}
+  \infer[\rrule{\with}]{\oseq{\lctx |- \procof{\caseR{\inl => P_1 | \inr => P_2}}{A_1 \with A_2}}}{
+    \oseq{\lctx |- \procof{P_1}{A_1}} &
+    \oseq{\lctx |- \procof{P_2}{A_2}}}
+\end{equation*}
+where $\caseR{\inl => P_1 | \inr => P_2}$ means \enquote{Input either $\inl$ or $\inr$ along the right-hand channel, and then continue as process $P_1$ or $P_2$, respectively.}
+
+Conversely, the client sitting to the right that uses service $A_1 \with A_2$ must behave in a complementary way: the client should select either service $A_1$ or service $A_2$ and then, having notifed the offering process of its choice (as $\inl$ or $\inr$), continue the session by using that service.
+The left rules for type $A_1 \with A_2$ are thus:
+\begin{mathpar}
+  \infer[{\lrule[1]{\with}}]{\oseq{\hypof{A_1 \with A_2} |- \procof{\selectL{\inl; Q}}{C}}}{
+    \oseq{\hypof{A_1} |- \procof{Q}{C}}}
+  \and
+  \infer[{\lrule[2]{\with}}]{\oseq{\hypof{A_1 \with A_2} |- \procof{\selectL{\inr; Q}}{C}}}{
+    \oseq{\hypof{A_2} |- \procof{Q}{C}}}
+\end{mathpar}
+where $\selectL{\inj{\mathsf{1/2}} ; Q}$ means \enquote{Send label $\inj{\mathsf{1/2}}$ along the left-hand channel and then continue as process $Q$.}
+
+Our intuition about the behavior of the guarded choice processes is made precise by their operational semantics.
+First, the $\inl$ branch:
+\begin{equation*}
+  \begin{lgathered}
+    \exec(\selectL{\inl ; Q}) \lrimp \monad{\msgL{\inl} \fuse \exec{Q}} \\
+    \exec(\caseR{\inl => P_1 | \inr => P_2}) \fuse \msgL{\inl} \lrimp \monad{\exec{P_1}}
+      \,.
+  \end{lgathered}
+\end{equation*}
+To execute the selection process $\selectL{\inl ; Q}$, we asynchronously send to the left a message containing the label $\inl$, which is represented in the \ac{SSOS} as the proposition $\msgL{\inl}$, and then immediately continue the session by executing $Q$, \ie\ process $Q$.
+When this message arrives, the destination process $\caseR{\inl => P_1 | \inr => P_2}$ resumes execution as $P_1$.
+
+The operational semantics of the $\inr$ branch is symmetric to that of the $\inl$ branch:
+\begin{equation*}
+  \begin{lgathered}
+    \exec(\selectL{\inr ; Q}) \lrimp \monad{\msgL{\inr} \fuse \exec{Q}} \\
+    \exec(\caseR{\inl => P_1 | \inr => P_2}) \fuse \msgL{\inr} \lrimp \monad{\exec{P_2}}
+      \,.
+  \end{lgathered}
+\end{equation*}
+
+\paragraph{Practical considerations.}
+
+% To make the language more palatable for the programmer, we diverge slightly from a pure propositions-as-types interpretation of one-dimensional linear logic by including $n$-ary labeled additive conjunctions $\with*{\ell_i: A_i}[i \in I]$ as a primitive.
+% Formaly, the conjunction is over a mutiset of label-type pairs,
+% % expressed as a parametric comprehension
+% indexed by set $I$
+% \autocite{Cervesato+Sans:FI14}
+
+To make the language more palatable for the programmer, we diverge slightly from a pure propositions-as-types interpretation of singleton linear logic by including $n$-ary labeled additive conjunctions, $\with*{\ell: A_\ell}[\ell \in L]$, as a primitive.
+% Formally, these types $\with*{\ell_i: A_i}[i \in I]$ are conjunctions over multiset comprehensions~\autocite{Cervesato+Sans:FI14} of label--type pairs.
+
+By analogy with the binary conjunction, the typing rules and operational semantics for $\with*{\ell: A_\ell}[\ell \in L]$ are as follows.
+Notice that the $\rrule{\with}$ has a set of premises, one for each label $\ell \in L$.
+\begin{gather*}
+  \infer[\rrule{\with}]{\oseq{\lctx |- \procof{\caseR*{\ell => P_\ell}[\ell \in L]}{\with*{\ell: A_\ell}[\ell \in L]}}}{
+    \forall \ell \in L \mathpunct{:}\enskip \oseq{\lctx |- \procof{P_\ell}{A_\ell}}}
+  \qquad
+  % \raisebox{0.5\baselineskip}{$\bagged{\,\raisebox{-0.5\baselineskip}{
+  % \scaleleftright[0.4em]{\lbag}{
+    \infer[{\lrule{\with}}]{\oseq{\hypof{\with*{\ell: A_\ell}[\ell \in L]} |- \procof{\selectL{\kay; Q}}{C}}}{
+      \oseq{\hypof{A_{\kay}} |- \procof{Q}{C}} &
+      \text{($\kay \in L$)}}
+  % }{\rbag}_{k \in I}
+  % }}[k \in I]$}
+  \\[2\jot]
+  % \bagged{\,
+  % \scaleleftright[0.4em]{\lbag}{
+    \begin{lgathered}
+      \exec{(\selectL{\kay ; Q})} \lrimp \monad{\msgL{\kay} \fuse \exec{Q}} \\
+      \exec{(\caseR*{\ell => P_\ell}[\ell \in L])} \fuse \msgL{\kay} \lrimp \monad{\exec{P_{\kay}}} \mathrlap{\qquad\text{($\kay \in L$)}}
+    \end{lgathered}
+  % }{\rbag}_{k \in I}
+  % \,}[k \in I]
+\end{gather*}
+% According to the multiset nature of the type, our presentation uses the multiset-oriented inference rules of \textcite{Cervesato+Sans:FI14}: the $\rrule{\with}$ right rule has a multiset of premises---one for each index $i \in I$---and there are multisets of $\lrule[k]{\with}$ left rules and \ac{SSOS} rules.
+
+Another possibility would be to simply treat $n$-ary labeled conjunctions as syntactic sugar for nested binary conjunctions, but this would
+% turn out to
+introduce a communication overhead because we would be sending multiple $\inj{\mathsf{1/2}}$s separately rather than a single label $\kay$.
+
+
+\subsection{Recursive session types and process definitions}\label{sec:recurs-sess-types}
+
+Concurrent processes frequently exhibit unbounded or infinite, yet well-defined, behavior;
+for instance, we may wish to have a counter that offers an increment service indefinitely.
+\Textcite{Toninho+:TGC14} have proposed an extension of their \ac{SILL} type theory that incorporates inductive and coinductive session types.
+However, to keep matters simpler, we instead rely on general recursion here and choose to be content with the departure from a pure Curry--Howard isomorphism.
+
+Session types thus include general recursive types, $\mu t.A$, and type variables, $t$.
+The type $\mu t.A$ is interpreted equi-recursively, being identified with the unfolding $\subst{(\mu t.A)/t}{A}$.
+Processes correspondingly include mutually recursive process definitions, via \sillinline`letrec`, and process variables, $X$.
+
+We extend the session-typing judgment with a context, $\pctx$, of process-variable typings.
+% Because a process is typed according to the services that it uses and offers, process variables are typed as $X : \ctxmonad{A <- \vec{B}}$, meaning that process $X$ can offer service $A$ if provided with channels along which services $\vec{B}$ are offered.
+Because a process is typed according with a sequent of services that it uses and offers, process variables are typed as ${X : \ctxmonad{A <- \lctx}}$ if process $X$ can offer service $A$ 
+% when provided with channels along which services $\vec{B}$ are offered.
+by using services $\lctx$.
+When channels of appropriate types are available, the process $X$ can be called:
+\begin{equation*}
+  \infer[\text{\scshape call}]{\oseq{\pctx, X{:}\ctxmonad{A <- \lctx} ; \lctx |- \procof{X}{A}}}{
+    }
+  \:.
+\end{equation*}
+A common idiom is $\spawn{X ; Q}$, which spawns a call to $X$ that is run in parallel with some process $Q$.
+We will frequently abbreviate this with the syntactic sugar $\mbind{X ; Q}$.
+
+% Mutually recursive process definitions add process variables to the context.
+% Process variables are added to the context to allow for mutual recursion.
+In mutually recursive process definitions,
+% , the programmer declares each process with a type that must be checked.
+the process bodies may refer to any of the mutually recursive processes via process variables.
+The typing rule is
+\begin{equation*}
+  \infer[\text{\scshape letrec}]
+  {\oseq{\pctx ; \lctx |- \procof{\mletrec[X \in \mathcal{X}]{(\mprocdef{X{:}\ctxmonad{A_X <- \lctx_X} = P_X})}{Q}}{C}}}{
+    \text{($\pctx' = \bagged{X{:}\ctxmonad{A_X <- \lctx_X}}[X \in \mathcal{X}]$)}
+    &
+    % \bagged{
+    \forall X \in \mathcal{X}\mathpunct{:}\enskip
+      \oseq{\pctx, \pctx' ; \lctx_X |- \procof{P_X}{A_X}}
+    % }[j \in I]
+    &
+    \oseq{\pctx, \pctx' ; \lctx |- \procof{Q}{C}}}
+  \,.
+\end{equation*}
+
+The operational semantics of these constructs are as follows:
+\begin{equation*}
+  \begin{lgathered}
+    \exec{(\mletrec[X \in \mathcal{X}]{(\mprocdef{X = P_X})}{Q})} \lrimp \monad{\bagged{\bang \bnd{X = P_X}}[X \in \mathcal{X}] \fuse \exec{Q}}
+    \\
+    \bang \bnd{X = P} \fuse \exec{X} \lrimp \monad{\exec{P}}
+  \end{lgathered}
+\end{equation*}
+The environment of bindings of process varibles to process expressions is represented in the \ac{SSOS} as a collection of $\bnd{X = P}$ hypotheses.
+To execute a group of mutually recursive process definitions, $\mletrec[X \in \mathcal{X}]{(\mprocdef{X = P_X})}{Q}$, bindings are introduced for each of the process variables and then the body $Q$ is executed.
+To execute a free process variable $X$, instead execute the process expression to which $X$ is bound.
+
+
+%
+Now, having presented recursion, we can finally give a simple example program.
+
+
+\subsection{Example: Binary counter}\label{sec:exampl-binary-count}
+
+We can implement a simple session-typed counter on natural numbers as shown in \cref{lst:counter-inc}.%
+\footnote{This example is adapted from one by \textcite{Toninho+:ESOP13}.}
+%
+\begin{sillcode}[
+  caption={A simple binary counter supporting an increment operation},
+  label={lst:counter-inc},
+  floatplacement=tb,
+  gobble=2
+]
+  stype Counter = &{ inc: Counter }
+  
+  eps : {|- Counter} =
+  { caseR of
+      inc => eps; bit1 }
+  
+  bit0 : {Counter |- Counter} =
+  { caseR of
+      inc => bit1 }
+  
+  bit1 : {Counter |- Counter} =
+  { caseR of
+      inc => selectL inc; bit0 }
+\end{sillcode}
+%
+The counter is a chain of \sillinline`bit0` and \sillinline`bit1` processes, one for each bit in the binary representation of the counter's value, and is terminated at the most significant end with an \sillinline`eps` process.
+For instance, the process chain \sillinline`eps -> bit1 -> bit0 ->` represents a counter with value $2$.
+
+The counter offers a very simple service: the client may only choose to increment the counter, with the same service being offered recursively after the increment.
+This service, \sillinline`Counter`, is therefore a recursive (unary) additive conjunction, declared in the concrete syntax as \sillinline`stype Counter = &{ inc: Counter }`.
+The \sillinline`eps` process offers this service outright, and thus has type \sillinline`{|- Counter}`.
+The \sillinline`bit0` and \sillinline`bit1` processes, on the other hand, use the service offered by their more significant neighbors, and thus have type \sillinline`{Counter |- Counter}`.
+
+The process definitions of \sillinline`eps`, \sillinline`bit0`, and \sillinline`bit1` are mutually recursive.
+When an \sillinline`eps` process receives an \sillinline`inc` message, it creates a new most significant bit by spawning a new \sillinline`eps` process and then making a recursive call to a \sillinline`bit1` process.
+% that uses the service offered by the new \sillinline`eps`.
+When a \sillinline`bit0` process receives an \sillinline`inc`, the bit is flipped by virtue of a recursive call to a \sillinline`bit1` process.
+Lastly, when a \sillinline`bit1` process receives an \sillinline`inc`, the bit is flipped and a carry is propagated; this is accomplished by first sending \sillinline`inc` along the left to the \sillinline`Counter` offered by the next more significant bit and then making a recursive call to a \sillinline`bit0` process.
+
+Informally, we can see that, as implemented, the \sillinline`inc` operation respects a counter's denotation: whenever a counter representing natural number $N$ is incremented, the resulting counter represents $N+1$.
+Note, however, that this adequacy property is not enforced by the type \sillinline`Counter`.
+An appropriate dependent session type could enforce increment adequacy, but, for simplicity of exposition, we prefer the simple type for now.
+
+\subsection{Additive disjunction as choice}\label{sec:addit-disj-as}
+
+In the singleton linear sequent calculus, additive disjunction, $A \ssor B$, is dual to additive conjunction, $A \with B$.
+\begin{mathpar}
+  \infer[{\rrule[1]{\ssor}}]{\oseq{\lctx |- A_1 \ssor A_2}}{
+    \oseq{\lctx |- A_1}}
+  \and
+  \infer[{\rrule[2]{\ssor}}]{\oseq{\lctx |- A_1 \ssor A_2}}{
+    \oseq{\lctx |- A_2}}
+  \and
+  \infer[\lrule{\ssor}]{\oseq{A_1 \ssor A_2 |- C}}{
+    \oseq{A_1 |- C} &
+    \oseq{A_2 |- C}}
+\end{mathpar}
+
+We should expect this duality to also appear in the process assignment.
+Whereas a process of type $A \with B$ offers its client at the right a choice of services $A$ and $B$, a process of type $A \ssor B$ chooses between offering service $A$ or service $B$ to its client at the right.
+The client waits to be notified of the offering process's choice and then uses that service.
+\begin{mathpar}
+  \infer[{\rrule[1]{\ssor}}]{\oseq{\lctx |- \procof{\selectR{\inl; P}}{A_1 \ssor A_2}}}{
+    \oseq{\lctx |- \procof{P}{A_1}}}
+  \and
+  \infer[{\rrule[2]{\ssor}}]{\oseq{\lctx |- \procof{\selectR{\inr; P}}{A_1 \ssor A_2}}}{
+    \oseq{\lctx |- \procof{P}{A_2}}}
+  \and
+  \infer[\lrule{\ssor}]{\oseq{A_1 \ssor A_2 |- \procof{\caseL{\inl => Q_1 | \inr => Q_2}}{C}}}{
+    \oseq{A_1 |- \procof{Q_1}{C}} &
+    \oseq{A_2 |- \procof{Q_2}{C}}}
+\end{mathpar}
+Confirming the intuition that $\selectR{\inj{\mathsf{1/2}}; P}$ sends along the right-hand channel and $\caseL{\inl => Q_1 | \inr => Q_2}$ receives along the left-hand channel are the \ac{SSOS} rules:
+\begin{equation*}
+  \begin{lgathered}
+    \exec{(\selectR{\inl ; P})} \lrimp \monad{\exec{P} \fuse \msgR{\inl}} \\
+    \msgR{\inl} \fuse \exec{(\caseL{\inl => Q_1 | \inr => Q_2})} \lrimp \monad{\exec{Q_1}}
+    %
+    \\[\jot]
+    %
+    \exec{(\selectR{\inr ; P})} \lrimp \monad{\exec{P} \fuse \msgR{\inr}} \\
+    \msgR{\inr} \fuse \exec{(\caseL{\inl => Q_1 | \inr => Q_2})} \lrimp \monad{\exec{Q_2}}
+      \,.
+  \end{lgathered}
+\end{equation*}
+It's important to distinguish the $\msgR{}$ predicate, which represents messages that flow to the right, from the $\msgL{}$ predicate so that a selection process's continuation does not mistakenly capture the message that was just sent.
+This could otherwise happen in executing $\selectR{\inl ; \caseR{\inl => P_1 | \inr => P_2}}$, for example.
+
+Once again, to make the language more convenient for the programmer, we include $n$-ary labeled additive disjunctions $\ssor*{\ell: A_\ell}[\ell \in L]$.
+The typing rules and operational semantics are thus more generally
+\begin{gather*}
+  % \bagged{
+    \infer[{\rrule{\ssor}}]{\oseq{\lctx |- \procof{\selectR{\kay; P}}{\ssor*{\ell: A_\ell}[\ell \in L]}}}{
+      \oseq{\lctx |- \procof{P}{A_{\kay}}} &
+      \text{($\kay \in L$)}}
+%   }[k \in I]
+  \qquad
+  \infer[\lrule{\ssor}]{\oseq{\ssor*{\ell: A_\ell}[\ell \in L] |- \procof{\caseL*{\ell => Q_\ell}[\ell \in L]}{C}}}{
+    \forall \ell \in L\mathpunct{:}\enskip \oseq{A_\ell |- \procof{Q_\ell}{C}}}
+  \\[2\jot]
+  % \bagged{
+    \begin{lgathered}
+      \exec{(\selectR{\kay; P})} \lrimp \monad{\exec{P} \fuse \msgR{\kay}} \\
+      \msgR{\kay} \fuse \exec{(\caseL*{\ell => Q_\ell}[\ell \in L])} \lrimp \monad{\exec{Q_{\kay}}} \mathrlap{\qquad\text{($\kay \in L$)}}
+    \end{lgathered}
+  % }[k \in I]
+\end{gather*}
+
+
+\subsection{Example: Binary counter with decrements}\label{sec:exampl-binary-count-1}
+
+\begin{sillcode}[
+  caption={A binary counter supporting increments and decrements},
+  label={lst:counter-dec},
+  floatplacement=tb,
+  gobble=2
+]
+  stype Counter = &{ inc: Counter , dec: Counter' }
+    and Counter' = +{ ok: Counter, fail: Counter }
+
+  eps : {|- Counter} =
+  { caseR of
+      inc => eps; bit1
+    | dec => selectR fail; eps }
+  
+  bit0 : {Counter |- Counter} =
+  { caseR of
+      inc => bit1
+    | dec => selectL dec; bit0' }
+  
+  bit0' : {Counter' |- Counter'} =
+  { caseL of
+      ok => selectR ok; bit1
+    | fail => selectR fail; bit0 }
+
+  bit1 : {Counter |- Counter} =
+  { caseR of
+      inc => selectL inc; bit0
+    | dec => selectR ok; bit1 }
+\end{sillcode}
+
+\Cref{lst:counter-dec} shows a counter that takes advantage of additive disjunction to support a truncated decrement operation. 
+According to the type declaration, a process offering the \sillinline`Counter` service gives its client a choice of increment or decrement services.
+If the client chooses to decrement, the offering process will choose to reply with either \sillinline`fail` or \sillinline`ok` and then recursively offer the \sillinline`Counter` service.
+
+As implemented, decrementing the counter gives \sillinline`fail` and leaves the process network unchanged if the counter represents $0$; if it represents some $N > 0$, then decrementing the counter gives \sillinline`ok` after decrementing to $N - 1$.
+Once again, these adequacy properties are not enforced by the type \sillinline`Counter`, although they could be with an appropriate dependent session type.
+
+
+\subsection{Identity as forwarding}\label{sec:ident-as-forw}
+
+In singleton linear logic, in addition to the cut principle, there is an identity principle that states that one way to obtain a resource is to directly use an existing resource:
+\begin{equation*}
+  \infer[\id{A}]{\oseq{A |- A}}{
+    }
+  \,.
+\end{equation*}
+Under the process interpretation, a process can offer service $A$ by acting as a forwarding intermediary between its clients and another process that offers service $A$.
+The $\id{A}$ rule thus types a forwarding process between two channels:
+\begin{equation*}
+  \infer[\id{A}]{\oseq{A |- \procof{\fwd}{A}}}{
+    }
+  \,.
+\end{equation*}
+Rather than making the forwarding explicit in the operational semantics, we can simply eliminate the middleman, linking the neighboring processes:
+\begin{equation*}
+  \exec{(\fwd)} \lrimp \monad{\one}
+  \,.
+\end{equation*}
+
+\begin{sillcode}[
+  caption={A binary counter as a stream transformer},
+  label={lst:counter-bit},
+  floatplacement=tb,
+  gobble=2
+]
+  stype Bin = +{ eps: 1 , bit0: Bin , bit1: Bin }
+  
+  inc : {Bin |- Bin} =
+  { caseL of
+      eps => selectR bit1; selectR eps; <->
+    | bit0 => selectR bit1; <->
+    | bit1 => selectR bit0; inc }
+\end{sillcode}
+
+
+
+\subsection{Other session types}\label{sec:other-session-types}
+
+In addition to the those already mentioned, the other connectives of singleton linear logic correspond to session types.
+
+\paragraph{Multiplicative unit.}
+Like its \ac{SILL} cousin, the multiplicative unit $\one$ is the service that terminates without any interaction.
+Its right rule, $\rrule{\one}$, types a process that immediately terminates; its left rule, $\lrule{\one}$, types a process that waits for the left-hand side to terminate:
+\begin{mathpar}
+  \infer[\rrule{\one}]{\oseq{\lctxe |- \procof{\closeR}{\one}}}{
+    }
+  \and
+  \infer[\lrule{\one}]{\oseq{\one |- \procof{\waitL{Q}}{C}}}{
+    \oseq{\lctxe |- \procof{Q}{C}}}
+\end{mathpar}
+The operational semantics is asynchronous, with the $\closeR$ process sending a $\msgQ$ message:
+\begin{equation*}
+  \begin{lgathered}
+    \exec{\closeR} \lrimp \monad{\msgQ} \\
+    \msgQ \fuse \exec{(\waitL{Q})} \lrimp \monad{\exec{Q}}
+  \end{lgathered}
+\end{equation*}
+
+
+\paragraph{First-order universal and existential quantification.}
+The first-order quantifiers type processes that exchange functional values.
+A process offering service $\forall x{:}\tau. A_x$ (or using service $\exists x{:}\tau. A_x$) first inputs a value $x$ of functional type $\tau$ and then offers (resp., uses) service $A_x$.
+Dually, a process offering service $\exists x{:}\tau. A_x$ (or using service $\forall x{:}\tau. A_x$) asynchronously outputs the value of some functional term $M$ of type $\tau$ and then offers (resp., uses) service $\subst{M/x}{A_x}$. 
+The first-order quantifiers are thus dependent session types; in the non-dependent case, we write the types as $\tau \vimp A$ and $A \vand \tau$.
+% The syntax for value inputs and outputs is $\recv x <- inputc;Pxand outputc M;Q.
+
+Since value inputs and outputs are not critical to the remainder of this proposal, the reader who is interested in further details of their static and dynamic semantics in \ac{SILL} should refer to the papers by \textcites{Toninho+:ESOP13}{Toninho+:PPDP11}; we leave the extrapolation to singleton linear logic as an exercise for the reader.
+
+\paragraph{Multiplicative conjunction and linear implication.}
+The restriction to sequents with singleton antecedents proves fatal to attempts to include multiplicative conjunction ($A \tensor B$) and linear implication ($A \lolli B$) as connectives in singleton linear logic.
+For multiplicative conjunction, the left rule is problematic because it breaks one hypothesis into two; for linear implication, the right rule is problematic because it introduces a new hypothesis even if one is already there.
+Fortunately, for the examples in which we are interested, the absence of $\tensor$ and $\lolli$ is not an issue.
+
+\end{document}
