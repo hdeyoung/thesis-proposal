@@ -1,51 +1,51 @@
-% arara: pdflatex
-% arara: biber
-% arara: pdflatex
-% arara: pdflatex
-\documentclass[
-  class=../hdeyoung-proposal,
-  crop=false
-]{standalone}
+% % arara: pdflatex
+% % arara: biber
+% % arara: pdflatex
+% % arara: pdflatex
+% \documentclass[
+%   class=../hdeyoung-proposal,
+%   crop=false
+% ]{standalone}
 
-\usepackage{ordered-logic}
-\usepackage{basic-atoms}
-\usepackage{ordered-lp-terms}
-\usepackage{proof}
-\usepackage{mathpartir}
+% \usepackage{ordered-logic}
+% \usepackage{basic-atoms}
+% \usepackage{ordered-lp-terms}
+% \usepackage{proof}
+% \usepackage{mathpartir}
 
-\NewDocumentEnvironment{infers}{o O{}}%
-  {%
-    \noindent\IfValueT{#1}{\fbox{#1}#2}%
-    \begin{mathpar}\ignorespaces
-  }%
-  {\end{mathpar}\ignorespacesafterend}
+% \NewDocumentEnvironment{infers}{o O{}}%
+%   {%
+%     \noindent\IfValueT{#1}{\fbox{#1}#2}%
+%     \begin{mathpar}\ignorespaces
+%   }%
+%   {\end{mathpar}\ignorespacesafterend}
 
-\NewDocumentCommand{\irlabel}{m m o}%
-  {{#2}\text{\textsc{#1}}\IfValueT{#3}{_{#3}}}
-\NewDocumentCommand{\rlab}{m o}%
-  {\IfValueTF{#2}{\irlabel{r}{#1}[#2]}{\irlabel{r}{#1}}}
-\NewDocumentCommand{\llab}{m o}%
-  {\IfValueTF{#2}{\irlabel{l}{#1}[#2]}{\irlabel{l}{#1}}}
+% \NewDocumentCommand{\irlabel}{m m o}%
+%   {{#2}\text{\textsc{#1}}\IfValueT{#3}{_{#3}}}
+% \NewDocumentCommand{\rlab}{m o}%
+%   {\IfValueTF{#2}{\irlabel{r}{#1}[#2]}{\irlabel{r}{#1}}}
+% \NewDocumentCommand{\llab}{m o}%
+%   {\IfValueTF{#2}{\irlabel{l}{#1}[#2]}{\irlabel{l}{#1}}}
 
-\NewDocumentCommand{\tctx}{}{\Psi}
-\NewDocumentCommand{\tctxe}{}{\cdot}
+% \NewDocumentCommand{\tctx}{}{\Psi}
+% \NewDocumentCommand{\tctxe}{}{\cdot}
 
-% \NewDocumentCommand{\trans}{t* t+ o}{%
-%   \longrightarrow
-%   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
-%   \IfValueT{#3}{_{#3}}%
-% }
-% \NewDocumentCommand{\ntrans}{}{
-%   \longarrownot\trans
-% }
+% % \NewDocumentCommand{\trans}{t* t+ o}{%
+% %   \longrightarrow
+% %   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+% %   \IfValueT{#3}{_{#3}}%
+% % }
+% % \NewDocumentCommand{\ntrans}{}{
+% %   \longarrownot\trans
+% % }
 
-\begin{document}
+% \begin{document}
 
 \subsection{Technical details}\label{sec:ordered-lp:technical}
 
-The previous \lcnamecrefs{sec:olp-intuition:binary-counter} have hopefully served to provide intuition for ordered logical specifications.
-In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details, generally following the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}, but confining ourselves to a propositional fragment and using a weakly focused proof-construction strategy~\autocite{Simmons+Pfenning:CMU11}.
-The reader should feel free to skip this \lcnamecref{sec:ordered-lp:technical}, since the technical details are not critical to an understanding of the rest of this proposal.
+The previous \lcnamecrefs{sec:olp-intuition:binary-counter} have hopefully provided an intuition for ordered logical specifications.
+In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details, generally following the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}, but confining ourselves to a propositional fragment and using a weakly focused proof-construction strategy~\autocite{Simmons+Pfenning:CMU11} instead.
+The reader should feel free to skip this \lcnamecref{sec:ordered-lp:technical} (especially if he is familiar with ordered logic), since the technical details are not critical to an understanding of the rest of this proposal.
 
 \subsubsection{Propositions, terms, and traces}\label{sec:props-terms-traces}
 
@@ -53,28 +53,34 @@ The reader should feel free to skip this \lcnamecref{sec:ordered-lp:technical}, 
 
 Propositions are polarized into \vocab{positive} and \vocab{negative} classes:
 \begin{alignat*}{2}
-  &\text{Positive propositions}\quad & A^+ &::= \p^+ \mid A^- \mid A^+ \fuse B^+ \mid \one \\
+  &\text{Positive propositions}\quad & A^+ &::= \patom^+ \mid A^- \mid A^+ \fuse B^+ \mid \one \\
   &\text{Negative propositions}      & A^- &::= A^+ \rimp B^- \mid A^+ \limp B^- \mid A^- \with B^- \mid \monad{A^+}
 \end{alignat*}
 The positive propositions, $A^+$, are those whose left rules are invertible, whereas the negative propositions, $A^-$, are those whose right rules are invertible.
 % As an example, the ordered implications $A^+ \rimp B^-$ and $A^+ \limp B^-$ are classified as negative because the $\rlab{\rimp}$ and $\rlab{\limp}$ rules are invertible.
 
-Positive atomic propositions, $\p^+$, stand in for arbitrary positive propositions.
-Negative propositions, $A^-$, are included in positive ones.
-The lax modality, or monad, $\monad{A^+}$, will be responsible for typing traces; it gives logical force to the separation of the two classes of propositions, yet still allows positive propositions to be included in negative ones.
+Positive atomic propositions, $\patom^+$, stand in for arbitrary positive propositions.
+Negative propositions, $A^-$, are implicitly included in positive ones.
+The lax modality, or monad, $\monad{A^+}$, will be responsible for typing traces; it gives logical force to the separation of the two classes of propositions, yet still allows positive propositions to be explicitly included in negative ones.
 % Second, negative propositions can similiarly be treated as positive ones via the implicit inclusion $A^-$.
 
 \paragraph{Contexts.}\label{sec:contexts}
-The set of all ordered contexts, $\octx$, forms the free monoid over the alphabet of hypotheses $x{:}A^+$ and $x{:}A^-$: concatenation is written as $\octx_1, \octx_2$ and its unit is the empty context, $\octxe$.
+The set of all ordered contexts, $\octx$, forms the free monoid over the alphabet of hypotheses $x{:}A^+$ and $x{:}A^-$.
+Concatenation is written as $\octx_1, \octx_2$ and its unit is the empty context, $\octxe$.
 \begin{alignat*}{2}
   &\text{Ordered contexts}\quad & \octx &::= \octxe \mid x{:}A^+ \mid x{:}A^- \mid \octx_1, \octx_2
 \end{alignat*}
-Because the proof-construction strategy is weakly focused, non-atomic positive propositions, such as $A^+ \fuse B^+$, are indeed permissible hypotheses.
+Notice that because the proof-construction strategy is weakly focused, non-atomic positive propositions, such as $A^+ \fuse B^+$, are indeed permissible hypotheses.
 
 In addition to ordered contexts, we include \vocab{frames}.
 Frames, $\ofrm$, can be thought of as ordered contexts with one hole; i.e., $\ofrm$ is morally the same as $\octx_L, \Box, \octx_R$, for some $\octx_L$ and $\octx_R$.
 The hole may be filled with an ordered context, so that $\ofill{\octx}$ is the ordered context $\octx_L, \octx, \octx_R$.
 To ease the notational clutter in typing rules, we also allow contexts to be matched against filled frames.
+
+The reader familiar with substructural logics will note that we have chosen not to include unrestricted contexts or persistent hypotheses.
+Specification clauses, such as $\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}$, should indeed be persistent, but they are handled by signatures
+
+\paragraph{Signatures.}\label{sec:signatures}
 
 \paragraph{Terms.}\label{sec:terms}
 
@@ -201,7 +207,7 @@ The value typing judgment, $\octx \seq \vof{V : \rfoc{A^+}}$, is shown in \cref{
       &\text{Values} &\quad&& V &::= x \mid N \mid \vfuse{V_1}{V_2} \mid \vone
     \end{alignedat}
     \\
-    \infer{x{:}\p^+ \seq \vof{x : \rfoc{\p^+}}}{
+    \infer{x{:}\patom^+ \seq \vof{x : \rfoc{\patom^+}}}{
       }
     \and
     \infer{\octx \seq \vof{N : \rfoc{A^-}}}{
@@ -334,7 +340,7 @@ Bound variables can always be renamed to be distinct from the input and output v
 %     \end{aligned}
 % \end{equation*}
 
-\end{document}
+% \end{document}
 
 %%% Local Variables:
 %%% TeX-master: "ordered-lp"

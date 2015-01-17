@@ -1,0 +1,48 @@
+(* Quicksort in SILL *)
+(* Henry DeYoung *)
+(* January 10, 2015 *)
+
+stype QSort = &{ more: int => QSort , done: int list /\ 1 }
+
+(* qsort : int list -> { c:int list /\ 1 -| } *)
+c <- qsort xs =
+{ d <- nil;
+  c' <- load xs <- d;
+  send c' done;
+  c <- c' }
+
+(* load : int list -> { c:QSort -| d:QSort } *)
+  c <- load [] <- d = { c <- d }
+| c <- load (x::xs) <- d =
+    { send d more;
+      send d x;
+      c <- load xs <- d }
+
+(* pivot : int -> { c:QSort -| l:QSort , g:QSort } *)
+c <- pivot x <- l,g =
+{ case c of
+    more => y <- recv c;
+            if y < x then
+              send l more;
+              send l y;
+              c <- pivot x <- l,g
+            else
+              send g more;
+              send g y;
+              c <- pivot x <- l,g
+  | done => send l done;
+            send g done;  (* Send g done before recv l *)
+            L <- recv l;  (* to increase parallelism.  *)
+            G <- recv g;
+            send c (L @ (x::G));
+            close c }
+
+(* nil : { c:QSort -| } *)
+c <- nil =
+{ case c of
+    more => x <- recv c;
+            l <- nil;
+            g <- nil;
+            c <- pivot x <- l,g
+  | done => send c [];
+            close c }

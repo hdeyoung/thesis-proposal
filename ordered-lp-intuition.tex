@@ -1,57 +1,57 @@
-% arara: pdflatex
-% arara: biber
-% arara: pdflatex
-% arara: pdflatex
-\documentclass[
-  class=../hdeyoung-proposal,
-  crop=false
-]{standalone}
+% % arara: pdflatex
+% % arara: biber
+% % arara: pdflatex
+% % arara: pdflatex
+% \documentclass[
+%   class=../hdeyoung-proposal,
+%   crop=false
+% ]{standalone}
 
-\usepackage{ordered-logic}
-\usepackage{binary-counter}
-\usepackage{proof}
-\usepackage{tikz}
-\usepackage{tikz-cd}
-\usepackage{subcaption}
+% \usepackage{ordered-logic}
+% \usepackage{binary-counter}
+% \usepackage{proof}
+% \usepackage{tikz}
+% \usepackage{tikz-cd}
+% \usepackage{subcaption}
 
-\NewDocumentEnvironment{subtheorems}{m O{}}%
-  {%
-    \begin{enumerate}%
-      [label=\alph*.,ref=\csname the#1\endcsname\alph*,#2]%
-    \crefalias{enumi}{#1}%
-    \ignorespaces
-  }%
-  {\end{enumerate}\ignorespacesafterend}
+% \NewDocumentEnvironment{subtheorems}{m O{}}%
+%   {%
+%     \begin{enumerate}%
+%       [label=\alph*.,ref=\csname the#1\endcsname\alph*,#2]%
+%     \crefalias{enumi}{#1}%
+%     \ignorespaces
+%   }%
+%   {\end{enumerate}\ignorespacesafterend}
 
-\NewDocumentCommand{\trans}{t* t+ o o}{%
-  \longrightarrow
-  \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
-  \IfNoValueTF{#4}{%
-    \IfValueT{#3}{_{#3}}%
-  }{%
-    ^{#3}_{#4}%
-  }%
-}
-\NewDocumentCommand{\ntrans}{}{
-  \longarrownot\trans
-}
+% \NewDocumentCommand{\trans}{t* t+ o o}{%
+%   \longrightarrow
+%   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+%   \IfNoValueTF{#4}{%
+%     \IfValueT{#3}{_{#3}}%
+%   }{%
+%     ^{#3}_{#4}%
+%   }%
+% }
+% \NewDocumentCommand{\ntrans}{}{
+%   \longarrownot\trans
+% }
 
-\DeclareAcronym{CLF}{
-  short = CLF,
-  long = the concurrent logical framework
-}
+% \DeclareAcronym{CLF}{
+%   short = CLF,
+%   long = the concurrent logical framework
+% }
 
-\NewPredicate{\Cntr}[Cntr][font = \mathit]{0}
-\NewPredicate{\cntr}[Cntr]{0}
+% \NewPredicate{\Cntr}[Cntr][font = \mathit]{0}
+% \NewPredicate{\cntr}[Cntr]{0}
 
-\NewPredicate{\coin}{0}
-\NewPredicate{\heads}{0}
-\NewPredicate{\tails}{0}
-\NewPredicate{\win}{0}
-\NewPredicate{\loss}{0}
+% \NewPredicate{\coin}{0}
+% \NewPredicate{\heads}{0}
+% \NewPredicate{\tails}{0}
+% \NewPredicate{\win}{0}
+% \NewPredicate{\loss}{0}
 
 
-\begin{document}
+% \begin{document}
 
 \NewDocumentEnvironment{ lpsig }{ }%
   { \begin{aligned} }%
@@ -72,7 +72,7 @@
 
 \subsection{Example: Binary counter}\label{sec:olp-intuition:binary-counter}
 
-Using ordered logic, we can specify an incrementable binary counter.
+Using ordered logic, we can specify the behavior of an incrementable binary counter.
 The counter is represented as a string of $\bit{0}$ and $\bit{1}$ atoms terminated at the most significant end by an $\eps$.
 For instance, the ordered conjunction $\eps \fuse \bit{1} \fuse \bit{0}$ is a string that represents a counter with value $2$.
 %
@@ -122,8 +122,8 @@ Whenever the carried $\inc$ reaches the $\eps$ or right-most $\bit{0}$, the carr
     \,.
   \end{lgathered} % \end{lpsig}
 \end{equation*}
-By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, this second clause ensures that, in the $\eps$ case, the carry becomes a new most significant $\bit{1}$;
-by rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third clause ensures that, in the $\bit{0}$ case, the carry flips the $\bit{0}$ to $\bit{1}$.
+By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, this second clause ensures that in the $\eps$ case the carry becomes a new most significant $\bit{1}$;
+similarly, by rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third clause ensures that in the $\bit{0}$ case the carry flips the $\bit{0}$ to $\bit{1}$.
 
 For example, under the $\sig_{\inc}$ signature\rlap{,}%
 \footnote{For precision, the rewriting relation, $\trans$, is indexed by the signature of clauses that may contribute to the rewriting, such as $\sig_{\inc}$ in $\trans[\sig_{\inc}]$ here.
@@ -138,7 +138,8 @@ We frequently omit the index when it is clear from the context.}
 \end{equation*}
 where at each step the sites amenable to rewriting have been underlined.
 This trace computes $1 + 1 = 2$ in binary representation.
-More generally, the clauses adequately specify an increment operation, as discussed further in \cref{sec:gener-invar}.
+More generally, the above clauses adequately specify the increment operation on binary numbers.
+% , as discussed further in \cref{sec:gener-invar}.
 
 \subsection{Concurrency}\label{sec:olp-intuition:concurrency}
 
@@ -187,9 +188,10 @@ according to the upper path or the lower path in the following diagram.
 
 However, because these two rewritings are independent, they should be considered morally concurrent.
 Rather than giving a truly concurrent semantics for string rewriting, we can treat different interleavings of independent steps as indistinguishable.%
-\footnote{In the above example, indistinguishability of the two different interleavings is tantamount to requiring the diagram to commute.}
+\footnote{In the above example, indistinguishability of the two different interleavings is tantamount to commutativity of the diagram.% requiring the diagram to commute.
+}
 Then, because we can't observe which rewriting occurred first, the two rewritings appear to happen concurrently.
-This is the idea of \vocab{concurrent equality} from the {CLF}~\autocite{Watkins+:CMU02} linear logical specification framework, adapted by \textcite{Simmons:CMU12} for ordered logical specifications.
+This is the idea of \vocab{concurrent equality} from the \acs{CLF}~\autocite{Watkins+:CMU02} framework for linear logical specification framework, later adapted by \textcite{Simmons:CMU12} for ordered logical specifications.
 % Concurrent equality justifies adopting true concurrency as an abstraction.
 
 
@@ -203,7 +205,7 @@ As it passes over any $\bit{0}$s at the least significant end, they are marked a
 \begin{equation*}
   \bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \,.
 \end{equation*}
-Whenever it reaches the $\eps$ or right-most $\bit{1}$, the $\dec$ is replaced with either $\fail$ or $\suc$, respectively, to show whether the borrow was possible; in the case of $\bit{1}$, the borrow is also effected:
+Whenever the $\dec$ reaches the $\eps$ or right-most $\bit{1}$, it is replaced with either $\fail$ or $\suc$, respectively, to show whether the borrow was possible; in the case of $\bit{1}$, the borrow is also effected:
 \begin{equation*}
   \begin{lgathered}
     \eps \fuse \dec \lrimp \monad{\eps \fuse \fail} \\
@@ -280,7 +282,7 @@ This justifies treating those two rewritings as concurrent.
   \caption{Summary of binary counter example\label{fig:binary-counter-summary}}
 \end{figure}
 
-\Cref{fig:binary-counter-summary} provides a summary of the increment and decrement programs.
+\Cref{fig:binary-counter-summary} summarizes the increment and decrement programs.
 
 
 % C ::= eps | C * bit0 | C * bit1 | C * inc
@@ -332,11 +334,10 @@ Among the infinite traces now possible is
     \trans \dotsb
   \,.
 \end{equation*}
-
 Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$ substring, instead always choosing to rewrite $\incs$.
 Because of its scheduling bias against rewriting $\eps \fuse \inc$, we say that the trace is \vocab{(weakly) transition-unfair}.
 
-Transition unfairness is fundamentally at odds with concurrency because it allows the possibility that one event precludes another, independent event, as does the persistant rewriting of $\incs$ preclude the rewriting of the independent $\eps \fuse \inc$.
+Transition unfairness is fundamentally at odds with concurrency because it admits the possibility that one event precludes another, independent event---just as the persistent rewriting of $\incs$ precludes the rewriting of the independent $\eps \fuse \inc$ here.
 Therefore, we implicitly assume that all traces are weakly transition-fair.
 
 % Transition unfairness is fundamentally at odds with concurrency.
@@ -1139,7 +1140,7 @@ Therefore, we implicitly assume that all traces are weakly transition-fair.
 % % By rewriting $\eps \fuse \inc$ as $\eps \fuse \bit{1}$, the second rule ensures that the carry becomes a new most significant $\bit{1}$ in the $\eps$ case.
 % % By rewriting $\bit{0} \fuse \inc$ as $\bit{1}$, the third rule ensures that the carry flips the $\bit{0}$ to $\bit{1}$ in that case.
 
-\end{document}
+% \end{document}
 
 %%% Local Variables:
 %%% TeX-master: "ordered-lp"

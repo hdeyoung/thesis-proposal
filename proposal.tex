@@ -1,34 +1,36 @@
-% arara: pdflatex
+% arara: lualatex
 % arara: biber
-% arara: pdflatex
-% arara: pdflatex
+% arara: lualatex
+% arara: lualatex
 \documentclass{hdeyoung-proposal}
 
-\usepackage{ordered-logic}
-\usepackage{binary-counter}
+\usepackage{proposal-macros}
+\usetikzlibrary{shapes.misc,graphs,quotes,graphdrawing}
+\usegdlibrary{trees}
 
+\input{acronyms}
 \addbibresource{proposal.bib}
 
 \begin{document}
 
 \title{Session-Typed Concurrent\\Logic Programming}
 \author{Henry DeYoung\\\texttt{hdeyoung@cs.cmu.edu}}
-\date{\today}
+\date{Draft of \today}
 \maketitle
 
 % \tableofcontents
 
 % \include{intro}
 
-% \include{background}
+\include{ordered-lp}
 
-% \include{ch/ordered-lp}
+\include{choreographies}
 
-% \include{ch/choreographies}
+\include{sill-1d}
 
-% \include{compiling}
+\include{compile-1d}
 
-% \include{proposed-work}
+\include{proposed-work}
 
 % \include{related-work}
 

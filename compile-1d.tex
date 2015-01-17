@@ -1,200 +1,200 @@
-% arara: pdflatex
-% arara: pdflatex
-% arara: biber
-% arara: pdflatex
-% arara: pdflatex
-% \documentclass{../hdeyoung-proposal}
-\documentclass[
-  class=../hdeyoung-proposal,
-  crop=false
-]{standalone}
+% % arara: pdflatex
+% % arara: pdflatex
+% % arara: biber
+% % arara: pdflatex
+% % arara: pdflatex
+% % \documentclass{../hdeyoung-proposal}
+% \documentclass[
+%   class=../hdeyoung-proposal,
+%   crop=false
+% ]{standalone}
 
 
-\usepackage{linear-logic}
-\usepackage{ordered-logic}
-\usepackage{basic-atoms}
-\usepackage{proof}
-\usepackage{mathpartir}
+% \usepackage{linear-logic}
+% \usepackage{ordered-logic}
+% \usepackage{basic-atoms}
+% \usepackage{proof}
+% \usepackage{mathpartir}
 
-\usepackage{tikz}
-% \usetikzlibrary{shapes.misc,graphs,graphdrawing}
-% \usegdlibrary{trees}
+% \usepackage{tikz}
+% % \usetikzlibrary{shapes.misc,graphs,graphdrawing}
+% % \usegdlibrary{trees}
 
-\ExplSyntaxOn
+% \ExplSyntaxOn
 
-% \DeclarePairedDelimiter \parens { \lparen } { \rparen }
-\DeclarePairedDelimiter \bagged:wn { \lbag } { \rbag }
-\NewDocumentCommand{ \bagged }{ s o m o }
-  {
-    \IfBooleanTF {#1}
-      { \bagged:wn* {#3} }
-      {
-        \IfValueTF {#2}
-          { \bagged:wn[#2] {#3} }
-          { \bagged:wn {#3} }
-      }
-    \IfValueT {#4} { \sb{#4} }
-  }
-
-
-\NewDocumentCommand \oseq { >{ \SplitArgument{1}{|-} } m }
-  { \oseq:nn #1 }
-\cs_new:Npn \oseq:nn #1#2 { \oseq_ctxs:n {#1} \vdash #2 }
-\cs_new:Npn \oseq_ctxs:n #1 {
-  \seq_set_split:Nnn \l_tmpa_seq {;} {#1}
-  \seq_use:Nn \l_tmpa_seq { \mathrel{;} }
-}
-
-\NewDocumentCommand \procof { m m } { #1 \dblcolon #2 }
-\NewDocumentCommand \hypof { m } { #1 }
+% % \DeclarePairedDelimiter \parens { \lparen } { \rparen }
+% \DeclarePairedDelimiter \bagged:wn { \lbag } { \rbag }
+% \NewDocumentCommand{ \bagged }{ s o m o }
+%   {
+%     \IfBooleanTF {#1}
+%       { \bagged:wn* {#3} }
+%       {
+%         \IfValueTF {#2}
+%           { \bagged:wn[#2] {#3} }
+%           { \bagged:wn {#3} }
+%       }
+%     \IfValueT {#4} { \sb{#4} }
+%   }
 
 
-\NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
-\NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
+% \NewDocumentCommand \oseq { >{ \SplitArgument{1}{|-} } m }
+%   { \oseq:nn #1 }
+% \cs_new:Npn \oseq:nn #1#2 { \oseq_ctxs:n {#1} \vdash #2 }
+% \cs_new:Npn \oseq_ctxs:n #1 {
+%   \seq_set_split:Nnn \l_tmpa_seq {;} {#1}
+%   \seq_use:Nn \l_tmpa_seq { \mathrel{;} }
+% }
 
-\NewDocumentCommand \comp { >{ \SplitArgument{1}{|} } m }
-  { \comp:nn #1 }
-\cs_new:Npn \comp:nn #1#2 { #1 \parallel #2 }
-
-\NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
-
-
-\RenewDocumentCommand \with { s }
-  { \IfBooleanTF {#1} \with:n \with: }
-\cs_new:Npn \with:n #1 {
-  \mathord{\binampersand}
-  \bagged {
-    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
-    \seq_use:Nn \l_tmpa_seq {,}
-  }
-}
-\cs_new:Npn \with: { \mathbin{\binampersand} }
-
-\NewDocumentCommand \ssor { s }
-  { \IfBooleanTF {#1} \ssor:n \ssor: }
-\cs_new:Npn \ssor:n #1 {
-  \mathord{\ssor:}
-  \bagged {
-    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
-    \seq_use:Nn \l_tmpa_seq {,}
-  }
-}
-\cs_new:Npn \ssor: { \oplus }
-
-\NewDocumentCommand \caseR { s m }
-  {
-    \IfBooleanTF {#1}
-      { \case:nNn { \mathsf{caseR} } \bagged {#2} }
-      { \case:nNn { \mathsf{caseR} } \parens {#2} }
-  }
-\NewDocumentCommand \caseL { s m }
-  {
-    \IfBooleanTF {#1}
-      { \case:nNn { \mathsf{caseL} } \bagged {#2} }
-      { \case:nNn { \mathsf{caseL} } \parens {#2} }
-  }
-\cs_new:Npn \case:nNn #1#2#3 {
-  #1 \mskip\thinmuskip
-  #2 {
-    \seq_set_split:Nnn \l_tmpa_seq {|} {#3}
-    \seq_clear:N \l_tmpb_seq
-    \seq_map_inline:Nn \l_tmpa_seq
-      { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
-    \seq_use:Nn \l_tmpb_seq { \mid }
-  }
-}
-\cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
-\cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
-  #1 \Rightarrow #2
-}
-
-\NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
-  { \select:nnn { \mathsf{selectL} } #1 }
-\NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
-  { \select:nnn { \mathsf{selectR} } #1 }
-\cs_new:Npn \select:nnn #1#2#3 {
-  \!\mathord{}\mathop{#1} #2 ; #3
-}
+% \NewDocumentCommand \procof { m m } { #1 \dblcolon #2 }
+% \NewDocumentCommand \hypof { m } { #1 }
 
 
-\NewDocumentCommand \inj { m } { \mathsf{in}\sb{#1} }
+% \NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
+% \NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
 
-\NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
-\NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
+% \NewDocumentCommand \comp { >{ \SplitArgument{1}{|} } m }
+%   { \comp:nn #1 }
+% \cs_new:Npn \comp:nn #1#2 { #1 \parallel #2 }
 
-
-\RenewDocumentCommand \one {} { \mathord { \mathbf{1} } }
-
-\NewDocumentCommand \quitR {} { \mathsf{quitR} }
-\NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
+% \NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
 
 
-\NewDocumentCommand \rrule { o m } {
-  \IfValueTF {#1}
-    { \rrule:nn {#2} {#1} }
-    { \rrule:n {#2} }
-}
-\cs_new:Npn \rrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{R}}}\sb{#2} }
-\cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+% \RenewDocumentCommand \with { s }
+%   { \IfBooleanTF {#1} \with:n \with: }
+% \cs_new:Npn \with:n #1 {
+%   \mathord{\binampersand}
+%   \bagged {
+%     \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+%     \seq_use:Nn \l_tmpa_seq {,}
+%   }
+% }
+% \cs_new:Npn \with: { \mathbin{\binampersand} }
 
-\NewDocumentCommand \lrule { o m } {
-  \IfValueTF {#1}
-    { \lrule:nn {#2} {#1} }
-    { \lrule:n {#2} }
-}
-\cs_new:Npn \lrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{L}}}\sb{#2} }
-\cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+% \NewDocumentCommand \ssor { s }
+%   { \IfBooleanTF {#1} \ssor:n \ssor: }
+% \cs_new:Npn \ssor:n #1 {
+%   \mathord{\ssor:}
+%   \bagged {
+%     \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+%     \seq_use:Nn \l_tmpa_seq {,}
+%   }
+% }
+% \cs_new:Npn \ssor: { \oplus }
 
+% \NewDocumentCommand \caseR { s m }
+%   {
+%     \IfBooleanTF {#1}
+%       { \case:nNn { \mathsf{caseR} } \bagged {#2} }
+%       { \case:nNn { \mathsf{caseR} } \parens {#2} }
+%   }
+% \NewDocumentCommand \caseL { s m }
+%   {
+%     \IfBooleanTF {#1}
+%       { \case:nNn { \mathsf{caseL} } \bagged {#2} }
+%       { \case:nNn { \mathsf{caseL} } \parens {#2} }
+%   }
+% \cs_new:Npn \case:nNn #1#2#3 {
+%   #1 \mskip\thinmuskip
+%   #2 {
+%     \seq_set_split:Nnn \l_tmpa_seq {|} {#3}
+%     \seq_clear:N \l_tmpb_seq
+%     \seq_map_inline:Nn \l_tmpa_seq
+%       { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
+%     \seq_use:Nn \l_tmpb_seq { \mid }
+%   }
+% }
+% \cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
+% \cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
+%   #1 \Rightarrow #2
+% }
 
-\NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
-\NewDocumentCommand \msgR { } { \mathsf{msgR} \mskip\thinmuskip }
-\NewDocumentCommand \msgL { } { \mathsf{msgL} \mskip\thinmuskip }
-
-\ExplSyntaxOff
-
-
-\input{acronyms.tex}
-
-\addbibresource{../proposal.bib}
-
-
-\ExplSyntaxOn
-
-\NewDocumentCommand \spawn { >{ \SplitArgument{1}{;} }m } { \spawn:nn #1 }
-\cs_new:Npn \spawn:nn #1#2 { \mathsf{spawn} \mskip\thinmuskip #1 ; #2 }
-
-\NewDocumentCommand \call { m } { \call:n {#1} }
-\cs_new:Npn \call:n #1 { \mathsf{call} \mskip\thinmuskip #1 }
-
-\NewDocumentCommand \cmp { m g } {
-  \IfValueTF {#2}
-    { \compile:nn {#1} {= #2} }
-    { \compile:nn {#1} {} }
-}
-\cs_new:Npn \compile:nn #1#2 { \llbracket #1 \rrbracket #2 }
-
-\NewDocumentCommand \trans { o } {
-  \IfValueTF {#1}
-    { \trans:n {#1} }
-    { \trans: }
-}
-\cs_new:Npn \trans: { \longrightarrow }
-\cs_new:Npn \trans:n #1 {
-  \mathrel {
-    \smash { \overset { \raisebox {-1ex} { $\scriptstyle #1$ } } { \trans: } }
-    \vphantom { \trans: }
-  }
-}
-\NewDocumentCommand \strans { } { \trans[\tau] }
-
-\NewDocumentCommand \sig { } { \Sigma }
-
-\NewDocumentCommand \chseq { } { \vdash^{\mathrm{ch}} }
-
-\ExplSyntaxOff
+% \NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
+%   { \select:nnn { \mathsf{selectL} } #1 }
+% \NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
+%   { \select:nnn { \mathsf{selectR} } #1 }
+% \cs_new:Npn \select:nnn #1#2#3 {
+%   \!\mathord{}\mathop{#1} #2 ; #3
+% }
 
 
-\begin{document}
+% \NewDocumentCommand \inj { m } { \mathsf{in}\sb{#1} }
+
+% \NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
+% \NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
+
+
+% \RenewDocumentCommand \one {} { \mathord { \mathbf{1} } }
+
+% \NewDocumentCommand \quitR {} { \mathsf{quitR} }
+% \NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
+
+
+% \NewDocumentCommand \rrule { o m } {
+%   \IfValueTF {#1}
+%     { \rrule:nn {#2} {#1} }
+%     { \rrule:n {#2} }
+% }
+% \cs_new:Npn \rrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{R}}}\sb{#2} }
+% \cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+
+% \NewDocumentCommand \lrule { o m } {
+%   \IfValueTF {#1}
+%     { \lrule:nn {#2} {#1} }
+%     { \lrule:n {#2} }
+% }
+% \cs_new:Npn \lrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{L}}}\sb{#2} }
+% \cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+
+
+% \NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
+% \NewDocumentCommand \msgR { } { \mathsf{msgR} \mskip\thinmuskip }
+% \NewDocumentCommand \msgL { } { \mathsf{msgL} \mskip\thinmuskip }
+
+% \ExplSyntaxOff
+
+
+% \input{acronyms.tex}
+
+% \addbibresource{../proposal.bib}
+
+
+% \ExplSyntaxOn
+
+% \NewDocumentCommand \spawn { >{ \SplitArgument{1}{;} }m } { \spawn:nn #1 }
+% \cs_new:Npn \spawn:nn #1#2 { \mathsf{spawn} \mskip\thinmuskip #1 ; #2 }
+
+% \NewDocumentCommand \call { m } { \call:n {#1} }
+% \cs_new:Npn \call:n #1 { \mathsf{call} \mskip\thinmuskip #1 }
+
+% \NewDocumentCommand \cmp { m g } {
+%   \IfValueTF {#2}
+%     { \compile:nn {#1} {= #2} }
+%     { \compile:nn {#1} {} }
+% }
+% \cs_new:Npn \compile:nn #1#2 { \llbracket #1 \rrbracket #2 }
+
+% \NewDocumentCommand \trans { o } {
+%   \IfValueTF {#1}
+%     { \trans:n {#1} }
+%     { \trans: }
+% }
+% \cs_new:Npn \trans: { \longrightarrow }
+% \cs_new:Npn \trans:n #1 {
+%   \mathrel {
+%     \smash { \overset { \raisebox {-1ex} { $\scriptstyle #1$ } } { \trans: } }
+%     \vphantom { \trans: }
+%   }
+% }
+% \NewDocumentCommand \strans { } { \trans[\tau] }
+
+% \NewDocumentCommand \sig { } { \Sigma }
+
+% \NewDocumentCommand \chseq { } { \vdash^{\mathrm{ch}} }
+
+% \ExplSyntaxOff
+
+
+% \begin{document}
 
 \section{}
 
@@ -221,7 +221,7 @@ Recall the grammar of \emph{local} propositions given in \cref{?}:
 % We rule out these propositions by ensuring that the arms of an additive conjunction are consistently left- or right-implications:
 \begin{alignat*}{3}
   &\text{Negative propositions} &\quad&& A^-,B^- &::= \monad{A^+} \mid \with*{\matom[<-]^+_i \rimp \monad{A^+_i}}[i \in I] \mid \with*{\matom[->]^+_i \limp \monad{A^+_i}}[i \in I] \\
-  &\text{Positive propositions}      &&& A^+,B^+ &::= A^+ \fuse B^+ \mid \one \mid \matom[<-]^+ \fuse A^+ \mid A^+ \fuse \matom[->]^+ \mid \p^+ \mid A^-
+  &\text{Positive propositions}      &&& A^+,B^+ &::= A^+ \fuse B^+ \mid \one \mid \matom[<-]^+ \fuse A^+ \mid A^+ \fuse \matom[->]^+ \mid \patom^+ \mid A^-
 \end{alignat*}
 
 
@@ -235,10 +235,10 @@ The rules for translating negative propositions are:
   \infer{\cmp{\monad{A^+}}{P}}{
     \cmp{A^+}{P}}
   \and
-  \infer{\cmp{\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]}{\caseR*{\matom[<-]_i => P_i}[i \in I]}}{
+  \infer{\cmp{\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]}{\caseR[i \in I]{\matom[<-]_i => P_i}}}{
     \forall i \in I\mathpunct{:}\enskip  \cmp{A^+_i}{P_i}}
   \and
-  \infer{\cmp{\with*{\matom[->]_i \limp \monad{A^+_i}}[i \in I]}{\caseL*{\matom[->]_i => P_i}[i \in I]}}{
+  \infer{\cmp{\with*{\matom[->]_i \limp \monad{A^+_i}}[i \in I]}{\caseL[i \in I]{\matom[->]_i => P_i}}}{
     \forall i \in I\mathpunct{:}\enskip  \cmp{A^+_i}{P_i}}
 \end{mathpar}
 The lax modality $\monad{A^+}$ translates just as $A^+$ does: the modality is silent.
@@ -376,16 +376,16 @@ Putting these two pieces together, $\cmp{\cdot}$ is a weak bisimulation.
 % \end{theorem}
 
 
-\subsection{}
+\subsection{Well-typed choreographies translate to well-typed processes}
 
 At this point, we can translate choreographies to syntactically well-formed processes.
 However, not all choreographies translate to \emph{well-typed} processes.
-For example, $(A^+_1 \fuse \matom[->]_1) \fuse (\matom[<-]_2 \fuse A^+_2)$ translates to the process $\spawn{(\selectR{\matom[->]_1 ; P_1}); (\selectL{\matom[<-]_2 ; P_2})}$, which is not typable in \acs{SISLL} because the two messages, having no recipients, collide.
+For example, $(A^+_1 \fuse \matom[->]_1) \fuse (\matom[<-]_2 \fuse A^+_2)$ translates to the process $\spawn{(\selectR{\matom[->]_1 ; P_1}); (\selectL{\matom[<-]_2 ; P_2})}$, which is not typable in \acs{SISLL} because the messages have no matching recipients and therefore collide.
 
-To identify a class of choreographies that enjoy the same session fidelity and, especially, progress properties as well-typed processes, we need to introduce a typing discipline for choreographies, $\chseq$, that is respected by the translation.
+To identify a class of choreographies that enjoy the same session fidelity and, especially, progress properties as well-typed processes, we need to introduce a typing discipline for choreographies, $\chseq$, that is preserved by the translation.
 The following theorem is our goal:
 %
-\begin{theorem*}[Translation respects typing]\leavevmode
+\begin{theorem*}[Translation preserves typing]\leavevmode
   \begin{itemize}
   \item If $\lctx \chseq A^- :: B$ and $\cmp{A^-}{P}$, then $\lctx \vdash P :: B$.
   \item If $\lctx \chseq A^+ :: B$ and $\cmp{A^+}{P}$, then $\lctx \vdash P :: B$.
@@ -393,52 +393,114 @@ The following theorem is our goal:
 \end{theorem*}
 
 Because $\cmp{\cdot}$ describes a fairly tight correspondence between choreographies and processes, the rules for $\chseq$ are \enquote{just} the rules for typing processes ($\vdash$): simply replace the process terms with the corresponding ordered logic proposition.
-For instance, $\matom[<-]_k \fuse A^+$ translates to $\selectL{\matom[<-]_k ; P}$ and so, from the $\llab{\with}$ rule that types $\mathsf{selectL}$ processes, we obtain the rule for typing $\matom[<-]_k \fuse A^+$:
-\begin{mathpar}
-  \infer[\llab{\with}]{\oseq{\with*{\ell: A_\ell}[\ell \in L] |- \selectL{k ; P} :: C}}{
-    \oseq{A_k |- P :: C}}
+For instance, $\matom[<-]_k \fuse A^+$ translates to $\selectL{\matom[<-]_k ; P}$ and so, from the $\lrule{\with}$ rule that types $\mathsf{selectL}$ processes, we obtain the rule for typing $\matom[<-]_k \fuse A^+$:
+\begin{equation*}
+  \lowered{
+  \infer[\lrule{\with}]{\oseq{\hypof{\with*{\ell: A_\ell}[\ell \in L]} |- \procof{\selectL{\kay ; P}}{C}}}{
+    \oseq{\hypof{A_{\kay}} |- \procof{P}{C}} &
+    \text{($\kay \in L$)}}}
   %
+  \quad\leftrightsquigarrow\quad
   %
-  \infer{\with*{\ell: A_\ell}[\ell \in L] \chseq \matom[<-]_k \fuse A^+ :: C}{
-    A_k \chseq A^+ :: C}
-\end{mathpar}
+  \lowered{
+  \infer[\lrule{\with}]{\hypof{\with*{\ell: A_\ell}[\ell \in L]} \chseq \procof{\matom[<-]_{\kay} \fuse A^+}{C}}{
+    \hypof{A_{\kay}} \chseq \procof{A^+}{C} &
+    \text{($\kay \in L$)}}}
+\end{equation*}
+Notice how these new rules use two varieties of proposition in two different ways: polarized ordered propositions are choreographies; unpolarized (singleton) linear propositions serve as their types.
+For this reason, the rules are admittedly rather mind-bending, but in fact rather straightforward to derive if we keep the replacement pattern in mind.
+As another example of the pattern, $\one$ translates to $\fwd$, the forwarding process, and so, from the $\id{A}$ rule that types $\fwd$ processes, we obtain the rule for typing $\one$ as a choreography:
+\begin{equation*}
+  \lowered{
+    \infer[\id{A}]{\oseq{\hypof{A} |- \procof{\fwd}{A}}}{
+      }}
+  %
+  \quad\leftrightsquigarrow\quad
+  %
+  \lowered{
+  \infer[\id{A}]{A \chseq \procof{\one}{A}}{
+    }}
+\end{equation*}
 
-It's also possible to justify the rules for typing choreographies from first principles. 
+% Following this pattern, most of the remaining rules for typing choreographies are straightforward to derive (though admittedly a bit mind-bending!).
+Of the rules for typing choreographies, only two do not mimic process-typing rules. 
+First is the rule for typing $\monad{A^+}$.
+But here, again, the goal theorem shows the way;
+the $\monad{{-}}$ modality is silent in the translation, so it should also be silent in the typing:
+\begin{equation*}
+  \infer{\lctx \chseq \procof{\monad{A^+}}{A}}{
+    \lctx \chseq \procof{A^+}{A}}
+\end{equation*}
 
+Second is the rule for typing process-like atoms $\patom$.
+Similarly to process variables, we assume that the programmer has specified the type of each process-like atom.
+With this signature, we just check that each use of a process-like atom adheres to its specified type:
+\begin{equation*}
+  \infer{\lctx \chseq \patom :: A}{
+    \patom : \{\lctx \chseq A\} \in \sig}  
+\end{equation*}
 
+The complete set of rules for typing choreographies is shown in \cref{fig:chor-typing}.
+%
+\begin{figure}
 \begin{mathpar}
-  \infer{\lctx \chseq \with*{(\matom[<-]_\ell \rimp \monad{A^+_\ell})}[\ell \in L] :: \with*{\ell: A_\ell}[\ell \in L]}{
+  \infer[\rrule{\with}]{\lctx \chseq \with*[\ell \in L][\parens]{\matom[<-]_\ell \rimp \monad{A^+_\ell}} :: \with*{\ell: A_\ell}[\ell \in L]}{
     \forall \ell \in L \mathpunct{:} \enskip \lctx \chseq A^+_\ell :: A_\ell}
   \and
-  \infer{\with*{\ell: A_\ell} \chseq \matom[<-]_k \fuse A^+ :: C}{
-    A_k \chseq A^+ :: C}
+  \infer[\lrule{\with}]{\with*{\ell: A_\ell}[\ell \in L] \chseq \matom[<-]_{\kay} \fuse A^+ :: C}{
+    A_{\kay} \chseq A^+ :: C &
+    \text{($\kay \in L$)}}
   \\
-  \infer{\lctx \chseq A^+ \fuse \matom[->]_k :: \ssor*{\ell: A_\ell}}{
-    \lctx \chseq A^+ :: A_k}
+  \infer[\rrule{\ssor}]{\lctx \chseq A^+ \fuse \matom[->]_{\kay} :: \ssor*{\ell: A_\ell}[\ell \in L]}{
+    \lctx \chseq A^+ :: A_{\kay} &
+    \text{($\kay \in L$)}}
   \and
-  \infer{\ssor*{\ell: A_\ell}[\ell \in L] \chseq \with*{(\matom[->]_\ell \limp \monad{A^+_\ell})}[\ell \in L] :: C}{
+  \infer[\lrule{\ssor}]{\ssor*{\ell: A_\ell}[\ell \in L] \chseq \with*[\ell \in L][\parens]{\matom[->]_\ell \limp \monad{A^+_\ell}} :: C}{
     \forall \ell \in L\mathpunct{:}\enskip A_\ell \chseq A^+_\ell :: C}
   \\
   \infer{\lctx \chseq \monad{A^+} :: A}{
     \lctx \chseq A^+ :: A}
   \and
   \infer{\lctx \chseq \patom :: A}{
-    \patom \lrimp A^- \in \sig &
-    \lctx \chseq A^- :: A}
+    \patom : \{\lctx \chseq A\} \in \sig}
   \\
-  \infer{\lctx \chseq A^+_1 \fuse A^+_2 :: C}{
+  \infer[\cut{A}]{\lctx \chseq A^+_1 \fuse A^+_2 :: C}{
     \lctx \chseq A^+_1 :: A &
     A \chseq A^+_2 :: C}
   \and
-  \infer{A \chseq \one :: A}{
+  \infer[\id{A}]{A \chseq \one :: A}{
     }
 \end{mathpar}
-
-\begin{theorem}[Typing]
-  If $\lctx \chseq A^- :: B$ and $\cmp{A^-}{P}$, then $\lctx \vdash P :: B$.
+\caption{Choreography typing rules\label{fig:chor-typing}}
+\end{figure}
+%
+It is easy to check that the goal indeed holds: the translation preserves typing.
+\begin{theorem}[Translation preserves typing]\leavevmode
+  \begin{itemize}
+  \item If $\lctx \chseq A^- :: B$ and $\cmp{A^-}{P}$, then $\lctx \vdash P :: B$.
+  \item If $\lctx \chseq A^+ :: B$ and $\cmp{A^+}{P}$, then $\lctx \vdash P :: B$.
+  \end{itemize}
 \end{theorem}
 \begin{proof}
-  By induction on the structure of the typing derivation.
+  By induction on the structure of the given typing derivation.
 \end{proof}
 
-\end{document}
+
+
+
+Instead of using this theorem to justify the rules for typing choreographies, it's also possible to justify them from first principles.
+% It's also possible to justify the rules for typing choreographies from first principles. 
+Consider the $\cut{A}$ rule, for example:
+\begin{equation*}
+  \infer[\cut{A}]{\lctx \chseq A^+_1 \fuse A^+_2 :: C}{
+    \lctx \chseq A^+_1 :: A &
+    A \chseq A^+_2 :: C}
+\end{equation*}
+This rule says that if the choreography $A^+_1$ has, from left to right, the interfaces $\lctx$ and $A$ (i.e.,~$\lctx \chseq A^+_1 :: A$) and the choreography $A^+_2$ has the interfaces $A$ and $C$ (i.e.,~$A \chseq A^+_2 :: C$), then their composition, $A^+_1 \fuse A^+_2$, has%
+\begin{enumerate*}[label=\emph{\roman*)}, before={{: }}, itemjoin={{; }}, itemjoin*={{; and }}]
+\item $\lctx$ as its left-hand interface, which is reasonable because the left-hand side of $A^+_1$ is exposed
+\item $C$ as its right-hand interface, which is also reasonable because the right-hand side of $A^+_2$ is exposed
+\end{enumerate*}.
+The other rules can be given similar justifications.
+
+% \end{document}

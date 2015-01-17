@@ -1,0 +1,237 @@
+% arara: pdflatex
+% arara: pdflatex
+\documentclass{article}
+
+\usepackage{expl3}
+\usepackage{xparse}
+
+\usepackage[lining,semibold]{libertine}
+% \usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[varqu,varl]{inconsolata}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[only,talloblong,binampersand]{stmaryrd}
+\usepackage{mathtools}
+\usepackage[libertine]{newtxmath}
+\usepackage[scr=rsfso]{mathalfa}
+\useosf
+
+\usepackage{mathpartir}
+\usepackage{proof}
+
+
+\ExplSyntaxOn
+
+\NewDocumentCommand \seq { >{ \SplitArgument{1}{|-} }m } { \seq:nn #1 }
+\cs_new:Npn \seq:nn #1#2 { #1 \vdash #2 }
+
+\NewDocumentCommand \rfoc { >{ \SplitArgument{1}{|} }m m } { \rfoc:nnn #1 {#2} }
+\cs_new:Npn \rfoc:nnn #1#2#3 { #1 \mid [#2\rangle \dblcolon [#3] }
+
+\NewDocumentCommand \lfoc { >{ \SplitArgument{1}{|-} }m m } { \lfoc:nnn #1 {#2} }
+\cs_new:Npn \lfoc:nnn #1#2#3 { \lfoc:nwn {#1} #2 \q_stop {#3} }
+\cs_new:Npn \lfoc:nwn #1 #2|#3 \q_stop #4 { [#1] \vdash \langle#2] \mid #3 \dblcolon #4 }
+
+\NewDocumentCommand \inv { m m } { \inv:nn {#1} {#2} }
+\cs_new:Npn \inv:nn #1#2 { #1 \dblcolon #2 }
+
+\NewDocumentCommand \stable { m m } { \stable:nn {#1} {#2} }
+\cs_new:Npn \stable:nn #1#2 { #1 \dblcolon #2 }
+
+
+
+\NewDocumentCommand \lctx {} { \lctx: }
+\cs_new:Npn \lctx: { \Delta }
+
+\NewDocumentCommand \tensor {} { \tensor: }
+\cs_new:Npn \tensor: { \otimes }
+
+\NewDocumentCommand \ssor {} { \ssor: }
+\cs_new:Npn \ssor: { \oplus }
+
+\NewDocumentCommand \with {} { \with: }
+\cs_new:Npn \with: { \mathbin{\binampersand} }
+
+\NewDocumentCommand \up {} { \up: }
+\cs_new:Npn \up: { \mathord{\uparrow} }
+
+\NewDocumentCommand \down {} { \down: }
+\cs_new:Npn \down: { \mathord{\downarrow} }
+
+\NewDocumentCommand \reduces {} { \reduces: }
+\cs_new:Npn \reduces: { \longrightarrow }
+
+
+
+\NewDocumentCommand \cutq { >{ \SplitArgument{2}{|} }m } { \cutq:nnn #1 }
+\cs_new:Npn \cutq:nnn #1#2#3 { #1 \mid [#2\rangle \mid #3 }
+
+\NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} }m } { \select:nnn { selectR } #1 }
+\NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} }m } { \select:nnn { selectL } #1 }
+\cs_new:Npn \select:nnn #1#2#3 { \mathsf{#1} \mkern\thinmuskip #2 ; #3 }
+
+\NewDocumentCommand \caseR { >{ \SplitArgument{1}{|} }m } { \case:nnn { caseR } #1 }
+\NewDocumentCommand \caseL { >{ \SplitArgument{1}{|} }m } { \case:nnn { caseL } #1 }
+\cs_new:Npn \case:nnn #1#2#3 { \mathsf{#1} \mkern\thinmuskip (\case_arm:n {#2} \talloblong \case_arm:n {#3}) }
+\cs_new:Npn \case_arm:n #1 { \case_arm:w #1 \q_stop }
+\cs_new:Npn \case_arm:w #1=>#2 \q_stop { #1 \Rightarrow #2 }
+
+\NewDocumentCommand \inl {} { \inl: }
+\cs_new:Npn \inl: { \mathsf{inl} }
+
+\NewDocumentCommand \inr {} { \inr: }
+\cs_new:Npn \inr: { \mathsf{inr} }
+
+\NewDocumentCommand \emptyq {} { \emptyq: }
+\cs_new:Npn \emptyq: { \cdot }
+
+\ExplSyntaxOff
+
+
+\begin{document}
+
+\begin{mathpar}
+  \infer{\lctx \Vdash q,\inl :: A^+ \ssor B^+}{
+    \lctx \Vdash q :: A^+}
+  \and
+  \infer{\lctx \Vdash q,\inr :: A^+ \ssor B^+}{
+    \lctx \Vdash q :: B^+}
+  \and
+  \infer{A^- \Vdash \mathsf{down} :: \down A^-}{
+    }
+  \\
+  \infer{A^- \with B^- \Vdash \inl,q :: \gamma}{
+    A^- \Vdash q :: \gamma}
+  \and
+  \infer{A^- \with B^- \Vdash \inr,q :: \gamma}{
+    B^- \Vdash q :: \gamma}
+  \and
+  \infer{\up A^+ \Vdash \mathsf{up} :: A^+}{
+    }
+  \\
+  \infer{\lctx \vdash [q\rangle \mid P :: C^-}{
+    \lctx \Vdash q :: A^+ &
+    A^+ \vdash P :: C^-}
+\end{mathpar}
+
+\begin{equation*}
+  \infer{\lctx \vdash (\selectR{\inl ; P}) \mid [q\rangle \mid Q :: C^-}{
+    \infer{\lctx \vdash \selectR{\inl ; P} :: A^+_1 \ssor A^+_2}{
+      \lctx \vdash P :: A^+_1} &
+    \infer{A^+_1 \ssor A^+_2 \vdash [q\rangle \mid Q :: C^-}{
+      A^+_1 \ssor A^+_2 \Vdash q :: A^+ &
+      A^+ \vdash Q :: C^-}
+  }
+\end{equation*}
+
+\begin{equation*}
+  \infer{\lctx \vdash P \mid [q\rangle \mid Q :: C^-}{
+    \lctx \vdash P :: A^+ &
+    A^+ \Vdash q :: B^+ &
+    B^+ \vdash Q :: C^-}
+\end{equation*}
+
+\begin{mathpar}
+  \infer{\seq{\lctx |- \selectR{\inl ; P} :: A \ssor B}}{
+    \seq{\lctx |- P :: A}}
+  \and
+  \infer{\seq{\lctx |- \selectR{\inr ; P} :: A \ssor B}}{
+    \seq{\lctx |- P :: B}}
+  \and
+  \infer{\seq{A \ssor B |- \caseL{\inl => Q_1 | \inr => Q_2} :: C}}{
+    \seq{A |- Q_1 :: C} &
+    \seq{B |- Q_2 :: C}}
+  \\
+  \infer{\seq{\lctx |- \down A}}{
+    \seq{\lctx |- P :: A}}
+  \and
+  \infer{\seq{\down A |- C}}{
+    \seq{A |- C}}
+  \\
+  \infer{\seq{\lctx |- \caseR{\inl => P_1 | \inr => P_2} :: A \with B}}{
+    \seq{\lctx |- P_1 :: A} &
+    \seq{\lctx |- P_2 :: B}}
+  \and
+  \infer{\seq{A \with B |- \selectL{\inl ; Q} :: C}}{
+    \seq{A |- Q :: C}}
+  \and
+  \infer{\seq{A \with B |- \selectL{\inr ; Q} :: C}}{
+    \seq{B |- Q :: C}}
+  \\
+  \infer{\seq{\lctx |- \up A}}{
+    \seq{\lctx |- A}}
+  \and
+  \infer{\seq{\up A |- C}}{
+    \seq{A |- C}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\seq{\lctx_1, \lctx_2 |- (\nu y)(x\langle y\rangle \mid P_1 \mid P_2) :: x{:}A^+_1 \tensor A^+_2}}{
+    \seq{\lctx_1 |- P_1 :: y{:}A^+_1} &
+    \seq{\lctx_2 |- P_2 :: x{:}A^+_2}}
+  \and
+  \infer{\seq{\lctx |- (\nu x')(x\langle x'\rangle \mid P) :: x{:}\down A^-}}{
+    \seq{\lctx |- P :: x'{:}A^-}}
+  % \and
+  % \infer{\seq{\lctx |- (\nu x')(x\langle x'\rangle \mid P) :: x{:}\down (A^-_1 \with A^-_2)}}{
+  %   \seq{\lctx |- P :: x'{:}A^-}}
+\end{mathpar}
+
+\begin{mathpar}
+  \infer{\seq{\lctx |- \down (A^- \with B^-)}}{
+    \seq{\lctx |- A^-} &
+    \seq{\lctx |- B^-}}
+  \and
+  \infer{\seq{\down (A^- \with B^-) |- C^-}}{
+    \seq{A^- |- C^-}}
+  \and
+  \infer{\seq{\down (A^- \with B^-) |- C^-}}{
+    \seq{B^- |- C^-}}
+\end{mathpar}
+
+
+
+\section{}
+
+\begin{mathpar}
+  \infer{\seq{\lctx |- \stable{\selectR{q ; P}}{\up A}}}{
+    \seq{\lctx |- \rfoc{P | q}{A}}}
+  \and
+  \infer{\seq{\lctx |- \rfoc{P | q,\inl}{A \ssor B}}}{
+    \seq{\lctx |- \rfoc{P | q}{A}}}
+  \and
+  \infer{\seq{\lctx |- \rfoc{P | q,\inr}{A \ssor B}}}{
+    \seq{\lctx |- \rfoc{P | q}{B}}}
+  \and
+  \infer{\seq{\lctx |- \rfoc{P | \emptyq}{\down A}}}{
+    \seq{\lctx |- \inv{P}{A}}}
+  \\
+  \infer{\seq{A_1 \ssor A_2 |- \inv{\caseL{\inl => Q_1 | \inr => Q_2}}{C}}}{
+    \seq{A_1 |- \inv{Q_1}{C}} &
+    \seq{A_2 |- \inv{Q_2}{C}}}
+  \\
+  \infer{\lfoc{A \with B |- \inl,q | P}{C}}{
+    \lfoc{A |- q | P}{C}}
+  \and
+  \infer{\lfoc{A \with B |- \inr,q | P}{C}}{
+    \lfoc{B |- q | P}{C}}
+\end{mathpar}
+
+\subsection{}
+
+\begin{gather*}
+  \infer{\seq{\lctx |- \rfoc{\bigl(\cutq{P | q_{A_1},\inl | \caseL{\inl => Q_1 | \inr => Q_2}}\bigr) | q_C}{C}}}{
+    \infer{\seq{\lctx |- \rfoc{P | q_{A_1},\inl}{A_1 \ssor A_2}}}{
+      \seq{\lctx |- \rfoc{P | q_{A_1}}{A_1}}} &
+    \infer{\seq{A_1 \ssor A_2 |- \rfoc{\caseL{\inl => Q_1 | \inr => Q_2} | q_C}{C}}}{
+      \seq{A_1 |- \rfoc{Q_1 | q_C}{C}} &
+      \seq{A_2 |- \rfoc{Q_2 | q_C}{C}}}}
+  \\
+  \reduces
+  \\
+  \infer{\seq{\lctx |- \rfoc{(\cutq{P | q_{A_1} | Q_1}) | q_C}{C}}}{
+    \seq{\lctx |- \rfoc{P | q_{A_1}}{A_1}} &
+    \seq{A_1 |- \rfoc{Q_1 | q_C}{C}}}
+\end{gather*}
+
+\end{document}

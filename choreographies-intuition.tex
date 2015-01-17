@@ -1,24 +1,24 @@
-% arara: pdflatex
-% arara: pdflatex
-% arara: biber
-% arara: pdflatex
-% arara: pdflatex
-% \documentclass{../hdeyoung-proposal}
-\documentclass[
-  class=../hdeyoung-proposal,
-  crop=false
-]{standalone}
+% % arara: pdflatex
+% % arara: pdflatex
+% % arara: biber
+% % arara: pdflatex
+% % arara: pdflatex
+% % \documentclass{../hdeyoung-proposal}
+% \documentclass[
+%   class=../hdeyoung-proposal,
+%   crop=false
+% ]{standalone}
 
-\usepackage{ordered-logic}
-\usepackage{basic-atoms}
-\usepackage{binary-counter}
+% \usepackage{ordered-logic}
+% \usepackage{basic-atoms}
+% \usepackage{binary-counter}
 
-\crefname{choreography}{chor.}{chors.}
-\Crefname{choreography}{Chor.}{Chors.}
+% \crefname{choreography}{chor.}{chors.}
+% \Crefname{choreography}{Chor.}{Chors.}
 
-\input{acronyms}
+% \input{acronyms}
 
-\begin{document}
+% \begin{document}
 
 \subsection{Choreographies by example}\label{sec:chor-by-example}
 
@@ -129,7 +129,7 @@ This extended choreography illustrates that message atoms may be either left-dir
 % Because it is traveling left-to-right, a left-directed message must always arrive at the right-hand side of its recipient; dually, a right-directed message must always arrive at the left-hand side of its recipient.
 Because a left-directed message travels from right to left, it must always arrive at the right-hand side of its recipient; dually, a right-directed message must always arrive at the left-hand side of its recipient.
 This directionality is another aspect of locality, and it further constrains the structure of a choreography's premises.
-For example, this choreography's premises are well-formed because each message flows toward its recipient, whereas premises of the forms $\matom[<-] \fuse \p$ or $\p \fuse \matom[->]$ are not well-formed because process $\p$ doesn't receive the $\matom[<-]$ or $\matom[->]$ message.
+For example, this choreography's premises are well-formed because each message flows toward its recipient, whereas premises of the forms $\matom[<-] \fuse \patom$ or $\patom \fuse \matom[->]$ are not well-formed because process $\patom$ doesn't receive the $\matom[<-]$ or $\matom[->]$ message.
 % For instance, $\bit{1} \fuse \inc[<-]$ and $\fail[->] \fuse \bit[']{0}$ are well-formed premises because each message flows toward its recipient, whereas premises of the forms $\matom[<-] \fuse \p$ or $\p \fuse \matom[->]$ are not well-formed because process $\p$ doesn't receive the $\matom[<-]$ or $\matom[->]$ message.
 
 % As well as retaining locality, notice that this extended choreography continues to be specification-preserving:
@@ -302,7 +302,7 @@ We would, however, consider this signature to be a choreography of a different, 
 
 
 
-\end{document}
+% \end{document}
 
 %%% Local Variables:
 %%% TeX-master: "choreographies"

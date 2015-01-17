@@ -1,0 +1,31 @@
+(* Queue with constant-time enqueue *)
+(* Henry DeYoung and Frank Pfenning *)
+(* January 9, 2015 *)
+
+stype Queue = &{ enq: int => Queue ,
+                 deq: +{ ok: int /\ Queue , fail: Queue } ,
+                 emp?: bool /\ Queue }
+
+(* nil : { c:Queue -| } *)
+c <- nil =
+{ case c of 
+    enq => x <- recv c;
+           d <- nil;
+           c <- elem x <- d
+  | deq => send c fail;
+           c <- nil
+  | emp? => send c true;
+            c <- nil }
+
+(* elem : int -> { c:Queue -| d:Queue } *)
+c <- elem x <- d =
+{ case c of
+    enq => y <- recv c;
+           send d enq;
+           send d y;
+           c <- elem x <- d
+  | deq => send c ok;
+           send c x;
+           c <- d
+  | emp? => send c false;
+            c <- elem x <- d }

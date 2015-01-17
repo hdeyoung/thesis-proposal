@@ -1,28 +1,28 @@
-% arara: pdflatex
-% arara: biber
-% arara: pdflatex
-% arara: pdflatex
-\documentclass[
-  class=../hdeyoung-proposal,
-  crop=false
-]{standalone}
+% % arara: pdflatex
+% % arara: biber
+% % arara: pdflatex
+% % arara: pdflatex
+% \documentclass[
+%   class=../hdeyoung-proposal,
+%   crop=false
+% ]{standalone}
 
-\usepackage{ordered-logic}
-\usepackage{basic-atoms}
-\usepackage{tikz-cd}
+% \usepackage{ordered-logic}
+% \usepackage{basic-atoms}
+% \usepackage{tikz-cd}
 
-\NewDocumentCommand{\chor}{}{X}
-\NewDocumentCommand{\spec}{}{\Sigma}
+% \NewDocumentCommand{\chor}{}{X}
+% \NewDocumentCommand{\spec}{}{\Sigma}
 
-\NewDocumentCommand{\erasemsg}{m}{(#1)^{e}}
+% \NewDocumentCommand{\erasemsg}{m}{(#1)^{e}}
 
-\NewDocumentCommand{\trans}{t* t+ o}{%
-  \longrightarrow
-  \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
-  \IfValueT{#3}{_{#3}}%
-}
+% \NewDocumentCommand{\trans}{t* t+ o}{%
+%   \longrightarrow
+%   \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+%   \IfValueT{#3}{_{#3}}%
+% }
 
-\begin{document}
+% \begin{document}
 
 \subsection{Choreographies, formally}\label{sec:chor-formal}
 
@@ -36,17 +36,18 @@ Although it is possible to admit clauses like this one, they come at the expense
 Instead, it is more convenient to require that clauses be given in curried form, such as $\bit{1} \lrimp (\inc[<-] \rimp \monad{\inc[<-] \fuse \bit{0}})$.
 % Because currying is easy enough to do in a preprocessing phase, this requirement is not onerous.
 
-For curried clauses, locality holds if there is exactly one process-like atom, $\p^+$, in the premises and if any message-like atoms, $\matom[<-]$ and $\matom[->]$, are used only with right- and left-ordered implications, respectively.
-
+For curried clauses, locality holds if there is exactly one process-like atom, $\patom^+$, in the premises and if any message-like atoms, $\matom[<-]$ and $\matom[->]$, are used only with right- and left-ordered implications, respectively.
 
 \begin{definition}[Locality]
-  A clause $\p^+ \lrimp A^-$ satisfies \vocab{locality} if it adheres to the following refined grammar.
+  A clause $\patom^+ \lrimp A^-$ satisfies \vocab{locality} if it adheres to the following refined grammar.\footnote{An alternative notation for $\with*[i \in I][\parens]{\matom[<-]^+_i \rimp \monad{A^+_i}}$ is the Lambek-inspired $\with*[i \in I][\parens]{\monad{A_i} \twoheadleftarrow \matom[<-]^+_i}$, which emphasizes that left-directed messages, $\matom[<-]^+_i$, must arrive from the right.}
   \begin{alignat*}{3}
-    &\text{Negative propositions} &\quad&& A^-,B^- &::= A^- \with B^- \mid \monad{A^+} \mid \with*{\matom[<-]^+_i \rimp \monad{A^+_i}}[i \in I] \mid \with*{\matom[->]^+_i \limp \monad{A^+_i}}[i \in I] \\
+    &\text{Negative propositions} &\quad&& A^-,B^- &::= A^- \with B^- \mid \monad{A^+} \mid \with*[i \in I][\parens]{\matom[<-]^+_i \rimp \monad{A^+_i}} \mid \with*[i \in I][\parens]{\matom[->]^+_i \limp \monad{A^+_i}} \\
     % \matom[<-]^+ \rimp \monad{A^+} \mid \matom[->]^+ \limp \monad{A^+} \\
-    &\text{Positive propositions}      &&& A^+,B^+ &::= A^+ \fuse B^+ \mid \one \mid \matom[<-]^+ \fuse A^+ \mid A^+ \fuse \matom[->]^+ \mid \p^+ \mid A^-
+    &\text{Positive propositions}      &&& A^+,B^+ &::= A^+ \fuse B^+ \mid \one \mid \matom[<-]^+ \fuse A^+ \mid A^+ \fuse \matom[->]^+ \mid \patom^+ \mid A^-
   \end{alignat*}
 \end{definition}
+%
+\noindent
 Notice that, for technical reasons related to the translation to session-typed processes (\cref{?}), this definition also requires that message-like atoms $\matom[<-]$ and $\matom[->]$ never appear in clause heads except as part of a conjunction---either $\matom[<-] \fuse A^+$ or $A^+ \fuse \matom[->]$.
 Because $\one$ is available, this requirement does not restrict expressiveness.
 
@@ -67,8 +68,8 @@ For example, the $\inc[<-]$-choreography can be put into the curried form
 Likewise, after some transformation, the $\bit{}[->]$-choreography also satisfies locality:
 \begin{equation*}
   \inc \lrimp \parens[auto, align=c@{\,}l]{
-                    & (\eps[->] \limp \monad{(\one \fuse \eps[->]) \fuse \bit{1}[->]}) \\
-              \with & (\bit{0}[->] \limp \monad{\one \fuse \bit{1}[->]}) \\
+                    & (\eps[->] \limp \monad{(\one \fuse \eps[->]) \fuse \bit{1}[->]}) \\[0.5\jot]
+              \with & (\bit{0}[->] \limp \monad{\one \fuse \bit{1}[->]}) \\[0.5\jot]
               \with & (\bit{1}[->] \limp \monad{\inc \fuse \bit{0}[->]})}
 \end{equation*}
 
@@ -81,7 +82,7 @@ To judge that an ordered logical specification is specification-preserving, we r
     \erasemsg{\matom[<-]^+} &= \matom^+ = \erasemsg{\matom[->]^+} \\
     % \erasemsg{\matom[<-]^+ \fuse A^+} &= \matom^+ \fuse \erasemsg{A^+} \\
     % \erasemsg{A^+ \fuse \matom[->]^+} &= \erasemsg{A^+} \fuse \matom^+ \\
-    \erasemsg{\p^+} &= \p^+
+    \erasemsg{\patom^+} &= \patom^+
     \,.
   \end{align*}
   Role erasures for propositions and contexts, $\erasemsg{A^+}$, $\erasemsg{A^-}$, and $\erasemsg{\octx}$, are defined compositionally, lifting role erasure for atoms.
@@ -260,7 +261,8 @@ For example, the $\inc[<-]$-choreography for the binary counter specification is
 %     \ofill{\bit{0}, \inc} \trans[\spec] \ofill{\bit{1}}
 %   \end{lgathered}
 % \end{gather*}
-\end{document}
+
+% \end{document}
 
 %%% Local Variables:
 %%% TeX-master: "choreographies"

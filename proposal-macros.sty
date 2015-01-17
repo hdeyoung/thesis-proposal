@@ -1,0 +1,549 @@
+\RequirePackage{expl3}
+\ProvidesExplPackage
+  {proposal-macros}
+  {2014/12/18}
+  {0.1}
+  {Proposal macros}
+
+\RequirePackage{ltxcmds}
+
+
+\RequirePackage{tikz}
+\RequirePackage{tikz-cd}
+
+\RequirePackage{subcaption}
+
+
+%% Linear logic
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{proof}
+
+\PassOptionsToPackage{heavycircles}{stmaryrd}
+\RequirePackage{stmaryrd}
+
+\NewDocumentCommand \tensor { } { \otimes }
+\NewDocumentCommand \one { } { \mathord{\mathbf{1}} }
+\NewDocumentCommand \with { } { \mathbin{\binampersand} }
+\NewDocumentCommand \llor { } { \oplus }
+\NewDocumentCommand \lolli { } { \mathbin{\multimap} }
+
+\NewDocumentCommand \lctx { } { \Delta }
+\NewDocumentCommand \lctxe { } { \cdot }
+
+\NewDocumentCommand \seq { } { \vdash }
+
+\NewDocumentCommand \rrule { o m }
+ {
+   \IfValueTF {#1}
+     { \rrule:nn {#2} {#1} }
+     { \rrule:n {#2} }
+ }
+\cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+\cs_new:Npn \rrule:nn #1#2 { \rrule:n {#1} \sb{#2} }
+
+\NewDocumentCommand \lrule { o m }
+ {
+   \IfValueTF {#1}
+     { \lrule:nn {#2} {#1} }
+     { \lrule:n {#2} }
+ }
+\cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+\cs_new:Npn \lrule:nn #1#2 { \lrule:n {#1} \sb{#2} }
+
+\NewDocumentCommand \uctx { } { \Gamma }
+\NewDocumentCommand \bang { } { \mathord{\text{!}} }
+
+\NewDocumentCommand \eq { } { \mathbin{\doteq} }
+
+
+%% Lax logic
+\RequirePackage{monad}
+
+\NewDocumentCommand \lax { } { \lax: }
+\cs_new:Npn \lax: { 
+  \relax \ifnum \lastnodetype>0 \mskip \medmuskip \fi
+  \text{\normalfont\textsf{lax}}
+}
+
+
+%% Ordered logic
+\NewDocumentCommand \fuse { } { \bullet }
+\NewDocumentCommand \esuf { } { \circ }
+\NewDocumentCommand \rimp { } { \mathbin{\twoheadrightarrow} }
+\NewDocumentCommand \limp { } { \mathbin{\rightarrowtail} }
+\NewDocumentCommand \lrimp { } { \mathbin{\rightarrowtriangle} }
+
+\NewDocumentCommand \octx { } { \Omega }
+\NewDocumentCommand \octxe { } { \cdot }
+
+% \ltx@ifpackageloaded { linear-logic }
+%   { }
+%   {
+%     \NewDocumentCommand{\one}{}{\mathord{\mathbf{1}}}
+%     \NewDocumentCommand{\with}{}{\mathbin{\binampersand}}
+%   }
+
+% \ltx@ifpackageloaded { linear-logic }
+%   { }
+%   { \NewDocumentCommand{\bang}{}{\mathord{\text{!}}} }
+
+% \ltx@ifpackageloaded { linear-logic }
+%   { }
+%   {
+%     \NewDocumentCommand{\uctx}{}{\Gamma}
+%     \NewDocumentCommand{\seq}{}{\vdash}
+%   }
+
+\NewDocumentCommand \gnab { } { \mathord{\text{!`}} }
+
+\NewDocumentCommand \vimp { } { \mathbin{\supset} }
+\NewDocumentCommand \vand { } { \land }
+
+\NewDocumentCommand \ofrm { } { \Theta }
+\NewDocumentCommand \omatch { O{} m } { \ofrm#1\lbrace#2\rbrace }
+\NewDocumentCommand \ofill { O{} m } { \ofrm#1\lbrace#2\rbrace }
+
+\NewDocumentCommand \susp { m m } { \susp:Nn #1 {#2} }
+\cs_new:Npn \susp:Nn #1#2 { \langle #2 \rangle }
+
+\NewDocumentCommand \subst { >{\SplitArgument{1}{/}}m m } { \subst:nnn #1 {#2} }
+\cs_new:Npn \subst:nnn #1#2#3 { [#1/#2]#3 }
+
+
+%% Transitions
+\NewDocumentCommand \trans { t* t+ o o } {
+  \longrightarrow
+  \IfBooleanT{#1}{^*}\IfBooleanT{#2}{^+}%
+  \IfNoValueTF{#4}{%
+    \IfValueT{#3}{\sb{#3}}%
+  }{%
+    ^{#3}\sb{#4}%
+  }%
+}
+\NewDocumentCommand{\ntrans}{}{
+  \longarrownot\trans
+}
+
+\NewDocumentCommand \sig { } { \sig: }
+\cs_new:Npn \sig: { \Sigma }
+
+
+%% Basic atoms
+\RequirePackage{predicates}
+
+\NewPredicate \matom [m] [ font = \mathit ] {0}
+\NewPredicate \patom [p] [ font = \mathit ] {0}
+
+
+%% Binary counter
+\NewPredicate {\num} {1}
+\NewPredicate {\inc} {0}
+
+\NewPredicate {\eps} [ {\smash[b]{\mathsf{eps}}} ] {0}
+
+\exp_args:Nc \NewPredicate { bit0 } [ bit0 ] {0}
+\exp_args:Nc \NewPredicate { bit1 } [ bit\mkern-1mu 1 ] {0}
+\NewPredicate {\bitp} [ bit ] {0}
+\NewDocumentCommand \bit { O{} m O{} }
+  {
+    \tl_if_empty:nTF {#2}
+      { \bitp }
+      { \use:c { bit#2 } }
+    [#1,#3]
+  }
+
+\NewPredicate {\dec} {0}
+\NewPredicate {\fail} {0}
+\NewPredicate {\suc} [ ok ] {0}
+
+\NewPredicate {\incm} {0}
+
+\NewPredicate {\ok} {0}
+\NewPredicate {\skp} [ \mathord{\triangleleft} ] {0}
+\NewPredicate {\plus} [ + ] {0}
+\NewPredicate {\equals} [ = ] {0}
+
+\NewPredicate {\Cntr} [ Cntr ] [ font = \mathit ] {0}
+\NewPredicate {\cntr} [ Cntr ] {0}
+
+
+
+%% Ordered logic terms
+% Normal terms
+\NewDocumentCommand \tlam { >{ \SplitArgument {1} {.} } m }
+  { \lam:nnn { } #1 }
+\NewDocumentCommand \rlam { >{ \SplitArgument {1} {.} } m }
+  { \lam:nnn {^{\rimp}} #1 }
+\NewDocumentCommand \llam { >{ \SplitArgument {1} {.} } m }
+  { \lam:nnn {^{\limp}} #1 }
+\NewDocumentCommand \lam { >{ \SplitArgument {1} {.} } m }
+  { \lam:nnn { } #1 }
+\cs_new:Npn \lam:nnn #1#2#3 { \lambda #1 #2.#3 }
+
+\NewDocumentCommand \pair { >{ \SplitArgument {1} {,} } m }
+  { \pair:nn #1 }
+\cs_new:Npn \pair:nn #1#2 { \langle #1 , #2 \rangle }
+
+\NewDocumentCommand \lett { >{ \SplitArgument {1} {in} } m }
+  { \lett:nn #1 }
+\cs_new:Npn \lett:nn #1#2 {
+  \lbrace
+    \mathsf{let} \mskip 4mu plus 2mu minus 4mu
+    #1 \mathbin{\mathsf{in}} #2
+  \rbrace
+}
+
+\NewDocumentCommand \nof { m } { \nof:n {#1} }
+\cs_new:Npn \nof:n #1 { #1 }
+
+
+% Atomic terms
+\NewDocumentCommand \atm { >{ \SplitArgument {1} {.} } m }
+  { \atm:nn #1 }
+\cs_new:Npn \atm:nn #1#2 { #1 \cdot #2 }
+
+\NewDocumentCommand \aof { m } { \aof:n {#1} }
+\cs_new:Npn \aof:n #1 { #1 }
+
+
+% Spines
+\NewDocumentCommand \tapp { >{ \SplitArgument {1} {;} } m }
+  { \app:nn #1 }
+\NewDocumentCommand \rapp { >{ \SplitArgument {1} {;} } m }
+  { \app:nn #1 }
+\NewDocumentCommand \lapp { >{ \SplitArgument {1} {;} } m }
+  { \app:nn #1 }
+\NewDocumentCommand \app { >{ \SplitArgument {1} {;} } m }
+  { \app:nn #1 }
+\cs_new:Npn \app:nn #1#2 { #1 ; #2 }
+
+\NewDocumentCommand \fst { m } { \proj:Nn 1 {#1} }
+\NewDocumentCommand \snd { m } { \proj:Nn 2 {#1} }
+\cs_new:Npn \proj:Nn #1#2 { \pi\sb{#1} ; #2 }
+
+\NewDocumentCommand \snil { } { \snil: }
+\cs_new:Npn \snil: { \mathsf{nil} }
+
+\NewDocumentCommand \sof { m } { \sof:n {#1} }
+\cs_new:Npn \sof:n #1 { #1 }
+
+\NewDocumentCommand \spine { } { \spine: }
+\cs_new:Npn \spine: { \mathit {Sp} }
+
+
+% Traces
+\NewDocumentCommand \tcons { >{ \SplitArgument {1} {;} } m }
+  { \tcons:nn #1 }
+\cs_new:Npn \tcons:nn #1#2 { #1 ; #2 }
+
+\NewDocumentCommand \tstep { >{ \SplitArgument {1} {;} } m }
+  { \tstep_aux:nn #1 }
+\NewDocumentCommand \tstep_aux:nn { >{ \SplitArgument {1} {<-} } m m }
+  {
+    \IfValueTF {#2}
+      { \tseq:nn { \tstep:nn #1 } {#2} } 
+      { \tstep:nn #1 }
+  }
+\cs_new:Npn \tstep:nn #1#2 { \monad {#1} \mkern\thinmuskip \mathord{\shortleftarrow} \mkern\thinmuskip #2 }
+
+\NewDocumentCommand \tnil { } { \tnil: }
+\cs_new:Npn \tnil: { \diamond }
+
+\NewDocumentCommand \tseq { >{ \SplitArgument {1} {;} } m }
+  { \tseq:nn #1 }
+\cs_new:Npn \tseq:nn #1#2 { #1 ; #2 }
+
+\NewDocumentCommand \tof { m } { \tof:n {#1} }
+\cs_new:Npn \tof:n #1 { #1 }
+
+\NewDocumentCommand \tinv { >{ \SplitArgument {1} {<-} } m }
+  { \tinv:nn #1 }
+\cs_new:Npn \tinv:nn #1#2 { #1 \mkern\thinmuskip \mathord{\shortleftarrow} \mkern\thinmuskip #2 }
+
+% Values
+\NewDocumentCommand \vfuse { m m }
+  { \vfuse:nn {#1} {#2} }
+\cs_new:Npn \vfuse:nn #1#2 { #1 \fuse #2 }
+
+\NewDocumentCommand \vone { } { \vone: }
+\cs_new:Npn \vone: { \one }
+
+\NewDocumentCommand \vexists { >{ \SplitArgument {1} {.} } m }
+  { \vexists:nn #1 }
+\cs_new:Npn \vexists:nn #1#2 { #1.#2 }
+
+\NewDocumentCommand \vof { m } { \vof:n {#1} }
+\cs_new:Npn \vof:n #1 { #1 }
+
+
+% Patterns
+\NewDocumentCommand \pfuse { m m }
+  { \pfuse:nn {#1} {#2} }
+\cs_new:Npn \pfuse:nn #1#2 { #1 \fuse #2 }
+
+\NewDocumentCommand \pone { } { \pone: }
+\cs_new:Npn \pone: { \one }
+
+\NewDocumentCommand \pexists { >{ \SplitArgument {1} {.} } m }
+  { \pexists:nn #1 }
+\cs_new:Npn \pexists:nn #1#2 { #1.#2 }
+
+\NewDocumentCommand \pof { m } { \pof:n {#1} }
+\cs_new:Npn \pof:n #1 { #1 }
+
+\NewDocumentCommand \pseq { } { \pseq: }
+\cs_new:Npn \pseq: { \Vdash }
+
+
+% Focusing
+\NewDocumentCommand \lfoc { m } { \lfoc:n {#1} }
+\cs_new:Npn \lfoc:n #1 { [#1] }
+
+\NewDocumentCommand \rfoc { m } { \rfoc:n {#1} }
+\cs_new:Npn \rfoc:n #1 { [#1] }
+
+
+%% Technical details
+\NewDocumentCommand \chor { } { X }
+\NewDocumentCommand \spec { } { \Sigma }
+
+\NewDocumentCommand \erasemsg { m } { (#1)^{e} }
+
+
+%% Session-typed processes
+
+% \DeclarePairedDelimiter \parens { \lparen } { \rparen }
+
+\DeclarePairedDelimiter \braced:wn { \lbrace } { \rbrace }
+\NewDocumentCommand{ \braced }{ s o m o }
+  {
+    \IfBooleanTF {#1}
+      { \braced:wn* {#3} }
+      {
+        \IfValueTF {#2}
+          { \braced:wn[#2] {#3} }
+          { \braced:wn {#3} }
+      }
+    \IfValueT {#4} { \sb{#4} }
+  }
+
+\NewDocumentCommand \lseq { >{ \SplitArgument{1}{|-} } m }
+  { \lseq:nn #1 }
+\cs_new:Npn \lseq:nn #1#2 { \lseq_ctxs:n {#1} \vdash #2 }
+\cs_new:Npn \lseq_ctxs:n #1 {
+  \seq_set_split:Nnn \l_tmpa_seq {;} {#1}
+  \seq_use:Nn \l_tmpa_seq { \mathrel{;} }
+}
+
+\NewDocumentCommand \procof { m m } { #1 \dblcolon #2 }
+\NewDocumentCommand \hypof { m } { #1 }
+
+\NewDocumentCommand \oseq { } { \lseq }
+
+
+
+\NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
+\NewDocumentCommand \spawn { >{ \SplitArgument{1}{;} } m } { \spawn:nn #1 }
+\cs_new:Npn \spawn:nn #1#2 {
+  \mathsf{spawn}
+  \tl_if_empty:nF {#1} {
+    \mskip\thinmuskip #1 ; #2
+  }
+}
+
+\NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
+\NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
+
+
+\cs_new:Npn \labeled_binop:nNn #1#2#3 {
+  \mathord{#1}
+  #2 {
+    \seq_set_split:Nnn \l_tmpa_seq {,} {#3}
+    \seq_use:Nn \l_tmpa_seq {,}
+  }
+}
+
+\RenewDocumentCommand \with { s o O{ \braced } }
+  {
+    \IfBooleanTF {#1}
+      {
+        \IfValueTF {#2} { \with:nNn {#2} #3 } { \with:Nn #3 }
+      }
+      \with:
+  }
+\cs_new:Npn \with:Nn #1#2 { \labeled_binop:nNn \with: #1 {#2} }
+\cs_new:Npn \with:nNn #1#2#3 { \labeled_binop:nNn { \with: \sb{#1} } #2 {#3} }
+\cs_new:Npn \with: { \mathbin{\binampersand} }
+
+\NewDocumentCommand \ssor { s o O{ \braced } }
+  {
+    \IfBooleanTF {#1}
+      {
+        \IfValueTF {#2} { \ssor:nNn {#2} #3 } { \ssor:Nn #3 }
+      }
+      \ssor:
+  }
+\cs_new:Npn \ssor:Nn #1#2 { \labeled_binop:nNn \ssor: #1 {#2} }
+\cs_new:Npn \ssor:nNn #1#2#3 { \labeled_binop:nNn { \ssor: \sb{#1} } #2 {#3} }
+\cs_new:Npn \ssor: { \mathbin{\oplus} }
+
+
+\NewDocumentCommand \case { m o m }
+  {
+    \IfValueTF {#2}
+      { \case:nnn {#1} { \sb{#2} } {#3} }
+      { \case:nnn {#1} {} {#3} }
+  }
+\cs_new:Npn \case:nnn #1#2#3 {
+  #1#2 \mskip\thinmuskip
+  \parens {
+    \seq_set_split:Nnn \l_tmpa_seq {|} {#3}
+    \seq_clear:N \l_tmpb_seq
+    \seq_map_inline:Nn \l_tmpa_seq
+      { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
+    \seq_use:Nn \l_tmpb_seq { \talloblong }
+  }
+}
+\cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
+\cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
+  #1 \Rightarrow #2
+}
+
+\NewDocumentCommand \caseL { } { \case { \mathsf{caseL} } }
+\NewDocumentCommand \caseR { } { \case { \mathsf{caseR} } }
+
+
+\NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectL} } #1 }
+\NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
+  { \select:nnn { \mathsf{selectR} } #1 }
+\cs_new:Npn \select:nnn #1#2#3 {
+  \!\mathord{}\mathop{#1} #2 ; #3
+}
+
+\NewDocumentCommand \inj { m } { \inj:n {#1} }
+\cs_new:Npn \inj:n #1 { \mathsf{in} \sb{#1} }
+
+\NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
+\NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
+
+
+\NewDocumentCommand \closeR {} { \mathsf{closeR} }
+\NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
+
+
+\NewDocumentCommand \pctx {} { \Psi }
+
+\NewDocumentCommand \call { m } { \call:n {#1} }
+\cs_new:Npn \call:n #1 { \mathsf{call} \mskip\thinmuskip #1 }
+
+\NewDocumentCommand{\ctxmonad}{>{\SplitArgument{1}{<-}}m}{
+  \{\use_ii:nn #1 \vdash \use_i:nn #1\}
+}
+
+\NewDocumentCommand{\mbind}{>{\SplitArgument{1}{;}}m}{
+  \use_i:nn#1 ; \use_ii:nn#1
+}
+
+\NewDocumentCommand{\mletrec}{o m m}{
+  \mathsf{letrec}\IfValueT{#1}{\sb{#1}}
+  \mskip\thinmuskip
+  #2
+  \mskip\thinmuskip
+  \mathsf{in} \mskip\thinmuskip #3
+}
+
+\NewDocumentCommand{\mprocdef}{m}{
+  #1
+}
+
+
+\NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
+\NewDocumentCommand \msgL { } { \mathsf{msgL} \mskip\thinmuskip }
+\NewDocumentCommand \msgR { } { \mathsf{msgR} \mskip\thinmuskip }
+\NewDocumentCommand \msgQ { } { \mathsf{msgQ} }
+\NewDocumentCommand \bnd { >{\SplitArgument{1}{=}}m } { \bnd:nn #1 }
+\cs_new:Npn \bnd:nn #1#2 { \mathsf{bnd} \mskip\thinmuskip #1 \mskip\thinmuskip #2 }
+
+
+\NewDocumentCommand \kay { } { k }
+
+
+%% Compilation
+\NewDocumentCommand \cmp { m g } {
+  \IfValueTF {#2}
+    { \compile:nn {#1} {= #2} }
+    { \compile:nn {#1} {} }
+}
+\cs_new:Npn \compile:nn #1#2 { \llbracket #1 \rrbracket #2 }
+
+
+\NewDocumentCommand \strans { } {
+  \overset{\tau}{\trans}
+}
+
+\NewDocumentCommand \chseq { } { \chseq: }
+\cs_new:Npn \chseq: { \vdash^{\mathrm{ch}} }
+
+
+% \NewDocumentEnvironment{subtheorems}{m O{}}%
+%   {%
+%     \begin{enumerate}%
+%       [label=\alph*.,ref=\csname the#1\endcsname\alph*,#2]%
+%     \crefalias{enumi}{#1}%
+%     \ignorespaces
+%   }%
+%   {\end{enumerate}\ignorespacesafterend}
+
+
+\usepackage{listings}
+\crefname{listing}{listing}{listings}
+\Crefname{listing}{Listing}{Listings}
+
+\newlength{\mywidth}
+\settowidth{\mywidth}{\ttfamily A}
+\lstset{basicstyle=\ttfamily, basewidth=\mywidth}
+
+\captionsetup[lstlisting]{%
+  box=colorbox, boxcolor=gray,
+  font={normalfont, sf, color=white},
+  labelfont=bf,
+  justification=justified, singlelinecheck=false
+}
+
+\lstnewenvironment{sillcode}[1][]
+  {\lstset{language={},frame=bottomline,framerule=0.8ex,rulecolor=\color{gray},float,#1}}%
+  {}
+
+\lstnewenvironment{sillcode*}[1][]
+  {\lstset{language={},#1}}%
+  {}
+
+\NewDocumentCommand{\sillinline}{o}{%
+  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
+}
+
+
+\RequirePackage{mathpartir}
+
+\NewDocumentEnvironment { infers } { o O{} }
+  {
+    \noindent\IfValueT{#1}{\fbox{#1}#2}
+    \begin{mathpar}\ignorespaces
+  }
+  {\end{mathpar}\ignorespacesafterend}
+
+
+\NewDocumentCommand \lowered { m } { \lowered:n {#1} }
+\cs_new:Npn \lowered:n #1 { \raisebox {-0.75\baselineskip} {#1} }
+
+
+\NewDocumentEnvironment{subtheorems}{m O{}}%
+  {%
+    \begin{enumerate}%
+      [label=\alph*.,ref=\csname the#1\endcsname\alph*,#2]%
+    \crefalias{enumi}{#1}%
+    \ignorespaces
+  }%
+  {\end{enumerate}\ignorespacesafterend}

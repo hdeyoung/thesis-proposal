@@ -1,0 +1,53 @@
+(* Quicksort in singleton SILL *)
+(* Henry DeYoung *)
+(* January 10, 2015 *)
+
+
+(* qsort : int list -> { |- int list /\ 1 } *)
+qsort xs = { closeR; qsortR xs }
+
+(* qsortR : Forall X. int list -> { X |- int list /\ X } *)
+qsortR [] = { sendR []; <-> }
+qsortR (x::xs) =
+  { let
+      val (xs< , xs>=) = partition x xs
+    in
+      qsortR xs<;
+      pivotR x;
+      qsortL xs>=
+    end }
+
+(* pivotR : Forall X. int -> { int list /\ X |- int list => int list /\ X } *)
+pivotR x =
+  { L <- recvL;
+    G <- recvR;
+    sendR (L @ (x::G));
+    <-> }
+ 
+(* qsortL : Forall X. int list -> { int list => X |- X } *)
+qsortL [] = { sendL []; <-> }
+qsortL (x::xs) =
+  { let
+      val (xs< , xs>=) = partition x xs
+    in
+      qsortR xs<;
+      pivotL x;
+      qsortL xs>=
+    end }
+
+(* pivotL : Forall X. int -> { int list /\ (int list => X) |- int list => X } *)
+pivotL x =
+  { L <- recvL;
+    G <- recvR;
+    sendL (L @ (x::G));
+    <-> }
+
+
+fun partition x [] = ([], [])
+  | partition x (y::ys) =
+      let
+        val (ys< , ys>=) = partition x ys
+      in
+        if y < x then (y::ys< , ys>=)
+        else (ys< , y::ys>=)
+      end

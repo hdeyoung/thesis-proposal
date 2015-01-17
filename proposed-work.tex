@@ -1,300 +1,777 @@
-% arara: lualatex
-% arara: lualatex
-% arara: biber
-% arara: lualatex
-% arara: lualatex
-% \documentclass{../hdeyoung-proposal}
-\documentclass[
-  class=../hdeyoung-proposal,
-  crop=false
-]{standalone}
+% % arara: lualatex
+% % arara: lualatex
+% % arara: biber
+% % arara: lualatex
+% % arara: lualatex
+% % \documentclass{../hdeyoung-proposal}
+% \documentclass[
+%   class=../hdeyoung-proposal,
+%   crop=false
+% ]{standalone}
 
 
-\usepackage{linear-logic}
-\usepackage{ordered-logic}
-\usepackage{proof}
-\usepackage{mathpartir}
+% \usepackage{linear-logic}
+% \usepackage{ordered-logic}
+% \usepackage{proof}
+% \usepackage{mathpartir}
 
-\usepackage{tikz}
-\usetikzlibrary{shapes.misc,graphs,quotes,graphdrawing}
-\usegdlibrary{trees}
+% \usepackage{tikz}
+% \usetikzlibrary{shapes.misc,graphs,quotes,graphdrawing}
+% \usegdlibrary{trees}
 
-\usepackage{scalerel}
+% \usepackage{scalerel}
 
-\ExplSyntaxOn
+% \ExplSyntaxOn
 
-% \DeclarePairedDelimiter \parens { \lparen } { \rparen }
-\DeclarePairedDelimiter \bagged:wn { \lbag } { \rbag }
-\NewDocumentCommand{ \bagged }{ s o m o }
-  {
-    \IfBooleanTF {#1}
-      { \bagged:wn* {#3} }
-      {
-        \IfValueTF {#2}
-          { \bagged:wn[#2] {#3} }
-          { \bagged:wn {#3} }
-      }
-    \IfValueT {#4} { \sb{#4} }
-  }
-
-
-\NewDocumentCommand \oseq { >{ \SplitArgument{1}{|-} } m }
-  { \oseq:nn #1 }
-\cs_new:Npn \oseq:nn #1#2 { \oseq_ctxs:n {#1} \vdash #2 }
-\cs_new:Npn \oseq_ctxs:n #1 {
-  \seq_set_split:Nnn \l_tmpa_seq {;} {#1}
-  \seq_use:Nn \l_tmpa_seq { \mathrel{;} }
-}
-
-\NewDocumentCommand \procof { m m } { #1 \dblcolon #2 }
-\NewDocumentCommand \hypof { m } { #1 }
+% % \DeclarePairedDelimiter \parens { \lparen } { \rparen }
+% \DeclarePairedDelimiter \bagged:wn { \lbag } { \rbag }
+% \NewDocumentCommand{ \bagged }{ s o m o }
+%   {
+%     \IfBooleanTF {#1}
+%       { \bagged:wn* {#3} }
+%       {
+%         \IfValueTF {#2}
+%           { \bagged:wn[#2] {#3} }
+%           { \bagged:wn {#3} }
+%       }
+%     \IfValueT {#4} { \sb{#4} }
+%   }
 
 
-\NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
-\NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
+% \NewDocumentCommand \oseq { >{ \SplitArgument{1}{|-} } m }
+%   { \oseq:nn #1 }
+% \cs_new:Npn \oseq:nn #1#2 { \oseq_ctxs:n {#1} \vdash #2 }
+% \cs_new:Npn \oseq_ctxs:n #1 {
+%   \seq_set_split:Nnn \l_tmpa_seq {;} {#1}
+%   \seq_use:Nn \l_tmpa_seq { \mathrel{;} }
+% }
 
-\NewDocumentCommand \comp { >{ \SplitArgument{1}{|} } m }
-  { \comp:nn #1 }
-\cs_new:Npn \comp:nn #1#2 { #1 \parallel #2 }
-
-\NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
-
-
-\RenewDocumentCommand \with { s }
-  { \IfBooleanTF {#1} \with:n \with: }
-\cs_new:Npn \with:n #1 {
-  \mathord{\binampersand}
-  \bagged {
-    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
-    \seq_use:Nn \l_tmpa_seq {,}
-  }
-}
-\cs_new:Npn \with: { \mathbin{\binampersand} }
-
-\NewDocumentCommand \ssor { s }
-  { \IfBooleanTF {#1} \ssor:n \ssor: }
-\cs_new:Npn \ssor:n #1 {
-  \mathord{\ssor:}
-  \bagged {
-    \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
-    \seq_use:Nn \l_tmpa_seq {,}
-  }
-}
-\cs_new:Npn \ssor: { \oplus }
-
-\NewDocumentCommand \caseR { s m }
-  {
-    \IfBooleanTF {#1}
-      { \case:nNn { \mathsf{caseR} } \bagged {#2} }
-      { \case:nNn { \mathsf{caseR} } \parens {#2} }
-  }
-\NewDocumentCommand \caseL { s m }
-  {
-    \IfBooleanTF {#1}
-      { \case:nNn { \mathsf{caseL} } \bagged {#2} }
-      { \case:nNn { \mathsf{caseL} } \parens {#2} }
-  }
-\cs_new:Npn \case:nNn #1#2#3 {
-  #1 \mskip\thinmuskip
-  #2 {
-    \seq_set_split:Nnn \l_tmpa_seq {|} {#3}
-    \seq_clear:N \l_tmpb_seq
-    \seq_map_inline:Nn \l_tmpa_seq
-      { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
-    \seq_use:Nn \l_tmpb_seq { \talloblong }
-  }
-}
-\cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
-\cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
-  #1 \Rightarrow #2
-}
-
-\NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
-  { \select:nnn { \mathsf{selectL} } #1 }
-\NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
-  { \select:nnn { \mathsf{selectR} } #1 }
-\cs_new:Npn \select:nnn #1#2#3 {
-  \!\mathord{}\mathop{#1} #2 ; #3
-}
+% \NewDocumentCommand \procof { m m } { #1 \dblcolon #2 }
+% \NewDocumentCommand \hypof { m } { #1 }
 
 
-\NewDocumentCommand \inj { m } { \mathsf{in}\sb{#1} }
+% \NewDocumentCommand \cut { m } { \text{\textsc{\MakeLowercase{Cut}}}\sb{#1} }
+% \NewDocumentCommand \id { m } { \text{\textsc{\MakeLowercase{Id}}}\sb{#1} }
 
-\NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
-\NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
+% \NewDocumentCommand \comp { >{ \SplitArgument{1}{|} } m }
+%   { \comp:nn #1 }
+% \cs_new:Npn \comp:nn #1#2 { #1 \parallel #2 }
 
-
-\RenewDocumentCommand \one {} { \mathord { \mathbf{1} } }
-
-\NewDocumentCommand \quitR {} { \mathsf{quitR} }
-\NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
+% \NewDocumentCommand \fwd {} { \mathord{\leftrightarrow} }
 
 
-\NewDocumentCommand \rrule { o m } {
-  \IfValueTF {#1}
-    { \rrule:nn {#2} {#1} }
-    { \rrule:n {#2} }
-}
-\cs_new:Npn \rrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{R}}}\sb{#2} }
-\cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+% \RenewDocumentCommand \with { s }
+%   { \IfBooleanTF {#1} \with:n \with: }
+% \cs_new:Npn \with:n #1 {
+%   \mathord{\binampersand}
+%   \bagged {
+%     \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+%     \seq_use:Nn \l_tmpa_seq {,}
+%   }
+% }
+% \cs_new:Npn \with: { \mathbin{\binampersand} }
 
-\NewDocumentCommand \lrule { o m } {
-  \IfValueTF {#1}
-    { \lrule:nn {#2} {#1} }
-    { \lrule:n {#2} }
-}
-\cs_new:Npn \lrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{L}}}\sb{#2} }
-\cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+% \NewDocumentCommand \ssor { s }
+%   { \IfBooleanTF {#1} \ssor:n \ssor: }
+% \cs_new:Npn \ssor:n #1 {
+%   \mathord{\ssor:}
+%   \bagged {
+%     \seq_set_split:Nnn \l_tmpa_seq {,} {#1}
+%     \seq_use:Nn \l_tmpa_seq {,}
+%   }
+% }
+% \cs_new:Npn \ssor: { \oplus }
+
+% \NewDocumentCommand \caseR { s m }
+%   {
+%     \IfBooleanTF {#1}
+%       { \case:nNn { \mathsf{caseR} } \bagged {#2} }
+%       { \case:nNn { \mathsf{caseR} } \parens {#2} }
+%   }
+% \NewDocumentCommand \caseL { s m }
+%   {
+%     \IfBooleanTF {#1}
+%       { \case:nNn { \mathsf{caseL} } \bagged {#2} }
+%       { \case:nNn { \mathsf{caseL} } \parens {#2} }
+%   }
+% \cs_new:Npn \case:nNn #1#2#3 {
+%   #1 \mskip\thinmuskip
+%   #2 {
+%     \seq_set_split:Nnn \l_tmpa_seq {|} {#3}
+%     \seq_clear:N \l_tmpb_seq
+%     \seq_map_inline:Nn \l_tmpa_seq
+%       { \seq_put_right:Nn \l_tmpb_seq { \case_branch:n {##1} } }
+%     \seq_use:Nn \l_tmpb_seq { \talloblong }
+%   }
+% }
+% \cs_new:Npn \case_branch:n #1 { \case_branch_aux:w #1 \q_stop }
+% \cs_new:Npn \case_branch_aux:w #1 => #2 \q_stop {
+%   #1 \Rightarrow #2
+% }
+
+% \NewDocumentCommand \selectL { >{ \SplitArgument{1}{;} } m }
+%   { \select:nnn { \mathsf{selectL} } #1 }
+% \NewDocumentCommand \selectR { >{ \SplitArgument{1}{;} } m }
+%   { \select:nnn { \mathsf{selectR} } #1 }
+% \cs_new:Npn \select:nnn #1#2#3 {
+%   \!\mathord{}\mathop{#1} #2 ; #3
+% }
 
 
-\NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
-\NewDocumentCommand \msg { } { \mathsf{msg} \mskip\thinmuskip }
+% \NewDocumentCommand \inj { m } { \mathsf{in}\sb{#1} }
 
-\ExplSyntaxOff
-
-
+% \NewDocumentCommand \inl {} { \inj{ \mathsf{1} } }
+% \NewDocumentCommand \inr {} { \inj{ \mathsf{2} } }
 
 
-\addbibresource{../proposal.bib}
+% \RenewDocumentCommand \one {} { \mathord { \mathbf{1} } }
 
-\NewDocumentCommand{\ie}{}{i.e.}
-
-
-\usepackage{listings}
-\crefname{listing}{listing}{listings}
-\Crefname{listing}{Listing}{Listings}
-
-\newlength{\mywidth}
-\settowidth{\mywidth}{\ttfamily A}
-\lstset{basicstyle=\ttfamily, basewidth=\mywidth}
-
-\captionsetup[lstlisting]{%
-  box=colorbox, boxcolor=gray,
-  font={normalfont, sf, color=white},
-  labelfont=bf,
-  justification=justified, singlelinecheck=false
-}
-
-\lstnewenvironment{sillcode}[1][]
-  {\lstset{language={},frame=bottomline,framerule=0.8ex,rulecolor=\color{gray},float,#1}}%
-  {}
-
-\lstnewenvironment{sillcode*}[1][]
-  {\lstset{language={},#1}}%
-  {}
-
-\NewDocumentCommand{\sillinline}{o}{%
-  \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
-}
+% \NewDocumentCommand \quitR {} { \mathsf{quitR} }
+% \NewDocumentCommand \waitL { m } { \mathsf{waitL} ; #1 }
 
 
-\NewDocumentCommand{\pctx}{}{\Psi}
-\ExplSyntaxOn
-\NewDocumentCommand{\ctxmonad}{>{\SplitArgument{1}{<-}}m}{
-  \{\use_ii:nn #1 \vdash \use_i:nn #1\}
-}
-\NewDocumentCommand \spawn { >{ \SplitArgument{1}{;} } m } { \spawn:nn #1 }
-\cs_new:Npn \spawn:nn #1#2 {
-  \mathsf{spawn}
-  \tl_if_empty:nF {#1} {
-    \mskip\thinmuskip #1 ; #2
-  }
-}
-\NewDocumentCommand{\mbind}{>{\SplitArgument{1}{;}}m}{
-  \use_i:nn#1 ; \use_ii:nn#1
-}
-\NewDocumentCommand{\mletrec}{m m}{
-  \mathsf{letrec} \mskip\thinmuskip #1 \mskip\thinmuskip \mathsf{in} \mskip\thinmuskip #2
-}
-\NewDocumentCommand{\mprocdef}{m}{
-  #1
-}
-\ExplSyntaxOff
+% \NewDocumentCommand \rrule { o m } {
+%   \IfValueTF {#1}
+%     { \rrule:nn {#2} {#1} }
+%     { \rrule:n {#2} }
+% }
+% \cs_new:Npn \rrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{R}}}\sb{#2} }
+% \cs_new:Npn \rrule:n #1 { {#1}\text{\textsc{\MakeLowercase{R}}} }
+
+% \NewDocumentCommand \lrule { o m } {
+%   \IfValueTF {#1}
+%     { \lrule:nn {#2} {#1} }
+%     { \lrule:n {#2} }
+% }
+% \cs_new:Npn \lrule:nn #1#2 { {#1}\text{\textsc{\MakeLowercase{L}}}\sb{#2} }
+% \cs_new:Npn \lrule:n #1 { {#1}\text{\textsc{\MakeLowercase{L}}} }
+
+
+% \NewDocumentCommand \exec { } { \mathsf{exec} \mskip\thinmuskip }
+% \NewDocumentCommand \msg { } { \mathsf{msg} \mskip\thinmuskip }
+
+% \ExplSyntaxOff
 
 
 
 
-\input{acronyms.tex}
+% \addbibresource{../proposal.bib}
+
+% \NewDocumentCommand{\ie}{}{i.e.}
 
 
-\begin{document}
+% \usepackage{listings}
+% \crefname{listing}{listing}{listings}
+% \Crefname{listing}{Listing}{Listings}
+
+% \newlength{\mywidth}
+% \settowidth{\mywidth}{\ttfamily A}
+% \lstset{basicstyle=\ttfamily, basewidth=\mywidth}
+
+% \captionsetup[lstlisting]{%
+%   box=colorbox, boxcolor=gray,
+%   font={normalfont, sf, color=white},
+%   labelfont=bf,
+%   justification=justified, singlelinecheck=false
+% }
+
+% \lstnewenvironment{sillcode}[1][]
+%   {\lstset{language={},frame=bottomline,framerule=0.8ex,rulecolor=\color{gray},float,#1}}%
+%   {}
+
+% \lstnewenvironment{sillcode*}[1][]
+%   {\lstset{language={},#1}}%
+%   {}
+
+% \NewDocumentCommand{\sillinline}{o}{%
+%   \IfValueTF{#1}{\lstinline[#1]}{\lstinline}%
+% }
+
+
+% \NewDocumentCommand{\pctx}{}{\Psi}
+% \ExplSyntaxOn
+% \NewDocumentCommand{\ctxmonad}{>{\SplitArgument{1}{<-}}m}{
+%   \{\use_ii:nn #1 \vdash \use_i:nn #1\}
+% }
+% \NewDocumentCommand \spawn { >{ \SplitArgument{1}{;} } m } { \spawn:nn #1 }
+% \cs_new:Npn \spawn:nn #1#2 {
+%   \mathsf{spawn}
+%   \tl_if_empty:nF {#1} {
+%     \mskip\thinmuskip #1 ; #2
+%   }
+% }
+% \NewDocumentCommand{\mbind}{>{\SplitArgument{1}{;}}m}{
+%   \use_i:nn#1 ; \use_ii:nn#1
+% }
+% \NewDocumentCommand{\mletrec}{m m}{
+%   \mathsf{letrec} \mskip\thinmuskip #1 \mskip\thinmuskip \mathsf{in} \mskip\thinmuskip #2
+% }
+% \NewDocumentCommand{\mprocdef}{m}{
+%   #1
+% }
+% \ExplSyntaxOff
+
+
+
+
+% \input{acronyms.tex}
+
+
+% \begin{document}
 
 \section{Proposed work}\label{sec:proposed-work}
 
-In this document, we have shown how session types form a bridge between a class of ordered logical specifications and process definitions typed in singleton linear logic---between proof-construction-as-computation and proof-reduction-as-computation.
-The primary area of proposed work is to extend this connection to (a class of) linear logical specifications and \ac{SILL} process definitions typed in linear logic.
-% To defend the proposed thesis, this connection must be extended to (a class of) linear logical specifications and \ac{SILL} process definitions typed in linear logic.
+In this document, we have shown how session types that arise from singleton linear logic form a bridge between a class of ordered logical specifications and well-typed processes---between proof-construction-as-computation and proof-reduction-as-computation.
+% There are three areas of proposed work.
+Most of the proposed work involves generalizing this connection along several dimensions: 
+first, a more expressive specification logic,
+% ---relating \emph{linear logical}, not just ordered logical, specifications to well-typed processes;
+and, second, a more permissive session-type system.
+% the strength of the session-type system---relating a larger class of logical specifications to untyped or more weakly typed processes.
+We now sketch that proposed work.
+% In this \lcnamecref{sec:proposed-work},
 
-\subsection{From ordered logical specifications to linear logical specifications}\label{sec:from-ordered-logical}
 
-Although awkward, it is possible to give an ordered logical specification for addition of two binary numbers.
-The idea is to arrange the numbers end-to-end, but separated by a $\plus$ marker and terminated by a $\equals$ marker.
+% The primary area of proposed work is to generalize this connection:
+% instead of showing only how certain ordered logical specifications can translate to process chains that are typed by singleton linear logic, I propose to show how certain \emph{linear logical} specifications can translate to process trees that are typed by 
+
+%  to (a class of) linear logical specifications and \ac{SILL} process definitions typed in linear logic.
+% % To defend the proposed thesis, this connection must be extended to (a class of) linear logical specifications and \ac{SILL} process definitions typed in linear logic.
+
+\subsection{From ordered logical to linear logical specifications}\label{sec:from-ordered-logical}
+
+The primary area of proposed work is to generalize the specification logic from ordered logic to the more expressive linear logic.
+Correspondingly, the process chains used in this proposal will also be generalized to \citeauthor{Caires+:MSCS13}'s~\autocite*{Caires+:MSCS13} \ac{SILL} process trees.
+We'll motivate this generalization with an example: addition of binary representations.
+
+\paragraph{Logical specification.}
+By adapting ideas from Turing machines, it is possible---though undoubtedly awkward---to give an ordered logical specification for adding two binary numbers.
+First, the numbers are arranged end-to-end, separated by a $\plus$ atom and terminated by an $\equals$ atom.
 For instance, the string
 \begin{equation*}
   \eps \fuse \bit{1} \fuse \bit{0} \fuse \plus \fuse \bit{1} \fuse \bit{0} \fuse \equals
 \end{equation*}
-would represent a request to add $2+2$.
-By decrementing the second number to $0$ and incrementing
+represents a request to evaluate $2+2$.
+Next, repeatedly decrement the second number and increment the first number.
+When the second number reaches $0$, the first number holds the desired sum.
+%
+\begin{figure}
+  \begin{equation*}
+    \begin{alignedat}{2}
+      &\equals \lrimp \monad{\dec \fuse \equals[']} \\[1.5\jot]
+      % 
+      &\bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} &\quad\enskip& \bit{0} \fuse \skp \lrimp \monad{\skp \fuse \bit{0}} \\
+      &\bit{1} \fuse \dec \lrimp \monad{\skp \fuse \bit{0} \fuse \ok} && \bit{1} \fuse \skp \lrimp \monad{\skp \fuse \bit{1}} \\
+      &\plus \fuse \dec \lrimp \monad{\fail} && \plus \fuse \skp \lrimp \monad{\inc \fuse \plus} \\[1.5\jot]
+      % 
+      &\ok \fuse \smash{\bit[']{0}} \lrimp \monad{\bit{1} \fuse \ok} && \fail \fuse \smash{\bit[']{0}} \lrimp \monad{\fail} \\
+      &\ok \fuse \smash{\equals[']} \lrimp \monad{\equals} && \fail \fuse \smash{\equals[']} \lrimp \monad{\one}
+    \end{alignedat}
+  \end{equation*}
+  \caption{An ordered logical specification of Turing-machine--like binary addition\label{fig:turing-binary-add}}
+\end{figure}
+%
+The ordered logical specification
+% and corresponding well-typed process definitions
+of this addition algorithm is shown in \cref{fig:turing-binary-add}.
 
+
+% \begin{sillcode}
+%   plus =
+%   { caseR of
+%       dec => selectR fail; <->
+%     | skip_inc => selectL inc; plus }
+
+%   bit0 =
+%   { caseR of
+%       dec => selectL dec; bit0'
+%     | skip_inc => selectL skip_inc; bit0 }
+
+%   bit0' =
+%   { caseL of
+%       ok => selectR ok; bit1
+%     | fail => selectR fail; <-> }
+
+%   bit1 =
+%   { caseR of
+%       dec => selectR ok; selectL skip_inc; bit0
+%     | skip_inc => selectL skip_inc; bit1 }
+
+%   equals =
+%   { selectL dec; equals' }
+
+%   equals' =
+%   { caseL of
+%       ok => equals
+%     | fail => <-> }
+% \end{sillcode}
+
+
+Unfortunately, this algorithm is not especially efficient: it takes $\Omega(N\log N)$ work to compute $M+N$.
+It would be better to add the two binary representations bit-by-bit using the usual grade-school algorithm.
+However, this demands that we can \emph{locally} access the least significant bit of each number and, separately, produce output bits---which is not possible in an ordered logical specification.
+% A better algorithm would add the two numbers bit-by-bit.
+
+It is possible, however, in a \emph{destination-passing} linear logical specification~\autocite{Cervesato+:CMU02}.
+Even without the ordering constraint, a tree structure can be recovered via destinations that thread the $\bit{}$ atoms together with a $\plus$ parent atom.
+% into linked-list--like structures that are joined at a $\plus$ parent.
+Pictorially, the request to compute $2+2$ would be expressed as the state
 \begin{equation*}
-  \begin{lgathered}
-    \bit{0} \fuse \dec \lrimp \monad{\dec \fuse \bit[']{0}} \\
-    \bit{1} \fuse \dec \lrimp \monad{\skip \fuse \bit{0} \fuse \ok} \\
-    \plus \fuse \dec \lrimp \monad{\fail} \\
-    %
-    \bit{0} \fuse \skip \lrimp \monad{\skip \fuse \bit{0}} \\
-    \bit{1} \fuse \skip \lrimp \monad{\skip \fuse \bit{1}} \\
-    \plus \fuse \skip \lrimp \monad{\inc \fuse \plus} \\
-    %
-    \ok \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \ok} \\
-    \fail \fuse \bit[']{0} \lrimp \monad{\fail} \\
-    %
-    \ok \fuse \equals['] \lrimp \monad{\equals} \\
-    \fail \fuse \equals['] \lrimp \monad{\one}
-  \end{lgathered}
+  \!\begin{aligned}[c]
+    \eps(c_2) \tensor \bit{1}(c_2 , c_1) \tensor \bit{0}(c_1 , c_0) & \\
+    \eps(d_2) \tensor \bit{1}(d_2 , d_1) \tensor \bit{0}(d_1 , d_0) &
+  \end{aligned}
+  \tensor \plus(c_0 , d_0 , c)
+\end{equation*}
+where $c$ and the $c_i$s and $d_j$s are all destinations and where the sum will be output at destination $c$.
+Thus, the destination-passing rule for adding two numbers that both end in $\bit{0}$ is 
+\begin{equation*}
+  \bit{0}(C_1 , C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C)
+    \lolli \monad{\exists c'_0.\, \plus(C_1 , D_1 , c'_0) \tensor \bit{0}(c'_0 , C)}
+  \,.
+\end{equation*}
+It says that if both inputs end in $\bit{0}$, then their sum also ends in $\bit{0}$, with the more significant bits obtained by inductively adding the more significant bits of the two inputs.
+When this rule is applied to the above state, the state changes and the first bit of output is produced:
+\begin{equation*}
+  \!\begin{aligned}[c]
+    \eps(c_2) \tensor \bit{1}(c_2 , c_1) & \\
+    \eps(d_2) \tensor \bit{1}(d_2 , d_1) &
+  \end{aligned}
+  \tensor \plus(c_1 , d_1 , c') \tensor \bit{0}(c' , c)
+  \,.
 \end{equation*}
 
 
-\begin{sillcode}
-  plus =
-  { caseR of
-      dec => selectR fail; <->
-    | skip_inc => selectL inc; plus }
+\begin{figure}
+  \begin{equation*}
+    \begin{lgathered}
+      \eps(C_0) \tensor \inc(C_0 , C) \lolli \monad{\eps(C)} \\
+      \bit{0}(C_1 , C_0) \tensor \inc(C_0 , C) \lolli \monad{\bit{1}(C_1 , C)} \\
+      \bit{1}(C_1 , C_0) \tensor \inc(C_0 , C) \lolli \monad{\exists c'.\, \inc(C_1 , c') \tensor \bit{0}(c' , C)}
+    \end{lgathered}
+  \end{equation*}
 
-  bit0 =
-  { caseR of
-      dec => selectL dec; bit0'
-    | skip_inc => selectL skip_inc; bit0 }
-
-  bit0' =
-  { caseL of
-      ok => selectR ok; bit1
-    | fail => selectR fail; <-> }
-
-  bit1 =
-  { caseR of
-      dec => selectR ok; selectL skip_inc; bit0
-    | skip_inc => selectL skip_inc; bit1 }
-
-  equals =
-  { selectL dec; equals' }
-
-  equals' =
-  { caseL of
-      ok => equals
-    | fail => <-> }
-\end{sillcode}
+  \begin{equation*}
+    \begin{lgathered}
+      \eps(C_0) \tensor \eps(D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\eps(C)} \\
+      \eps(C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\bit{0}(D_1 , C)} \\
+      \eps(C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\bit{1}(D_1 , C)} \\
+      %
+      \bit{0}(C_1 , C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'.\, \plus(C_1 , D_1 , c') \tensor \bit{0}(c' , C)} \\
+      \bit{0}(C_1 , C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'.\, \plus(C_1 , D_1 , c') \tensor \bit{1}(c' , C)} \\
+      \bit{1}(C_1 , C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'.\, \plus(C_1 , D_1 , c') \tensor \bit{1}(c' , C)} \\
+      %
+      \bit{1}(C_1 , C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c', c''.\, \plus(C_1 , D_1 , c') \tensor \inc(c' , c'') \tensor \bit{0}(c'' , C)}
+    \end{lgathered}
+  \end{equation*}
+\end{figure}
 
 
-A better algorithm would add the two numbers bit-by-bit.
-Pictorially, 
+\paragraph{Concurrent processes.}
+We can also add two binary representations using \ac{SILL} process trees.
+Consider the following process network, which represents a request to compute $2+2$.
+\begin{center}
+  \emph{picture here}
+\end{center}
+
+
+
+\paragraph{Specific goals.}
+This item of proposed work is of primary importance and involves several components.
+\begin{itemize}
+\item \emph{Identify the class of linear logical specifications that act as choreographies.}
+  Not all linear logical specifications describe process-like behaviors.
+  As in the ordered case, choreographies will need to be both local and specification-preserving.
+  Now, however, locality depends not on adjacency in the ordered context, but on sharing a destination.
+\item \emph{Give a type system for choreographies.}
+\item \emph{Develop a translation of well-typed choreographies to \ac{SILL} processes.}
+\item \emph{Translate the unrestricted modality, $\bang$, to a process.}
+\end{itemize}
+
+
+\subsection{Translating untyped choreographies to untyped processes}
+
+In this proposal, we have been concerned only with \emph{well-typed} processes and a corresponding class of well-typed choreographies.
+The logically grounded session-type discipline ensures that well-typed processes (and, consequently, well-typed choreographies) enjoy communication safety, session fidelity, and deadlock freedom (i.e., global progress).
+However, by demanding such a strong form of progress, the current session-type discipline forbids \emph{all} racy processes, even if the races are benign or non-critical.
+
+% For example, consider the $\pi$-calculus process $x(y).z(w).P + z(w).x(y).P$, which waits to receive---in either order---both $y$ along channel $x$ and $w$ along channel $z$.
+% This process is certainly racy because it's impossible, in general, to predict the order in which $y$ and $w$ will arrive.
+% But, just as certainly, this race is benign because \emph{both} $y$ and $w$ must arrive before continuing with process $P$.
+% This and other benign races should be permitted by the session-type discipline.
+
+\NewPredicate{\okL}{0}
+\NewPredicate{\okR}{0}
+
+For example, consider the following process:
 \begin{equation*}
-  \begin{tikzpicture}
-    \graph [tree layout, math nodes] {
-      + <- { / 0 <- / 1 <- / e ,
-/ 0 <- / 1 <- / e };
-};
-  \end{tikzpicture}
+  \caseL{\okL => \caseR{\okR => P}} + \caseR{\okR => \caseL{\okL => P}} \,,
 \end{equation*}
+which waits to receive---in either order---$\okL$ and $\okR$ labels from both its left- and right-hand neighbors, respectively.
+(The process constructor $+$ denotes nondeterministic choice.)
+This process is certainly racy because it's impossible, in general, to predict the order in which the $\okL$ and $\okR$ labels will arrive.
+But, even so, this race is benign: execution continues with the process $P$ once, and only once, both labels arrive in either order.
+% This and other benign races should be permitted by the session-type discipline.
 
-\end{document}
+Choreographies may serve as a stepping-stone toward a more permissive, yet still logically grounded, session-type discipline that allows this and other benign races.
+The above example can also be cast as a choreography:
+\begin{equation*}
+  (\okL \limp \monad{\okR \rimp \monad{A^+}}) \with (\okR \rimp \monad{\okL \limp \monad{A^+}}) \,.
+\end{equation*}
+I propose to develop a translation of a broader class of choreographies to untyped processes may provide different insight than just looking at the existing session-type discipline.
+
+% In this proposal, we have been concerned with translating only \emph{well-typed} choreographies to \emph{well-typed} processes.
+% By concentrating on well-typed processes, we ensure that well-typed choreographies enjoy the same, strong progress and preservation properties as their process counterparts.
+% At the same time, however, by demanding such a strong form of progress, we forbid all racy processes and choreographies, even if those races are benign or non-critical.
+
+\subsection{Generative invariants as session types}
+
+In this proposal, we have used the non-modal fragment of ordered logic to specify concurrent systems, whereas that fragment of ordered logic was originally developed by \textcite{Lambek:AMM58} to describe sentence structure.
+However, these two modes of use of ordered logic are not as different as they might first appear.
+
+Recall that, in our running example of an incrementable binary counter, the counter is represented as a string of $\bit{0}$, $\bit{1}$, and $\inc$ atoms terminated at the most significant end by an $\eps$.
+More precisely, a string is a well-formed binary counter if it can be generated from the $\Cntr$ nonterminal by the context-free grammar
+\begin{equation*}
+  \Cntr ::= \eps \mid \Cntr \fuse \bit{0} \mid \Cntr \fuse \bit{1} \mid \Cntr \fuse \inc
+  \,,
+\end{equation*}
+which is notation for four distinct productions.
+
+Building on \citeauthor{Lambek:AMM58}'s work, the same context-free grammar can be described in ordered logic using \vocab{generative invariants}~\autocite{Simmons:CMU12}.
+Each production in the grammar (below, left) becomes a clause (below, right), with the atomic proposition $\cntr$ acting as the nonterminal:
+\begin{equation*}
+  \left.
+  \!\begin{aligned}
+    &\Cntr \to \eps \\
+    &\Cntr \to \Cntr \fuse \bit{0} \\
+    &\Cntr \to \Cntr \fuse \bit{1} \\
+    &\Cntr \to \Cntr \fuse \inc
+  \end{aligned}
+  \qquad\middle\vert\qquad
+  \!\begin{aligned}
+    &\cntr \lrimp \monad{\eps} \\
+    &\cntr \lrimp \monad{\cntr \fuse \bit{0}} \\
+    &\cntr \lrimp \monad{\cntr \fuse \bit{1}} \\
+    &\cntr \lrimp \monad{\cntr \fuse \inc}
+    \,.
+  \end{aligned}
+  \right.
+\end{equation*}
+Just as all binary counters are generated from the $\Cntr$ nonterminal according to the above productions, so too are all binary counters generated as maximal rewritings of the $\cntr$ atom according to these clauses:
+%
+\begin{definition}[Counter well-formedness]\label{def:counter-wf}
+  String $S$ is a well-formed counter if $S$ is a maximal rewriting of $\cntr$ under the signature $\sig_{\cntr}$, that is, if $\cntr \trans+[\sig_{\cntr}] S \ntrans[\sig_{\cntr}]$.
+\end{definition}
+%
+For example, the maximal trace
+\begin{equation*}
+  \mathul{\cntr}
+    \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \inc
+    \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \bit{1} \fuse \inc
+    \trans[\sig_{\cntr}] \eps \fuse \bit{1} \fuse \inc
+    \ntrans[\sig_{\cntr}]
+\end{equation*}
+witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter.
+
+As first observed by~\textcite{Simmons:CMU12}, generative invariants like $\sig_{\cntr}$ serve a similar purpose for ordered logical specifications as types do for functional programs: both describe the valid states and enable preservation and progress properties for their respective notions of computation.
+%
+% \begin{theorem*}[Safety of $\inc$]\leavevmode
+%   \begin{itemize}[nosep]
+%   \item If $S$ is a well-formed counter and $S \trans[\sig_{\inc}] S'$, then $S'$ is a well-formed counter.
+%   \item If $S$ is a well-formed counter, then either $S$ is $\inc$-free or $S \trans[\sig_{\inc}] S'$.
+%   \end{itemize}
+% \end{theorem*}
+%
+
+% \noindent
+Given the translation from choreographies (i.e., ordered logical specifications) to well-typed processes that was presented in \cref{?}, it's thus natural to ask how that translation interacts with a generative invariant.
+Being the choreography's \enquote{type}, does the generative invariant become the process's session type?
+
+It appears that the answer is yes.  Compare, for example, the generative invariant for the $\inc[<-]$-choreography with the types of the \sillinline`eps`, \sillinline`bit0`, and \sillinline`bit1` processes and the recursive type \sillinline`Cntr` from \cref{?}:
+% It appears that the generative invariant for a choreography is closely connected to the session type of the process that results from translating the choreography.
+% Compare the generative invariant for the $\inc[<-]$-choreography with the types of the \sillinline`eps`, \sillinline`bit0`, and \sillinline`bit1` processes and the recursive type \sillinline`Cntr` from \cref{?}:
+\begin{equation*}
+  \left.
+  \!\begin{aligned}
+    &\cntr \lrimp \monad{\eps} \\
+    &\cntr \lrimp \monad{\cntr \fuse \bit{0}} \\
+    &\cntr \lrimp \monad{\cntr \fuse \bit{1}} \\
+    &\cntr \lrimp \monad{\cntr \fuse \inc[<-]}
+  \end{aligned}
+  \qquad\middle\vert\qquad
+  \!\begin{aligned}
+    &\text{\sillinline`eps : \{ |- Cntr \}`} \\
+    &\text{\sillinline`bit0 : \{ Cntr |- Cntr \}`} \\
+    &\text{\sillinline`bit1 : \{ Cntr |- Cntr \}`} \\
+    &\text{\sillinline`stype Cntr = &\{ inc: Cntr \}`}
+    \,.
+  \end{aligned}
+  \right.
+\end{equation*}
+Similar correspondences between generative invariants and session types exist for the $\dec[<-]$-choreography, the $\bit{}[->]$-choreography, and all other examples that we've considered.
+It's too tantalizing to be pure coincidence.
+
+Therefore, if all else goes smoothly, I propose to develop a translation of generative invariants to session types and prove that it is respected by the translation from choreographies to processes.
+I plan to follow the pattern of this thesis proposal, first developing the translation for the special case of ordered generative invariants before extending the results to linear generative invariants.
+
+This item of proposed work is of secondary importance, but is less open-ended than
+
+% C(c) -> ?d. C(d) * 0(d,c)
+% C(c) -> ?d0,d1. C(d0) * C(d1) * a(d0,d1,c)
+
+% a : {c:C -| d0:C , d1:C}
+
+
+% C -> e
+% C -> C * 0
+% C -> C * 1
+
+% C = +{e: 1, 0: C, 1: C}
+% i : C |- C
+
+
+% The generative invariant describes the valid choreography states; the session type describes the valid process states.
+
+% C -> {e}
+% C -> {C * 0}
+% C -> {C * 1}
+% C -> {C * i}
+% C' -> {C * d}
+% C' -> {C * s}
+% C' -> {C * z}
+% C' -> {C' * 0'}
+% C' -> {C' * 1'}
+
+% C = &{i: C, d: C'}
+% C' = +{s: C, z: C}
+
+
+
+
+
+
+% % For example, the maximal trace
+% % \begin{equation*}
+% %   \mathul{\cntr}
+% %     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \inc
+% %     \trans[\sig_{\cntr}] \mathul{\cntr} \fuse \bit{1} \fuse \inc
+% %     \trans[\sig_{\cntr}] \eps \fuse \bit{1} \fuse \inc
+% %     \ntrans[\sig_{\cntr}]
+% %   \,.
+% % \end{equation*}
+% % witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter.
+% % Note how important the choice of signature is: if we also allowed increment clauses from $\sig_{\inc}$ here, this trace would no longer be maximal.
+
+% \begingroup
+%   \RenewPredicate{\cntr}[Cntr]{1}%
+% In fact, generative signatures generalize context-free grammars.
+% For example, here $\cntr{}$ could be predicated on a natural number, effectively generalizing the context-free grammar to have a countably infinite family of nonterminals:
+% % One slight generalization would be to predicate $\cntr{}$ on a natural number, effectively giving a countably infinite family of nonterminals:
+% \begin{equation*}
+%   \sig_{\cntr{}} =
+%   \!\begin{aligned}[t]
+%     &\cntr{0} \lrimp \monad{\eps} \,, \\
+%     &\cntr{(2N)} \lrimp \monad{\cntr{N} \fuse \bit{0}} \,, \\
+%     &\cntr{(2N{+}1)} \lrimp \monad{\cntr{N} \fuse \bit{1}} \,, \\
+%     &\cntr{(N{+}1)} \lrimp \monad{\cntr{N} \fuse \inc}
+%     \,.
+%   \end{aligned}
+% \end{equation*}
+
+% This generative signature allows us to formally state and prove adequacy of the incrementable binary counter specification, $\sig_{\inc}$.
+% %
+% \begin{definition}[Counter well-formedness]\label{def:counter-wf}
+%   String $S$ is a well-formed counter that represents natural number $N$ (or, more simply, $S$ represents $N$) if $S$ is a maximal rewriting of $\cntr{N}$ under the signature $\sig_{\cntr{}}$, that is, if $\cntr{N} \trans+[\sig_{\cntr{}}] S \ntrans[\sig_{\cntr{}}]$.
+% \end{definition}
+% %
+% For example, the maximal trace
+% \begin{equation*}
+%   \mathul{\cntr{2}}
+%     \trans[\sig_{\cntr{}}] \mathul{\cntr{1}} \fuse \inc
+%     \trans[\sig_{\cntr{}}] \mathul{\cntr{0}} \fuse \bit{1} \fuse \inc
+%     \trans[\sig_{\cntr{}}] \eps \fuse \bit{1} \fuse \inc
+%     \ntrans[\sig_{\cntr{}}]
+% \end{equation*}
+% witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter that represents $2$.
+% Adequacy of $\inc$ can be stated as follows.
+% (We elide the proof---it is straightforward but requires definitions and lemmas that would only obscure our main point.)
+% %
+% \begin{theorem}[Adequacy of $\inc$]
+%   For all natural numbers $N$ and $N'$ and every well-formed counter $S$ that represents $N$, the equality $N + 1 = N'$ holds if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
+% \end{theorem}
+% %
+% As first observed by~\textcite{Simmons:CMU12}, generative signatures like $\sig_{\cntr{}}$ serve a similar purpose for ordered logical specifications as types do for functional programs: both enable preservation and progress properties for their respective notions of transition.
+
+% Given the translation from ordered logical specifications (i.e., choreographies) to well-typed processes that was presented in \cref{?}, it's natural to ask how that translation interacts with a generative signature that acts as a specification's \enquote{type}.
+
+
+\subsection{Session-typed Turing machines}
+
+As the example in \cref{?} shows, at least some Turing machines can be session-typed: by translating the ordered logical specification from \cref{?}, we get a well-typed, Turing-machine--like process for adding two binary representations.
+In particular, the chain structure of singleton linear logic suggests a fit with the one-way infinite tapes of Turing machines.
+
+Although not directly related to my proposed thesis statement, if time permits, I would like to explore further the possible connections between singleton linear logic and Turing machines.
+This is the most open-ended item of proposed work and also the 
+
+
+% \subsubsection{Earlier draft}
+
+% First, we need a few \lcnamecrefs{def:counter-wf}.
+% %
+% \begin{definition}[Counter well-formedness and other properties]\label{def:counter-wf}
+%   \mbox{}
+%   \begin{itemize}[nosep]
+%   \item String $S$ is a well-formed counter that represents natural number $N$ (or, more simply, $S$ represents $N$) if $S$ is a maximal rewriting of $\cntr{N}$ under the signature $\sig_{\cntr{}}$, that is, if $\cntr{N} \trans+[\sig_{\cntr{}}] S \ntrans[\sig_{\cntr{}}]$.
+%   \item String $S$ is a well-formed counter if there is some $N$ for which $S$ represents $N$.
+%   \item Well-formed counter $S$ is $\inc$-free if the well-formedness trace does not use the $\inc$ clause from the $\sig_{\cntr{}}$ signature.
+%   \item Likewise, well-formed counter $S$ has no leading $\bit{0}$s if the well-formedness trace uses the $\bit{0}$ clause only when $N > 0$.
+%   \end{itemize}
+% \end{definition}
+% %
+% For example, the maximal trace
+% \begin{equation*}
+%   \mathul{\cntr{2}}
+%     \trans[\sig_{\cntr{}}] \mathul{\cntr{1}} \fuse \inc
+%     \trans[\sig_{\cntr{}}] \mathul{\cntr{0}} \fuse \bit{1} \fuse \inc
+%     \trans[\sig_{\cntr{}}] \eps \fuse \bit{1} \fuse \inc
+%     \ntrans[\sig_{\cntr{}}]
+% \end{equation*}
+% witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter that represents $2$; it is not $\inc$-free, but it does have no leading $\bit{0}$s.
+% Note how important the choice of signature is: if we also allowed increment clauses from $\sig_{\inc}$ here, this trace would no longer be maximal.
+
+% With these \lcnamecrefs{def:counter-wf} in hand, we can establish a bijection between the natural numbers and equivalence classes of well-formed counters.
+% \begin{theorem}[Adequacy of counters]\label{thm:counter-adequacy}
+%   \mbox{}
+%   \begin{subtheorems}{theorem}[nosep]
+%   \item\label{thm:counter-adequacy:value}
+%     For each natural number $N$, there is a unique well-formed counter $S$ that represents $N$, is $\inc$-free, and has no leading $\bit{0}$s.
+%   \item\label{thm:counter-adequacy:counter}
+%     For each well-formed counter $S$, there is a unique natural number $N$ such that $S$ represents $N$.
+%   \end{subtheorems}
+% \end{theorem}
+% \begin{proof}
+%   \Cref{thm:counter-adequacy:value} is by induction on $N$, and \cref{thm:counter-adequacy:counter} is by induction on the structure of the maximal trace that witnesses the well-formedness of $S$.
+% \end{proof}
+% %
+% As the following \lcnamecrefs{thm:counter-adequacy} show, the represented value is invariant under $\sig_{\inc}$-rewriting and $\sig_{\inc}$-rewriting always terminates in an $\inc$-free counter.
+% It follows that $\inc$s adequately specify increments.
+% %
+% % \begin{lemma}
+% %   \mbox{}
+% %   \begin{itemize}[nosep]
+% %   \item If $S_0 \fuse \bit{0} \trans[\sig_{\inc}] S'$, then $S' = S'_0 \fuse \bit{0}$ and $S_0 \trans[\sig_{\inc}] S'_0$.
+% %   \item If $S_0 \fuse \bit{1} \trans[\sig_{\inc}] S'$, then $S' = S'_0 \fuse \bit{1}$ and $S_0 \trans[\sig_{\inc}] S'_0$.
+% %   \item If $S_0 \fuse \inc \trans[\sig_{\inc}] S'$, then either:
+% %     \begin{itemize}[nosep]
+% %     \item $S' = S'_0 \fuse \inc$ and $S_0 \trans[\sig_{\inc}] S'_0$;
+% %     \item $S_0 = \eps$ and $S' = \eps \fuse \bit{1}$;
+% %     \item $S_0 = S_{00} \fuse \bit{0}$ and $S' = S_{00} \fuse \bit{1}$; or
+% %     \item $S_0 = S_{00} \fuse \bit{1}$ and $S' = S_{00} \fuse \inc \fuse \bit{0}$.
+% %     \end{itemize}
+% %   \end{itemize}
+% % \end{lemma}
+% % 
+% \begin{theorem}[Preservation]\label{thm:counter-preservation}
+%   For every well-formed counter $S$ that represents $N$, if $S \trans[\sig_{\inc}] S'$, then $S'$ is also a well-formed counter that represents $N$.
+%   % \begin{enumerate}[nosep]
+%   % \item For every well-formed counter $S$, if $S \trans[\sig_{\inc}] S'$, then $S'$ is a well-formed counter.
+%   % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S \trans[\sig_{\inc}] S'$, then $S'$ also represents $N$.
+%   % \end{enumerate}
+% \end{theorem}
+% \begin{proof}
+%   By induction on the structure of the maximal trace that witnesses the well-formedness of $S$, relying on an inversion lemma for $\sig_{\inc}$-steps:
+%   \begin{itemize}[nosep]
+%   \item If $S_0 \fuse \bit[_{\mathit{b}}]{} \trans[\sig_{\inc}] S'$, then $S_0 \trans[\sig_{\inc}] S'_0$ and $S' = S'_0 \fuse \bit[_{\mathit{b}}]{}$.
+%   \item If $S_0 \fuse \inc \trans[\sig_{\inc}] S'$, then either:
+%     \begin{itemize}[nosep]
+%     \item $S_0 \trans[\sig_{\inc}] S'_0$ and $S' = S'_0 \fuse \inc$;
+%     \item $S_0 = \eps$ and $S' = \eps \fuse \bit{1}$;
+%     \item $S_0 = S'_0 \fuse \bit{0}$ and $S' = S'_0 \fuse \bit{1}$; or
+%     \item $S_0 = S'_0 \fuse \bit{1}$ and $S' = S'_0 \fuse \inc \fuse \bit{0}$.
+%     \end{itemize}
+%   \end{itemize}
+% \end{proof}
+
+% % \begin{theorem}[Progress]
+% %   \mbox{}
+% %   \begin{enumerate}[nosep]
+% %   \item For every well-formed counter $S$, if $S$ is $\inc$-free, then $S \ntrans[\sig_{\inc}]$.
+% %   \item For every well-formed counter $S$, either $S$ is $\inc$-free or $S \trans[\sig_{\inc}] S'$ for some $S'$.
+% %   \end{enumerate}
+% % \end{theorem}
+% % \begin{proof}
+% %   By induction on the structure of the maximal trace that generates $S$.
+% % \end{proof}
+
+% \begin{theorem}[Termination]\label{thm:inc-termination}
+%   \mbox{}
+%   \begin{subtheorems}{theorem}[nosep]
+%   \item\label{thm:inc-termination:inc-free}
+%     For every well-formed counter $S$, string $S$ is $\inc$-free if and only if $S \ntrans[\sig_{\inc}]$.
+%   \item\label{thm:inc-termination:finite}
+%     For every well-formed counter $S$, there is no infinite $\sig_{\inc}$-rewriting of $S$.
+%   \end{subtheorems}
+% \end{theorem}
+% \begin{proof}
+%   \Cref{thm:inc-termination:inc-free} is by induction on the structure of the maximal trace that witnesses the well-formedness of $S$.
+%   %
+%   \DeclarePairedDelimiter{\meas}{\lVert}{\rVert}%
+%   \DeclarePairedDelimiter{\size}{\lvert}{\rvert}%
+%   To prove \cref{thm:inc-termination:finite}, define $\meas{S}$ to be a measure in which each $\inc$ in $S$ contributes an amount equal to the length of its higher-order substring:%
+%   \footnote{If desired, this measure can also be defined using a generative signature.}
+%   \begin{equation*}
+%     \!\begin{aligned}[t]
+%       \meas{\eps} &= 0 \\
+%       \meas{S \fuse \bit[_{\mathit{b}}]{}} &= %\meas{S} \\
+%       % \meas{S \fuse \bit{1}} = 
+%       \meas{S} \\
+%       \meas{S \fuse \inc} &= \meas{S} + \size{S}
+%     \end{aligned}
+%     \qquad
+%     \!\begin{aligned}[t]
+%       \size{\eps} &= 1 \\
+%       \size{S \fuse \bit[_{\mathit{b}}]{}} &=
+%       % \size{S \fuse \bit{1}} =
+%       \size{S \fuse \inc} = \size{S} + 1
+%     \end{aligned}
+%   \end{equation*}
+%   % Define
+%   % \begin{align*}
+%   %   &\meas{0,0} \lrimp \monad{\eps} \\
+%   %   &\meas{M,(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \bit{0}} \\
+%   %   &\meas{M,(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \bit{1}} \\
+%   %   &\meas{(M{+}L),(L{+}1)} \lrimp \monad{\meas{M,L} \fuse \inc}
+%   % \end{align*}
+%   One can show that $\meas{\mathord{-}}$ is strictly decreasing for each step $S \trans[\sig_{\inc}] S'$, from which \cref{thm:inc-termination:finite} follows.
+% \end{proof}
+
+% % Cntr 0 <- eps
+% % Cntr N+1 <- Cntr N * bit0
+% % Cntr 
+
+% \begin{corollary}[Adequacy of $\inc$]
+%   For all natural numbers $N$ and $N'$ and every well-formed counter $S$ that represents $N$, the equality $N + 1 = N'$ holds if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
+%   % For all natural numbers $N$ and $N'$ and every well-formed counter $S$, if $S$ represents $N$, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$ for some $S'$ that represents $N'$.
+%   % % \begin{enumerate}
+%   % % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
+%   % % %
+%   % % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
+%   % % \end{enumerate}
+% \end{corollary}
+
+% % \begin{falseclaim}
+% %   For all natural numbers $N$ and $N'$ and well-formed counters $S$ and $S'$, if $S$ represents $N$ and $S'$ represents $N'$ and is $\inc$-free, then $N + 1 = N'$ if and only if $S \fuse \inc \trans+[\sig_{\inc}] S' \ntrans[\sig_{\inc}]$.
+% %   % \begin{enumerate}
+% %   % \item For all natural numbers $N$ and $N'$, if $S$ represents $N$, $S'$ represents $N'$, and $N + 1 = N'$, then $S \fuse \inc \trans+ S' \ntrans$.
+% %   % %
+% %   % \item For all well-formed counters $S$ and $S'$, if $S$ represents $N$, $S'$ represents $N'$, and $S \fuse \inc \trans+ S' \ntrans$, then $N + 1 = N'$.
+% %   % \end{enumerate}
+% % \end{falseclaim}
+
+% In this way, the generative signature $\sig_{\cntr{}}$ serves a similar purpose for logic programming as types do for functional programming~\autocite{Simmons:CMU12}: both enable preservation and progress properties for their respective notions of transition.
+% We will return to this point in \cref{sec:proposed-work}.
+
+% \endgroup
+
+
+% \end{document}
