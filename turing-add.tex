@@ -1,0 +1,56 @@
+\section{Turing-machine--like addition process}
+
+In this appendix, we present the code for a well-typed, Turing-machine--like addition process.
+It corresponds to the ordered logical specification shown in \cref{fig:turing-binary-add}.
+
+\begin{sillcode*}[
+  % caption={Turing-machine--like addition of binary numbers},
+  % label={lst:turing-add},
+  % floatplacement=tb,
+  gobble=2
+]
+  stype Cntr = &{ inc: Cntr }
+  
+  eps : { |- Cntr } =
+  { caseR of
+      inc => eps; bit1 }
+  
+  bit0 : { Cntr |- Cntr } =
+  { caseR of
+      inc => bit1 }
+  
+  bit1 : { Cntr |- Cntr } =
+  { caseR of
+      inc => selectL inc; bit0 }
+
+  stype Cntr_D = &{ dec: Cntr_D' , skip: Cntr_D }
+    and Cntr_D' = +{ ok: Cntr_D , fail: Cntr }
+
+  bit0_d : { Cntr_D |- Cntr_D } =
+  { caseR of
+      dec => selectL dec; bit0_d'
+    | skip => selectL skip; bit0_d }
+
+  bit1_d : { Cntr_D |- Cntr_D } =
+  { caseR of
+      dec => selectL skip; selectR ok; bit0_d
+    | skip => selectL skip; bit1_d }
+
+  bit0_d' : { Cntr_D' |- Cntr_D' } =
+  { caseL of
+      ok => selectR ok; bit1_d
+    | fail => selectR fail; <-> }
+
+  plus : { Cntr |- Cntr_D } =
+  { caseR of
+      dec => selectR fail; <->
+    | skip => selectL inc; plus }
+
+  equals : { Cntr_D |- Cntr } =
+  { selectL dec; equals' }
+
+  equals' : { Cntr_D' |- Cntr } =
+  { caseL of
+      ok => equals
+    | fail => <-> }
+\end{sillcode*}

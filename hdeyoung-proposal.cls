@@ -3,6 +3,7 @@
 % {18-03-2014}{v0.1}{Proposal Document Class}
 
 \LoadClass{article}
+\RequirePackage{fullpage}
 
 
 %% TEXT FONTS
@@ -18,6 +19,8 @@
   lining % No oldstyle figures in math
 }{libertine}
 \RequirePackage{libertine}
+
+\RequirePackage{pifont}
 
 \RequirePackage{microtype}
 
@@ -71,16 +74,30 @@
   backend=biber,
   style=authoryear-comp,
   maxcitenames=2,
-  uniquelist=false
+  uniquelist=false,
+  backref=true
 }{biblatex}
 \RequirePackage{biblatex}
 
 \renewcommand*{\subtitlepunct}{:\ }
 
+\DeclareSourcemap{
+  \maps[datatype=bibtex]{
+     \map{
+        \step[fieldsource=doi,final]
+        \step[fieldset=isbn,null]
+        }
+      }
+}
+
+\PassOptionsToPackage{colorlinks,allcolors=blue}{hyperref}
+\RequirePackage{hyperref}
+
 \PassOptionsToPackage{capitalize}{cleveref}
 \RequirePackage{cleveref}
 
-
+\crefname{lstlisting}{listing}{listings}
+\Crefname{lstlisting}{Listing}{Listings}
 
 
 %% MISCELLANEOUS
@@ -94,17 +111,18 @@
 \RequirePackage{booktabs}
 \RequirePackage{caption}[2013/01/01] % needs v3.3 or newer
 
-\RequirePackage{fixme}
-\fxsetup{inlineface=\color{blue}, nomargin, inline, status=draft}
-\makeatletter
-\renewcommand*\FXLayoutInline[3]{%
-  {\@fxuseface{inline}#2}}
-\makeatother
-\RequirePackage{soul}
+% \RequirePackage{fixme}
+% \fxsetup{inlineface=\color{blue}, nomargin, inline, status=draft}
+% \makeatletter
+% \renewcommand*\FXLayoutInline[3]{%
+%   {\@fxuseface{inline}#2}}
+% \makeatother
+% \RequirePackage{soul}
 
-\NewDocumentCommand{\wc}{m o}{%
-  #1\fxnote{\IfValueT{#2}{\ #2}\textsuperscript{?}}%
-}
+% \NewDocumentCommand{\wc}{m o}{%
+%   #1\fxnote{\IfValueT{#2}{\ #2}\textsuperscript{?}}%
+% }
 
 \NewDocumentCommand{\vocab}{m}{\textit{#1}}
 \NewDocumentCommand{\eg}{}{e.g.}
+\NewDocumentCommand{\ie}{}{i.e.}

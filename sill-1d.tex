@@ -252,19 +252,19 @@
 
 \section{Session-typed processes from singleton linear logic}\label{sec:sill}
 
-Thus far, we have followed a proof-construction approach to computation, having in \cref{?} reviewed an interpretation of ordered logical specifications as concurrent string rewriting and in \cref{?} identified a fragment in which those specifications have a message-passing character.
+Thus far, we have followed a proof-construction approach to computation, having in \cref{sec:ordered-lp} reviewed an interpretation of ordered logical specifications as concurrent string rewriting and in \cref{sec:choreographies} identified a fragment in which those specifications have a message-passing character.
 In this \lcnamecref{sec:sill}, we turn to a proof-reduction view of computation.
 
-Recently, \textcite{Caires+Pfenning:CONCUR10} with Toninho~\autocite*{Caires+:MSCS13} have established a Curry--Howard isomorphism, dubbed \acs{SILL}, between the sequent calculus for intuitionistic linear logic and a session-typed $\pi$-calculus, in which propositions are session types, proofs are session-typed processes, and cut reductions are process reductions.\footnote{\Textcite{Wadler:ICFP12} later developed a correspondence between classical linear logic and a session-typed $\pi$-calculus, but \citeauthor{Caires+:MSCS13}'s intuitionistic correspondence turns out to be better suited to our goals here, for reasons we will explain shortly.}
+Recently, \textcite{Caires+Pfenning:CONCUR10} with Toninho~\autocite*{Caires+:MSCS13} have established a Curry--Howard isomorphism, dubbed \acs{SILL}, between the sequent calculus for intuitionistic linear logic and a session-typed $\pi$-calculus, in which propositions are session types, proofs are session-typed processes, and cut reductions are process reductions.\footnote{\Textcite{Wadler:JFP14} later developed a correspondence between classical linear logic and a session-typed $\pi$-calculus, but \citeauthor{Caires+:MSCS13}'s intuitionistic correspondence turns out to be better suited to our goals here, for reasons we will explain shortly.}
 This gives a proof-reduction view of concurrency that differs, apparently substantially, from the proof-construction perspective.
 But, by the end of this proposal document, we will have shown that the differences are not as substantial as they first appear.
 
-In this section, we present a reformulation of \citeauthor{Caires+:MSCS13}'s \ac{SILL} for a restriction of intuitionistic linear logic, which we call singleton linear logic.
-As hinted below and further justified in \cref{?}, \ac{SISLL} is a better fit for comparisons with ordered logical specifications.
+In this section, we present a reformulation of \citeauthor{Caires+:MSCS13}'s \ac{SILL} for a restriction of intuitionistic linear logic, which we call singleton linear logic, that is a better fit for comparisons with ordered logical specifications.
+% As hinted below and further justified in \cref{?}, \ac{SISLL} is a better fit for comparisons with ordered logical specifications.
 
-[[
-We begin our presentation of \ac{SISLL} with a review of the session-typing judgements of \citeauthor{Caires+:MSCS13}'s \ac{SILL}.
-]]
+% [[
+% We begin our presentation of \ac{SISLL} with a review of the session-typing judgements of \citeauthor{Caires+:MSCS13}'s \ac{SILL}.
+% ]]
 
 \subsection{Toward singleton linear logic}
 
@@ -295,18 +295,19 @@ Just as the inference rules arrange sequents into a proof tree, so do the \ac{SI
 The following is one such example.
 % The way in which \ac{SILL} processes use and offer services along distinct channels thus arranges processes in a tree-shaped network, such as the following, in which some processes are clients of more than one process (i.e., some nodes have more than one child).
 \begin{equation*}
-  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped}]
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped, above}]
     \graph [
       tree layout, grow=left, math nodes, % empty nodes,
       nodes={
         rounded rectangle, rounded rectangle left arc=none,
-        draw, minimum size=2ex,
-      }
+        draw, minimum size=3ex,
+      },
+      edges={-},
     ] {
       / [draw=none] <-["$\scriptstyle x$"' channel]
-      / ["$P$"] <- { / [> {"$\scriptstyle x_1$"' channel}] <- / <- { / , / } ,
+      P <- { / [> {"$\scriptstyle x_1$"' channel}] <- / <- { / , / } ,
              / [> {"$\scriptstyle x_2$"' channel}] ,
-             / [> {"$\scriptstyle x_3$" channel}] <- { / , / <- / } };
+             / [> {"$\scriptstyle x_3$"' channel}] <- { / , / <- / } };
     };
   \end{tikzpicture}
 \end{equation*}
@@ -343,7 +344,7 @@ The following is one such example.
 
 In this thesis proposal, we are interested in a restriction of \ac{SILL} that will match concurrent ordered logical specifications.
 To match the ordered context of these specifications, we cannot directly use \ac{SILL}---at least not in its full generality.
-We instead need a restriction of \ac{SILL} in which process networks are chains, not arbitrary trees.
+Instead, we need a restriction of \ac{SILL} in which process networks are chains, not arbitrary trees.
 
 
 One might expect that process chains should arise from \emph{ordered} logic.
@@ -356,16 +357,17 @@ The session-typing judgment becomes
 \end{equation*}
 and the process networks are necessarily chains:
 \begin{equation*}
-  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped}]
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped, above}]
     \graph [
       tree layout, grow=left, math nodes, % empty nodes,
       nodes={
         rounded rectangle, rounded rectangle left arc=none,
-        draw, minimum size=2ex,
-      }
+        draw, minimum size=3ex,
+      },
+      edges={-},
     ] {
       / [draw=none] <-["$\scriptstyle x$"' channel]
-      / ["$P$" text height=0] <-
+      P <-
       / [> {"$\scriptstyle x_1$"' channel}] <-
       / <-
       / ;
@@ -469,7 +471,7 @@ Thus, to execute the $\spawn{}$, we execute the processes $P$ and $Q$ side-by-si
 
 \subsection{Additive conjunction as branching}\label{sec:addit-conj-as-branch}
 
-So far we have discussed only cut, a judgmental principle that applies to all services\footnote{The other judgemental  principle, identity, is postponed to \cref{?} in the interest of presenting only what is necessary for a first, simple example.}; specific services are defined by the right and left rules of the logical connectives.
+So far we have discussed only cut, a judgmental principle that applies to all services\footnote{The other judgmental  principle, identity, is postponed to \cref{sec:ident-as-forw} in the interest of presenting only what is necessary for a first, simple example.}; specific services are defined by the right and left rules of the logical connectives.
 
 The singleton linear sequent calculus rules for the additive conjunction $A_1 \with A_2$ are as follows.
 Other than the restriction to singleton or empty antecedents, these rules are the same as those from linear logic.
@@ -496,7 +498,7 @@ Based on this intuition, we interpret the $\rrule{\with}$ rule as typing a binar
 \end{equation*}
 where $\caseR{\inl => P_1 | \inr => P_2}$ means \enquote{Input either $\inl$ or $\inr$ along the right-hand channel, and then continue as process $P_1$ or $P_2$, respectively.}
 
-Conversely, the client sitting to the right that uses service $A_1 \with A_2$ must behave in a complementary way: the client should select either service $A_1$ or service $A_2$ and then, having notifed the offering process of its choice (as $\inl$ or $\inr$), continue the session by using that service.
+Conversely, the client sitting to the right that uses service $A_1 \with A_2$ must behave in a complementary way: the client should select either service $A_1$ or service $A_2$ and then, having notified the offering process of its choice (as $\inl$ or $\inr$), continue the session by using that service.
 The left rules for type $A_1 \with A_2$ are thus:
 \begin{mathpar}
   \infer[{\lrule[1]{\with}}]{\lseq{\hypof{A_1 \with A_2} |- \procof{\selectL{\inl; Q}}{C}}}{
@@ -516,7 +518,7 @@ First, the $\inl$ branch:
       \,.
   \end{lgathered}
 \end{equation*}
-To execute the selection process $\selectL{\inl ; Q}$, we asynchronously send to the left a message containing the label $\inl$, which is represented in the \ac{SSOS} as the proposition $\msgL{\inl}$, and then immediately continue the session by executing $Q$, i.e., process $Q$.
+To execute the selection process $\selectL{\inl ; Q}$, we asynchronously send to the left a message containing the label $\inl$, which is represented in the \ac{SSOS} as the proposition $\msgL{\inl}$, and then immediately continue the session by executing process $Q$.
 When this message arrives, the destination process $\caseR{\inl => P_1 | \inr => P_2}$ resumes execution as $P_1$.
 
 The operational semantics of the $\inr$ branch is symmetric to that of the $\inl$ branch:
@@ -622,7 +624,7 @@ The operational semantics of these constructs are as follows:
     \bang \bnd{X = P} \fuse \exec{X} \lrimp \monad{\exec{P}}
   \end{lgathered}
 \end{equation*}
-The environment of bindings of process varibles to process expressions is represented in the \ac{SSOS} as a collection of $\bnd{X = P}$ hypotheses.
+The environment of bindings of process variables to process expressions is represented in the \ac{SSOS} as a collection of $\bnd{X = P}$ hypotheses.
 To execute a group of mutually recursive process definitions, $\mletrec[X \in \mathcal{X}]{(\mprocdef{X = P_X})}{Q}$, bindings are introduced for each of the process variables and then the body $Q$ is executed.
 To execute a free process variable $X$, instead execute the process expression to which $X$ is bound.
 
@@ -642,17 +644,17 @@ We can implement a simple session-typed counter on natural numbers as shown in \
   floatplacement=tb,
   gobble=2
 ]
-  stype Counter = &{ inc: Counter }
+  stype Cntr = &{ inc: Cntr }
   
-  eps : {|- Counter} =
+  eps : { |- Cntr } =
   { caseR of
       inc => eps; bit1 }
   
-  bit0 : {Counter |- Counter} =
+  bit0 : { Cntr |- Cntr } =
   { caseR of
       inc => bit1 }
   
-  bit1 : {Counter |- Counter} =
+  bit1 : { Cntr |- Cntr } =
   { caseR of
       inc => selectL inc; bit0 }
 \end{sillcode}
@@ -661,18 +663,18 @@ The counter is a chain of \sillinline`bit0` and \sillinline`bit1` processes, one
 For instance, the process chain \sillinline`eps; bit1; bit0` represents a counter with value $2$.
 
 The counter offers a very simple service: the client may only choose to increment the counter, with the same service being offered recursively after the increment.
-This service, \sillinline`Counter`, is therefore a recursive (unary) additive conjunction, declared in the concrete syntax as \sillinline`stype Counter = &{ inc: Counter }`.
-The \sillinline`eps` process offers this service outright, and thus has type \sillinline`{|- Counter}`.
-The \sillinline`bit0` and \sillinline`bit1` processes, on the other hand, use the service offered by their more significant neighbors, and thus have type \sillinline`{Counter |- Counter}`.
+This service, \sillinline`Cntr`, is therefore a recursive (unary) additive conjunction, declared in the concrete syntax as \sillinline`stype Cntr = &{ inc: Cntr }`.
+The \sillinline`eps` process offers this service outright, and thus has type \sillinline`{ |- Cntr }`.
+The \sillinline`bit0` and \sillinline`bit1` processes, on the other hand, use the service offered by their more significant neighbors, and thus have type \sillinline`{ Cntr |- Cntr }`.
 
 The process definitions of \sillinline`eps`, \sillinline`bit0`, and \sillinline`bit1` are mutually recursive.
 When an \sillinline`eps` process receives an \sillinline`inc` message, it creates a new most significant bit by spawning a new \sillinline`eps` process and then making a recursive call to a \sillinline`bit1` process.
 % that uses the service offered by the new \sillinline`eps`.
 When a \sillinline`bit0` process receives an \sillinline`inc`, the bit is flipped by virtue of a recursive call to a \sillinline`bit1` process.
-Lastly, when a \sillinline`bit1` process receives an \sillinline`inc`, the bit is flipped and a carry is propagated; this is accomplished by first sending \sillinline`inc` along the left to the \sillinline`Counter` offered by the next more significant bit and then making a recursive call to a \sillinline`bit0` process.
+Lastly, when a \sillinline`bit1` process receives an \sillinline`inc`, the bit is flipped and a carry is propagated; this is accomplished by first sending \sillinline`inc` along the left to the \sillinline`Cntr` offered by the next more significant bit and then making a recursive call to a \sillinline`bit0` process.
 
 Informally, we can see that, as implemented, the \sillinline`inc` operation respects a counter's denotation: whenever a counter representing natural number $N$ is incremented, the resulting counter represents $N+1$.
-Note, however, that this adequacy property is not enforced by the type \sillinline`Counter`.
+Note, however, that this adequacy property is not enforced by the type \sillinline`Cntr`.
 An appropriate dependent session type could enforce increment adequacy, but, for simplicity of exposition, we prefer the simple type here.
 
 \subsection{Additive disjunction as choice}\label{sec:addit-disj-as}
@@ -749,36 +751,36 @@ The typing rules and operational semantics are thus more generally
   floatplacement=tb,
   gobble=2
 ]
-  stype Counter = &{ inc: Counter , dec: Counter' }
-    and Counter' = +{ ok: Counter , fail: Counter }
+  stype Cntr = &{ inc: Cntr , dec: Cntr' }
+    and Cntr' = +{ ok: Cntr , fail: Cntr }
 
-  eps : {|- Counter} =
+  eps : { |- Cntr } =
   { caseR of
       inc => eps; bit1
     | dec => selectR fail; eps }
   
-  bit0 : {Counter |- Counter} =
+  bit0 : { Cntr |- Cntr } =
   { caseR of
       inc => bit1
     | dec => selectL dec; bit0' }
   
-  bit0' : {Counter' |- Counter'} =
+  bit0' : { Cntr' |- Cntr' } =
   { caseL of
       ok => selectR ok; bit1
     | fail => selectR fail; bit0 }
 
-  bit1 : {Counter |- Counter} =
+  bit1 : { Cntr |- Cntr } =
   { caseR of
       inc => selectL inc; bit0
     | dec => selectR ok; bit1 }
 \end{sillcode}
 
 \Cref{lst:counter-dec} shows a counter that takes advantage of additive disjunction to support a truncated decrement operation. 
-According to the type declaration, a process offering the \sillinline`Counter` service gives its client a choice of increment or decrement services.
-If the client chooses to decrement, the offering process will choose to reply with either \sillinline`fail` or \sillinline`ok` and then recursively offer the \sillinline`Counter` service.
+According to the type declaration, a process offering the \sillinline`Cntr` service gives its client a choice of increment or decrement services.
+If the client chooses to decrement, the offering process will choose to reply with either \sillinline`fail` or \sillinline`ok` and then recursively offer the \sillinline`Cntr` service.
 
 As implemented, decrementing the counter gives \sillinline`fail` and leaves the process network unchanged if the counter represents $0$; if it represents some $N > 0$, then decrementing the counter gives \sillinline`ok` after decrementing to $N - 1$.
-Once again, these adequacy properties are not enforced by the type \sillinline`Counter`, although they could be with an appropriate dependent session type.
+Once again, these adequacy properties are not enforced by the type \sillinline`Cntr`, although they could be with an appropriate dependent session type.
 
 
 \subsection{Identity as forwarding}\label{sec:ident-as-forw}
@@ -802,20 +804,20 @@ Rather than making the forwarding explicit in the operational semantics, we can 
   \,.
 \end{equation*}
 
-\begin{sillcode}[
-  caption={A binary counter as a stream transformer},
-  label={lst:counter-bit},
-  floatplacement=tb,
-  gobble=2
-]
-  stype Bin = +{ eps: 1 , bit0: Bin , bit1: Bin }
+% \begin{sillcode}[
+%   caption={A binary counter as a stream transformer},
+%   label={lst:counter-bit},
+%   floatplacement=tb,
+%   gobble=2
+% ]
+%   stype Bin = +{ eps: 1 , bit0: Bin , bit1: Bin }
   
-  inc : {Bin |- Bin} =
-  { caseL of
-      eps => selectR bit1; selectR eps; <->
-    | bit0 => selectR bit1; <->
-    | bit1 => selectR bit0; inc }
-\end{sillcode}
+%   inc : {Bin |- Bin} =
+%   { caseL of
+%       eps => selectR bit1; selectR eps; <->
+%     | bit0 => selectR bit1; <->
+%     | bit1 => selectR bit0; inc }
+% \end{sillcode}
 
 
 
@@ -833,7 +835,7 @@ Its right rule, $\rrule{\one}$, types a process that immediately terminates; its
   \infer[\lrule{\one}]{\lseq{\hypof{\one} |- \procof{\waitL{Q}}{C}}}{
     \lseq{\lctxe |- \procof{Q}{C}}}
 \end{mathpar}
-The operational semantics is asynchronous, with the $\closeR$ process sending a $\msgQ$ message:
+The operational semantics is asynchronous, with the $\closeR$ process sending a quit message, $\msgQ$:
 \begin{equation*}
   \begin{lgathered}
     \exec{\closeR} \lrimp \monad{\msgQ} \\
@@ -853,7 +855,7 @@ Since value inputs and outputs are not critical to the remainder of this proposa
 
 \paragraph{Multiplicative conjunction and linear implication.}
 The restriction to sequents with singleton antecedents proves fatal to attempts to include multiplicative conjunction ($A \tensor B$) and linear implication ($A \lolli B$) as connectives in singleton linear logic.
-For multiplicative conjunction, the left rule is problematic because it breaks one hypothesis into two; for linear implication, the right rule is problematic because it introduces a new hypothesis even if one is already there.
+For multiplicative conjunction, the left rule is problematic because it breaks down one hypothesis into two; for linear implication, the right rule is problematic because it introduces a new hypothesis even if one is already there.
 Fortunately, for the examples in which we are interested, the absence of $\tensor$ and $\lolli$ is not an issue.
 
 % \end{document}

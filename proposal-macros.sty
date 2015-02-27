@@ -160,9 +160,9 @@
 \NewPredicate {\incm} {0}
 
 \NewPredicate {\ok} {0}
-\NewPredicate {\skp} [ \mathord{\triangleleft} ] {0}
-\NewPredicate {\plus} [ + ] {0}
-\NewPredicate {\equals} [ = ] {0}
+\NewPredicate {\skp} [ skip ] {0}
+\NewPredicate {\plus} {0}
+\NewPredicate {\equals} {0}
 
 \NewPredicate {\Cntr} [ Cntr ] [ font = \mathit ] {0}
 \NewPredicate {\cntr} [ Cntr ] {0}
@@ -479,8 +479,11 @@
 \cs_new:Npn \compile:nn #1#2 { \llbracket #1 \rrbracket #2 }
 
 
-\NewDocumentCommand \strans { } {
-  \overset{\tau}{\trans}
+\NewDocumentCommand \strans { s } {
+  \mathrel{
+    \mathord{\overset{\tau}{\trans}}
+    \IfBooleanT{#1}{{}^*}
+  }
 }
 
 \NewDocumentCommand \chseq { } { \chseq: }

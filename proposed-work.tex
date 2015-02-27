@@ -221,14 +221,18 @@
 
 \section{Proposed work}\label{sec:proposed-work}
 
-In this document, we have shown how session types that arise from singleton linear logic form a bridge between a class of ordered logical specifications and well-typed processes---between proof-construction-as-computation and proof-reduction-as-computation.
+In this document, we have shown how the session types that arise from singleton linear logic form a bridge between a class of ordered logical specifications and well-typed processes---between proof-construction-as-computation and proof-reduction-as-computation.
 % There are three areas of proposed work.
 Most of the proposed work involves generalizing this connection along several dimensions: 
-first, a more expressive specification logic,
+\begin{enumerate*}[label=\emph{\roman*}), itemjoin={{; }}, itemjoin*={{; and }}]
+\item a more expressive logic for specifications
 % ---relating \emph{linear logical}, not just ordered logical, specifications to well-typed processes;
-and, second, a more permissive session-type system.
+\item a more expansive translation that covers generative invariants
+\item a more permissive session-type system
 % the strength of the session-type system---relating a larger class of logical specifications to untyped or more weakly typed processes.
-We now sketch that proposed work.
+% \item a coarser equivalence for the specification-preserving property
+\end{enumerate*}.
+We now outline that proposed work.
 % In this \lcnamecref{sec:proposed-work},
 
 
@@ -240,8 +244,8 @@ We now sketch that proposed work.
 
 \subsection{From ordered logical to linear logical specifications}\label{sec:from-ordered-logical}
 
-The primary area of proposed work is to generalize the specification logic from ordered logic to the more expressive linear logic.
-Correspondingly, the process chains used in this proposal will also be generalized to \citeauthor{Caires+:MSCS13}'s~\autocite*{Caires+:MSCS13} \ac{SILL} process trees.
+The primary area of proposed work is to generalize the logic used for specifications from ordered logic to the more expressive linear logic.
+The process chains used in this proposal will be correspondingly generalized to \citeauthor{Caires+:MSCS13}'s~\autocite*{Caires+:MSCS13} \ac{SILL} process trees.
 We'll motivate this generalization with an example: addition of binary representations.
 
 \paragraph{Logical specification.}
@@ -309,7 +313,7 @@ of this addition algorithm is shown in \cref{fig:turing-binary-add}.
 
 Unfortunately, this algorithm is not especially efficient: it takes $\Omega(N\log N)$ work to compute $M+N$.
 It would be better to add the two binary representations bit-by-bit using the usual grade-school algorithm.
-However, this demands that we can \emph{locally} access the least significant bit of each number and, separately, produce output bits---which is not possible in an ordered logical specification.
+However, bit-by-bit addition demands that we can \emph{locally} access the least significant bit of each number and, separately, produce output bits---which is not possible in an ordered logical specification.
 % A better algorithm would add the two numbers bit-by-bit.
 
 It is possible, however, in a \emph{destination-passing} linear logical specification~\autocite{Cervesato+:CMU02}.
@@ -337,92 +341,149 @@ When this rule is applied to the above state, the state changes and the first bi
     \eps(c_2) \tensor \bit{1}(c_2 , c_1) & \\
     \eps(d_2) \tensor \bit{1}(d_2 , d_1) &
   \end{aligned}
-  \tensor \plus(c_1 , d_1 , c') \tensor \bit{0}(c' , c)
+  \tensor \plus(c_1 , d_1 , c_0') \tensor \bit{0}(c_0' , c)
   \,.
 \end{equation*}
 
 
-\begin{figure}
-  \begin{equation*}
-    \begin{lgathered}
-      \eps(C_0) \tensor \inc(C_0 , C) \lolli \monad{\eps(C)} \\
-      \bit{0}(C_1 , C_0) \tensor \inc(C_0 , C) \lolli \monad{\bit{1}(C_1 , C)} \\
-      \bit{1}(C_1 , C_0) \tensor \inc(C_0 , C) \lolli \monad{\exists c'.\, \inc(C_1 , c') \tensor \bit{0}(c' , C)}
-    \end{lgathered}
-  \end{equation*}
+% \begin{figure}
+%   \begin{equation*}
+%     \begin{lgathered}
+%       \eps(C_0) \tensor \inc(C_0 , C) \lolli \monad{\eps(C)} \\
+%       \bit{0}(C_1 , C_0) \tensor \inc(C_0 , C) \lolli \monad{\bit{1}(C_1 , C)} \\
+%       \bit{1}(C_1 , C_0) \tensor \inc(C_0 , C) \lolli \monad{\exists c'_0.\, \inc(C_1 , c'_0) \tensor \bit{0}(c'_0 , C)}
+%     \end{lgathered}
+%   \end{equation*}
 
-  \begin{equation*}
-    \begin{lgathered}
-      \eps(C_0) \tensor \eps(D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\eps(C)} \\
-      \eps(C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\bit{0}(D_1 , C)} \\
-      \eps(C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\bit{1}(D_1 , C)} \\
-      %
-      \bit{0}(C_1 , C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'.\, \plus(C_1 , D_1 , c') \tensor \bit{0}(c' , C)} \\
-      \bit{0}(C_1 , C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'.\, \plus(C_1 , D_1 , c') \tensor \bit{1}(c' , C)} \\
-      \bit{1}(C_1 , C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'.\, \plus(C_1 , D_1 , c') \tensor \bit{1}(c' , C)} \\
-      %
-      \bit{1}(C_1 , C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c', c''.\, \plus(C_1 , D_1 , c') \tensor \inc(c' , c'') \tensor \bit{0}(c'' , C)}
-    \end{lgathered}
-  \end{equation*}
-\end{figure}
+%   \begin{equation*}
+%     \begin{lgathered}
+%       \eps(C_0) \tensor \eps(D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\eps(C)} \\
+%       \eps(C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\bit{0}(D_1 , C)} \\
+%       \eps(C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\bit{1}(D_1 , C)} \\
+%       %
+%       \bit{0}(C_1 , C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'_0.\, \plus(C_1 , D_1 , c'_0) \tensor \bit{0}(c'_0 , C)} \\
+%       \bit{0}(C_1 , C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'_0.\, \plus(C_1 , D_1 , c'_0) \tensor \bit{1}(c'_0 , C)} \\
+%       \bit{1}(C_1 , C_0) \tensor \bit{0}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'_0.\, \plus(C_1 , D_1 , c'_0) \tensor \bit{1}(c'_0 , C)} \\
+%       %
+%       \bit{1}(C_1 , C_0) \tensor \bit{1}(D_1 , D_0) \tensor \plus(C_0 , D_0 , C) \lolli \monad{\exists c'_0, c''_0.\, \plus(C_1 , D_1 , c'_0) \tensor \inc(c'_0 , c''_0) \tensor \bit{0}(c''_0 , C)}
+%     \end{lgathered}
+%   \end{equation*}
+% \end{figure}
 
 
 \paragraph{Concurrent processes.}
-We can also add two binary representations using \ac{SILL} process trees.
-Consider the following process network, which represents a request to compute $2+2$.
-\begin{center}
-  \emph{picture here}
-\end{center}
+Now, let's consider how we might add two binary numbers using \ac{SILL} process trees.
+Suppose that we represent each number as before---each number is a chain of $\bit{}$ processes (a degenerate process subtree if you will)---and that we include a $\plus$ parent process that uses the two numbers to offer the sum.
+For example, the following process network represents a request to compute $2+2$.%
+\footnote{The process names have been abbreviated to $\mathsf{e}$, $\mathsf{0}$, $\mathsf{1}$, and $\mathsf{+}$ for this picture.}
+\begin{equation*}
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped, above}]
+    \graph [
+      tree layout, grow=left, typeset=$\mathsf{\tikzgraphnodetext}$, % empty nodes,
+      nodes={
+        rounded rectangle, rounded rectangle left arc=none,
+        draw, minimum size=3ex,
+      },
+      edges={-},
+      simple
+    ] {
+      / [draw=none] <-["$\scriptstyle c$"' channel]
+      p / "\mathord{\mathclap{+}}" <- { [name separator=]
+        { [name=c] 0 <-["$\scriptstyle c_1$"' channel] 1 <-["$\scriptstyle c_2$"' channel] e } ,
+        { [name=d] 0 <-["$\scriptstyle d_1$"' channel] 1 <-["$\scriptstyle d_2$"' channel] e }
+      };
 
+      c0 ->["$\scriptstyle c_0$" channel] p;
+      d0 ->["$\scriptstyle d_0$" channel] p;
+    };
+  \end{tikzpicture}
+\end{equation*}
+where the $c_i$s and $d_j$s are channels.
+Notice the remarkable similarity of this network with the initial linear logical state shown above: destinations become channels and atoms become processes.
 
+We would expect the $\plus$ process to be implemented in such a way that the above process network eventually transforms to the following network.
+\begin{equation*}
+  \begin{tikzpicture}[channel/.style = {text depth=0, midway, sloped, above}]
+    \graph [
+      tree layout, grow=left, typeset=$\mathsf{\tikzgraphnodetext}$, % empty nodes,
+      nodes={
+        rounded rectangle, rounded rectangle left arc=none,
+        draw, minimum size=3ex,
+      },
+      edges={-},
+      simple
+    ] {
+      / [draw=none] <-["$\scriptstyle c$"' channel]
+      0 <-["$\scriptstyle c_0'$"' channel]
+      p / "\mathord{\mathclap{+}}" <- { [name separator=]
+        { [name=c] 1 <-["$\scriptstyle c_2$"' channel] e } ,
+        { [name=d] 1 <-["$\scriptstyle d_2$"' channel] e }
+      };
+
+      c1 ->["$\scriptstyle c_1$" channel] p;
+      d1 ->["$\scriptstyle d_1$" channel] p;
+    };
+  \end{tikzpicture}
+\end{equation*}
+Once again, there is a remarkable similarity between this network and the linear logical state after producing one output bit.
+
+The proposed work is to make these similarities precise.
+Just as in this document, the overall goal will be to identify a class of linear logical specifications that can be translated to \ac{SILL} process trees.
+This item of proposed work is of primary importance.
 
 \paragraph{Specific goals.}
-This item of proposed work is of primary importance and involves several components.
+This proposed work involves several components.
 \begin{itemize}
 \item \emph{Identify the class of linear logical specifications that act as choreographies.}
-  Not all linear logical specifications describe process-like behaviors.
+  Not all linear logical specifications will describe process-like behaviors.
   As in the ordered case, choreographies will need to be both local and specification-preserving.
   Now, however, locality depends not on adjacency in the ordered context, but on sharing a destination.
+
+  The key challenge here, therefore, will be to ensure that destinations are used in a channel-like way within the choreography.
+  Each atom should \enquote{offer} along one destination and \enquote{use} possibly several distinct destinations, and each destination should have one occurrence as an \enquote{offer} and one occurrence as a \enquote{use}.
+  The machinery of destination uniqueness and index sets~\autocite{Simmons:CMU12} will likely be useful here.
+
+\item \emph{Develop a translation of choreographies to \ac{SILL} processes.}
+  In addition to translating destinations to channels, the main challenges here will be expanding the class of choreographies to allow translation to processes of $\tensor$, $\lolli$, and $\bang$ type.
+  The $\tensor$ and $\lolli$ types are not possible in singleton linear logic (as mentioned in \cref{sec:other-session-types}) and so nothing similar was considered in the translation of ordered choreographies to process chains.  
+  The $\bang$ type was, by choice, not considered in the ordered translation to keep the initial development simple.  
+  
 \item \emph{Give a type system for choreographies.}
-\item \emph{Develop a translation of well-typed choreographies to \ac{SILL} processes.}
-\item \emph{Translate the unrestricted modality, $\bang$, to a process.}
+  I expect to follow the same pattern as in the ordered case: derive the choreography typing rules from the process typing rules by looking at the process to which a choreography translates.
+  While everything will be notationally more complex, I do not expect many surprises here.
+
+\item \emph{Relate the results for ordered logic to those for linear logic.}
+  \Textcite{Simmons+Pfenning:HOSC11} show how to encode ordered logical specifications in linear logic using destinations.
+  For instance, under their destination-adding translation, the clause for incrementing $\bit{1}$ from our $\inc[<-]$-choreography becomes the following linear logical clause.
+  \begin{equation*}
+    \bit{1} \fuse \inc[<-] \lrimp \monad{\inc[<-] \fuse \bit{0}}
+    \qquad\mathord{\leftrightsquigarrow}\qquad
+    \!\begin{aligned}[t]
+      \MoveEqLeft[1]
+      \bit{1}(C_1, C_0) \tensor \inc[<-](C_0, C) \\[-0.5\jot]
+        &\lolli \monad{\exists c'_0.\, \inc[<-](C_1, c'_0) \tensor \bit{0}(c'_0, C)}
+    \end{aligned}
+  \end{equation*}
+  There should be a similar \enquote{channel-adding} translation from \ac{SISLL} process chains to \ac{SILL} processes.
+  \begin{equation*}
+    \bit{1} = \caseR{\inc[<-] => \selectL{\inc[<-]; \bit{0}}}
+    \qquad\mathord{\leftrightsquigarrow}\qquad
+ %   \!\begin{aligned}[t]
+%      \MoveEqLeft[1]
+      \begin{array}[t]{@{}l@{}}
+      c \shortleftarrow \bit{1} \shortleftarrow d = {}\\
+        \mathsf{case}\,c\,\mathsf{of}\\
+        \quad\inc[<-] \Rightarrow \begin{array}[t]{@{}l@{}}
+        \mathsf{select}\,d\,\inc[<-];\\
+        c \shortleftarrow \bit{0} \shortleftarrow d
+      \end{array}
+      \end{array}
+  %  \end{aligned}
+  \end{equation*}
+  Moreover, the translation from choreography to process should respect the destination-adding translation: adding destinations to an ordered choreography and then translating it to a process should give the same result as first translating the choreography to a process chain and then adding channels.
+  This will serve as a sanity check on our design of the translation from linear choreographies to \ac{SILL} processes.
 \end{itemize}
 
-
-\subsection{Translating untyped choreographies to untyped processes}
-
-In this proposal, we have been concerned only with \emph{well-typed} processes and a corresponding class of well-typed choreographies.
-The logically grounded session-type discipline ensures that well-typed processes (and, consequently, well-typed choreographies) enjoy communication safety, session fidelity, and deadlock freedom (i.e., global progress).
-However, by demanding such a strong form of progress, the current session-type discipline forbids \emph{all} racy processes, even if the races are benign or non-critical.
-
-% For example, consider the $\pi$-calculus process $x(y).z(w).P + z(w).x(y).P$, which waits to receive---in either order---both $y$ along channel $x$ and $w$ along channel $z$.
-% This process is certainly racy because it's impossible, in general, to predict the order in which $y$ and $w$ will arrive.
-% But, just as certainly, this race is benign because \emph{both} $y$ and $w$ must arrive before continuing with process $P$.
-% This and other benign races should be permitted by the session-type discipline.
-
-\NewPredicate{\okL}{0}
-\NewPredicate{\okR}{0}
-
-For example, consider the following process:
-\begin{equation*}
-  \caseL{\okL => \caseR{\okR => P}} + \caseR{\okR => \caseL{\okL => P}} \,,
-\end{equation*}
-which waits to receive---in either order---$\okL$ and $\okR$ labels from both its left- and right-hand neighbors, respectively.
-(The process constructor $+$ denotes nondeterministic choice.)
-This process is certainly racy because it's impossible, in general, to predict the order in which the $\okL$ and $\okR$ labels will arrive.
-But, even so, this race is benign: execution continues with the process $P$ once, and only once, both labels arrive in either order.
-% This and other benign races should be permitted by the session-type discipline.
-
-Choreographies may serve as a stepping-stone toward a more permissive, yet still logically grounded, session-type discipline that allows this and other benign races.
-The above example can also be cast as a choreography:
-\begin{equation*}
-  (\okL \limp \monad{\okR \rimp \monad{A^+}}) \with (\okR \rimp \monad{\okL \limp \monad{A^+}}) \,.
-\end{equation*}
-I propose to develop a translation of a broader class of choreographies to untyped processes may provide different insight than just looking at the existing session-type discipline.
-
-% In this proposal, we have been concerned with translating only \emph{well-typed} choreographies to \emph{well-typed} processes.
-% By concentrating on well-typed processes, we ensure that well-typed choreographies enjoy the same, strong progress and preservation properties as their process counterparts.
-% At the same time, however, by demanding such a strong form of progress, we forbid all racy processes and choreographies, even if those races are benign or non-critical.
 
 \subsection{Generative invariants as session types}
 
@@ -463,6 +524,7 @@ Just as all binary counters are generated from the $\Cntr$ nonterminal according
   String $S$ is a well-formed counter if $S$ is a maximal rewriting of $\cntr$ under the signature $\sig_{\cntr}$, that is, if $\cntr \trans+[\sig_{\cntr}] S \ntrans[\sig_{\cntr}]$.
 \end{definition}
 %
+\noindent
 For example, the maximal trace
 \begin{equation*}
   \mathul{\cntr}
@@ -473,7 +535,7 @@ For example, the maximal trace
 \end{equation*}
 witnesses that $\eps \fuse \bit{1} \fuse \inc$ is a well-formed binary counter.
 
-As first observed by~\textcite{Simmons:CMU12}, generative invariants like $\sig_{\cntr}$ serve a similar purpose for ordered logical specifications as types do for functional programs: both describe the valid states and enable preservation and progress properties for their respective notions of computation.
+As observed by~\textcite{Simmons:CMU12}, generative invariants like $\sig_{\cntr}$ serve a similar purpose for ordered logical specifications as types do for functional programs: both describe the valid states and enable preservation and progress properties for their respective notions of computation.
 %
 % \begin{theorem*}[Safety of $\inc$]\leavevmode
 %   \begin{itemize}[nosep]
@@ -484,10 +546,10 @@ As first observed by~\textcite{Simmons:CMU12}, generative invariants like $\sig_
 %
 
 % \noindent
-Given the translation from choreographies (i.e., ordered logical specifications) to well-typed processes that was presented in \cref{?}, it's thus natural to ask how that translation interacts with a generative invariant.
+Given the translation from choreographies (i.e., ordered logical specifications) to well-typed processes that was presented in \cref{sec:translation}, it's thus natural to ask how that translation interacts with a generative invariant.
 Being the choreography's \enquote{type}, does the generative invariant become the process's session type?
 
-It appears that the answer is yes.  Compare, for example, the generative invariant for the $\inc[<-]$-choreography with the types of the \sillinline`eps`, \sillinline`bit0`, and \sillinline`bit1` processes and the recursive type \sillinline`Cntr` from \cref{?}:
+It appears that the answer is likely yes.  Compare, for example, the generative invariant for the $\inc[<-]$-choreography with the types of the \sillinline`eps`, \sillinline`bit0`, and \sillinline`bit1` processes and the recursive type \sillinline`Cntr` from \cref{sec:exampl-binary-count}:
 % It appears that the generative invariant for a choreography is closely connected to the session type of the process that results from translating the choreography.
 % Compare the generative invariant for the $\inc[<-]$-choreography with the types of the \sillinline`eps`, \sillinline`bit0`, and \sillinline`bit1` processes and the recursive type \sillinline`Cntr` from \cref{?}:
 \begin{equation*}
@@ -509,12 +571,12 @@ It appears that the answer is yes.  Compare, for example, the generative invaria
   \right.
 \end{equation*}
 Similar correspondences between generative invariants and session types exist for the $\dec[<-]$-choreography, the $\bit{}[->]$-choreography, and all other examples that we've considered.
-It's too tantalizing to be pure coincidence.
+It seems much too tantalizing to be pure coincidence.
 
 Therefore, if all else goes smoothly, I propose to develop a translation of generative invariants to session types and prove that it is respected by the translation from choreographies to processes.
 I plan to follow the pattern of this thesis proposal, first developing the translation for the special case of ordered generative invariants before extending the results to linear generative invariants.
-
-This item of proposed work is of secondary importance, but is less open-ended than
+%
+This item of proposed work is of somewhat lesser importance than the generalization from ordered logic to linear logic for specifications, but has appeal in giving a more compelling explanation of the choreography types presented in \cref{sec:chor-types}.
 
 % C(c) -> ?d. C(d) * 0(d,c)
 % C(c) -> ?d0,d1. C(d0) * C(d1) * a(d0,d1,c)
@@ -605,13 +667,52 @@ This item of proposed work is of secondary importance, but is less open-ended th
 % Given the translation from ordered logical specifications (i.e., choreographies) to well-typed processes that was presented in \cref{?}, it's natural to ask how that translation interacts with a generative signature that acts as a specification's \enquote{type}.
 
 
+
+\subsection{Translating untyped choreographies to untyped processes}
+
+In this proposal, we have been concerned only with \emph{well-typed} processes and a corresponding class of well-typed choreographies.
+The logically grounded session-type discipline ensures that well-typed processes (and, consequently, well-typed choreographies) enjoy communication safety, session fidelity, and deadlock freedom (i.e., global progress).
+However, by demanding such a strong form of progress, the current session-type discipline forbids \emph{all} racy processes, even if the races are benign or non-critical.
+
+% For example, consider the $\pi$-calculus process $x(y).z(w).P + z(w).x(y).P$, which waits to receive---in either order---both $y$ along channel $x$ and $w$ along channel $z$.
+% This process is certainly racy because it's impossible, in general, to predict the order in which $y$ and $w$ will arrive.
+% But, just as certainly, this race is benign because \emph{both} $y$ and $w$ must arrive before continuing with process $P$.
+% This and other benign races should be permitted by the session-type discipline.
+
+\NewPredicate{\okL}{0}
+\NewPredicate{\okR}{0}
+
+For example, consider the following process:
+\begin{equation*}
+  \caseL{\okL => \caseR{\okR => P}} + \caseR{\okR => \caseL{\okL => P}} \,,
+\end{equation*}
+which waits to receive---in either order---$\okL$ and $\okR$ labels from both its left- and right-hand neighbors, respectively.
+(The process constructor $+$ denotes nondeterministic choice.)
+This process is certainly racy because it's impossible, in general, to predict the order in which the $\okL$ and $\okR$ labels will arrive.
+But, even so, this race is benign: execution continues with the process $P$ once, and only once, both labels arrive in either order.
+% This and other benign races should be permitted by the session-type discipline.
+
+Choreographies may serve as a stepping-stone toward a more permissive, yet still logically grounded, session-type discipline that allows this and other benign races.
+The above example can be cast as the choreography
+\begin{equation*}
+  (\okL[->] \limp \monad{\okR[<-] \rimp \monad{A^+}}) \with (\okR[<-] \rimp \monad{\okL[->] \limp \monad{A^+}}) \,.
+\end{equation*}
+By considering how the proposed translation from generative invariants to session types might apply to a generative invariant for this choreography, we may gain insight into a session-type discipline that allows benign races.
+I also propose to develop a translation of a broader class of choreographies to untyped processes, which may provide different insight than just looking at the existing session-type discipline.
+
+% In this proposal, we have been concerned with translating only \emph{well-typed} choreographies to \emph{well-typed} processes.
+% By concentrating on well-typed processes, we ensure that well-typed choreographies enjoy the same, strong progress and preservation properties as their process counterparts.
+% At the same time, however, by demanding such a strong form of progress, we forbid all racy processes and choreographies, even if those races are benign or non-critical.
+
+
+
 \subsection{Session-typed Turing machines}
 
-As the example in \cref{?} shows, at least some Turing machines can be session-typed: by translating the ordered logical specification from \cref{?}, we get a well-typed, Turing-machine--like process for adding two binary representations.
+Finally, as the example in \cref{sec:from-ordered-logical} shows, some Turing machines can be session-typed: by translating the ordered logical specification from \cref{fig:turing-binary-add}, we get a well-typed, Turing-machine--like process for adding two binary representations.
 In particular, the chain structure of singleton linear logic suggests a fit with the one-way infinite tapes of Turing machines.
 
 Although not directly related to my proposed thesis statement, if time permits, I would like to explore further the possible connections between singleton linear logic and Turing machines.
-This is the most open-ended item of proposed work and also the 
+This is the most open-ended item of proposed work and the least related to my proposed thesis statement, but, if successful, may have some interest to researchers outside the programming languages community, e.g., those working in the theory of computation.
 
 
 % \subsubsection{Earlier draft}

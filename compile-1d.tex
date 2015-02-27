@@ -196,18 +196,20 @@
 
 % \begin{document}
 
-\section{}
+\section{From ordered logical specifications to processes}\label{sec:translation}
 
 The goal of this document is to relate the two notions of concurrency that arise in ordered logical specifications and session-typed process chains, respectively.
-The proposed thesis is to then establish a more general relationship between \emph{linear} logical specifications and session-typed process \emph{trees}.
-Thus far, we have reviewed propositional ordered logical specifications (\cref{?}), identified a class of message-passing choreographies (\cref{?}), and presented a well-defined restriction of linear logic that serves as a session-typing discipline for process chains (\cref{?}).
-We are finally ready to tackle this document's main result.
+% The proposed thesis is to then establish a more general relationship between \emph{linear} logical specifications and session-typed process \emph{trees}.
+Thus far, we have reviewed propositional ordered logical specifications (\cref{sec:ordered-lp}), identified a class of message-passing choreographies (\cref{sec:choreographies}), and presented a well-defined restriction of linear logic that serves as a session-typing discipline for process chains (\cref{sec:sill}).
+We are finally ready to tackle this document's main goal.
 
-First, we show how to translate choreographies to process chains.
+First, in \cref{sec:translation-desc}, we show how to translate choreographies to process chains.
+\Cref{sec:compile-correct} demonstrates correctness of the translation, in the sense that the translation is a weak bisimulation.
+Finally, in \cref{sec:chor-types}, we derive a typing discipline for choreographies and show that well-typed choreographies become well-typed processes under translation.
 
-\subsection{Translation of choreographies to process chains}
+\subsection{Translation of choreographies to process chains}\label{sec:translation-desc}
 
-Recall the grammar of \emph{local} propositions given in \cref{?}:
+Recall the grammar of \emph{local} propositions given in \cref{sec:locality}:
 % Recall the refined grammar of propositions given in \cref{?} for choreographies:
 % \begin{alignat*}{3}
 %   &\text{Negative propositions} &\quad&& A^-,B^- &::= A^- \with B^- \mid \monad{A^+} \mid \matom[<-]^+ \rimp \monad{A^+} \mid \matom[->]^+ \limp \monad{A^+} \\
@@ -220,14 +222,14 @@ Recall the grammar of \emph{local} propositions given in \cref{?}:
 % However, as a nondeterministic choice that waits to receive from either side, such a process is not typable.
 % We rule out these propositions by ensuring that the arms of an additive conjunction are consistently left- or right-implications:
 \begin{alignat*}{3}
-  &\text{Negative propositions} &\quad&& A^-,B^- &::= \monad{A^+} \mid \with*{\matom[<-]^+_i \rimp \monad{A^+_i}}[i \in I] \mid \with*{\matom[->]^+_i \limp \monad{A^+_i}}[i \in I] \\
+  &\text{Negative propositions} &\quad&& A^-,B^- &::= \monad{A^+} \mid \with*[i \in I][\parens]{\matom[<-]^+_i \rimp \monad{A^+_i}} \mid \with*[i \in I][\parens]{\matom[->]^+_i \limp \monad{A^+_i}} \\
   &\text{Positive propositions}      &&& A^+,B^+ &::= A^+ \fuse B^+ \mid \one \mid \matom[<-]^+ \fuse A^+ \mid A^+ \fuse \matom[->]^+ \mid \patom^+ \mid A^-
 \end{alignat*}
 
 
 
-The translation from choreographies to process chains is syntax-directed, according to the proposition's polarity.
-The principle that guides the design of this translation is that transitions from a context $\octx$ should be matched by transitions of the process network to which $\octx$ translates.
+The translation $\cmp{{-}}$ from choreographies to process chains is syntax-directed, according to the proposition's polarity.
+The principle that guides the design of this translation is that each choreography transition from a context $\octx$ should be matched by a process-chain transition from the chain to which $\octx$ translates, and vice versa.
 
 \paragraph{Translating negative propositions.}
 The rules for translating negative propositions are:
@@ -235,17 +237,17 @@ The rules for translating negative propositions are:
   \infer{\cmp{\monad{A^+}}{P}}{
     \cmp{A^+}{P}}
   \and
-  \infer{\cmp{\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]}{\caseR[i \in I]{\matom[<-]_i => P_i}}}{
+  \infer{\cmp{\with*[i \in I][\parens]{\matom[<-]_i \rimp \monad{A^+_i}}}{\caseR[i \in I]{\matom[<-]_i => P_i}}}{
     \forall i \in I\mathpunct{:}\enskip  \cmp{A^+_i}{P_i}}
   \and
-  \infer{\cmp{\with*{\matom[->]_i \limp \monad{A^+_i}}[i \in I]}{\caseL[i \in I]{\matom[->]_i => P_i}}}{
+  \infer{\cmp{\with*[i \in I][\parens]{\matom[->]_i \limp \monad{A^+_i}}}{\caseL[i \in I]{\matom[->]_i => P_i}}}{
     \forall i \in I\mathpunct{:}\enskip  \cmp{A^+_i}{P_i}}
 \end{mathpar}
 The lax modality $\monad{A^+}$ translates just as $A^+$ does: the modality is silent.
-The proposition $\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]$ is a $\mathsf{caseR}$ process that waits to receive one of the labels $\matom[<-]_i$ from the right side; the arms of the case are exactly the translations of each $A^+_i$.
-Likewise, $\with*{\matom[->]_i \limp \monad{A^+_i}}[i \in I]$ is a $\mathsf{caseL}$ process.
+The proposition $\with*[i \in I][\parens]{\matom[<-]_i \rimp \monad{A^+_i}}$ is a $\mathsf{caseR}$ process that waits to receive one of the labels $\matom[<-]_i$ from the right side; the arms of the case are exactly the translations of each $A^+_i$.
+Likewise, $\with*[i \in I][\parens]{\matom[->]_i \limp \monad{A^+_i}}$ is a $\mathsf{caseL}$ process.
 
-Intuitively, this translation is the correct one because the $\mathsf{caseR}$ receives a message $\matom[<-]_k$ and continues as $P_k$ exactly when the proposition $\with*{\matom[<-]_i \rimp \monad{A^+_i}}[i \in I]$ transitions to $A^+_k$.
+Intuitively, this translation is the correct one because the $\mathsf{caseR}$ receives a message $\matom[<-]_k$ and continues as $P_k$ exactly when the proposition $\with*[i \in I][\parens]{\matom[<-]_i \rimp \monad{A^+_i}}$ transitions to $A^+_k$.
 A similar intuition applies to the $\mathsf{caseL}$ process.
 
 
@@ -258,7 +260,7 @@ Positive propositions, which appear only in monadic heads in this grammar, are a
   \infer{\cmp{A^+ \fuse \matom[->]}{\selectR{\matom[->] ; P}}}{
     \cmp{A^+}{P}}
   \and
-  \infer{\cmp{\patom}{\call{\patom}}}{
+  \infer{\cmp{\patom^+}{\call{\patom^+}}}{
     }
   \\
   \infer{\cmp{A^+_1 \fuse A^+_2}{\spawn{P_1 ; P_2}}}{
@@ -273,7 +275,7 @@ Process-like atoms translate to calls to the corresponding process variable.
 A general ordered conjunction $A^+_1 \fuse A^+_2$ translates as the process composition of $P_1$ and $P_2$, the processes to which $A^+_1$ and $A^+_2$ translate.
 Finally, $\one$ translates to a forwarding process.
 
-The idea is that each inversion step is matched by an asynchronous transition from the process, such as the outermost inversion step for $\matom[<-] \fuse A^+$ being matched by the asynchronous decomposition of $\selectL{\matom[<-] ; P}$ into message $\matom[<-]$ and process $P$.
+The idea is that each inversion step is matched by an asynchronous transition from the process, such as the outermost inversion step for $\matom[<-] \fuse A^+$ into $\matom[<-] , A^+$ being matched by the asynchronous decomposition of $\selectL{\matom[<-] ; P}$ into message $\matom[<-]$ and executing process $P$.
 
 
 \paragraph{Translating contexts.}
@@ -299,61 +301,63 @@ The translation proceeds homomorphically over contexts, with each hypothesis bec
   \infer{\cmp{\matom[<-]}{\msgL{\matom[<-]}}}{
     }
   \and
-  \infer{\cmp{\patom}{\exec{P}}}{
-    \patom \lrimp A^- \in \sig &
+  \infer{\cmp{\patom^+}{\exec{P}}}{
+    \patom^+ \lrimp A^- \in \sig &
     \cmp{A^-}{P}}
 \end{mathpar}
 The left- and right-directed message-like atoms $\matom[<-]$ and $\matom[->]$ become the left- and right-directed messages $\msgL{\matom[<-]}$ and $\msgR{\matom[->]}$, respectively, in the \ac{SSOS}.
-The process-like atom $\patom$ becomes $\exec{P}$, where $P$ is the process body of $\patom$'s definition.
+The process-like atom $\patom^+$ becomes $\exec{P}$, where $P$ is the process body of $\patom^+$'s definition in the choreography $\sig$.
 Once again, the translation is defined in such a way that the behavior of contexts and their \ac{SSOS} translations match.
 
-\subsection{Correctness of the translation}
+\subsection{Correctness of the translation}\label{sec:compile-correct}
 
 As stressed in the preceding discussion, the principle that guided the translation's design was that the choreography's transitions should be matched by those of the process to which that choreography translates.
-In other words, the translation, $\cmp{\cdot}$, should be a strong bisimulation.
+In other words, the translation, $\cmp{{-}}$, should be a strong bisimulation.
 
-Unfortunately, that property does not quite hold: $\cmp{\cdot}$ is not even a strong simulation.
+Unfortunately, that property does not quite hold: $\cmp{{-}}$ is not even a strong simulation.
 Consider the choreography transition $\monad{A^+} \trans A^+$, for example.
-For $\cmp{\cdot}$ to be a strong (bi-)simulation, there would have to be \iac{SSOS} transition $\exec{P} \trans \exec{P}$, where $\cmp{A^+}{P}$.
+For $\cmp{{-}}$ to be a strong (bi)simulation, there would have to be \iac{SSOS} transition $\exec{P} \trans \exec{P}$, where $\cmp{A^+}{P}$.
 Such a transition simply does not exist in the \ac{SSOS} of our processes.
 
-However, if we treat that transition (and those obtained from it by the frame property) as silent, then it is true that $\cmp{\cdot}$ is a \emph{weak simulation}: $\monad{A^+} \strans A^+$ and $\cmp{A^+}{P}$ indeed (trivially) imply $\exec{P} \strans* \exec{P}$.
+However, if we treat that choreography transition (and those obtained from it by the frame property) as silent, then it is true that $\cmp{{-}}$ is a \emph{weak simulation}: together $\monad{A^+} \strans A^+$ and $\cmp{A^+}{P}$ indeed (trivially) imply $\exec{P} \strans* \exec{P}$.
 More generally:
-% , $\cmp{\cdot}$ is a weak simulation between the choreography and the process's \ac{SSOS}:
+% , $\cmp{{-}}$ is a weak simulation between the choreography and the process's \ac{SSOS}:
 \begin{theorem}[Completeness]\mbox{}
   \begin{itemize}
   \item If $\octx \trans \octx'$ and $\cmp{\octx}{\lctx}$, then $\lctx \trans \lctx'$ for some $\lctx'$ such that $\cmp{\octx'}{\lctx'}$.
-  \item If $\octx \trans[\tau] \octx'$ and $\cmp{\octx}{\lctx}$, then $\cmp{\octx'}{\lctx}$ also.
+  \item If $\octx \strans \octx'$ and $\cmp{\octx}{\lctx}$, then $\lctx \strans* \lctx'$ for some $\lctx'$ such that $\cmp{\octx'}{\lctx'}$.
+    % If $\octx_1 , \monad{A^+} , \octx_2 \strans \octx_1 , A^+ , \octx_2$ and $\cmp{\octx_1}{\lctx_1}$ and $\cmp{\octx_2}{\lctx_2}$, then $\cmp{\octx'}{\lctx}$ also.
   \end{itemize}
 \end{theorem}
 \begin{proof}
   By analyzing the structure of the given transition and translation.
+  Notice that the given silent transition is necessarily $\omatch{\monad{A^+}} \strans \ofill{A^+}$ because no other transitions are defined to be silent.
 \end{proof}
 
-Neither is the inverse of $\cmp{\cdot}$ a strong simulation.
-Consider the \ac{SSOS} transition $\exec{(\call{\patom})} \trans \exec{P}$, where the body of process definition $\patom$ is $P$.
-By examining the definition of $\cmp{\cdot}$, we see that there would have to be a choreography transition $\patom \trans \patom$ if the inverse of $\cmp{\cdot}$ is to be a strong simulation.
+Neither is the inverse of $\cmp{{-}}$ a strong simulation.
+Consider the \ac{SSOS} transition $\exec{(\call{\patom^+})} \trans \exec{P}$, where the body of the process definition of $\patom^+$ is $P$.
+By examining the definition of $\cmp{{-}}$, we see that there would have to be a choreography transition $\patom^+ \trans \patom^+$ if the inverse of $\cmp{{-}}$ is to be a strong simulation.
 Once again, such a transition simply does not exist.
 
-However, if we treat that transition (and those obtained from it by the frame property) as silent, then it is true that the inverse of $\cmp{\cdot}$ is a \emph{weak simulation}: $\exec{(\call{\patom})} \strans \exec{P}$ and $\cmp{\patom}{\exec{P}}$ indeed (trivially) imply $\patom \strans* \patom$.
+However, if we treat that \ac{SSOS} transition (and those obtained from it by the frame property) as silent, then it is true that the inverse of $\cmp{{-}}$ is a \emph{weak simulation}: together $\exec{(\call{\patom^+})} \strans \exec{P}$ and $\cmp{\patom^+}{\exec{P}}$ indeed (trivially) imply $\patom^+ \strans* \patom^+$.
 More generally: 
 \begin{theorem}[Soundness]\mbox{}
   \begin{itemize}
   \item If $\lctx \trans \lctx'$ and $\cmp{\octx}{\lctx}$, then $\octx \trans \octx'$ for some $\octx'$ such that $\cmp{\octx'}{\lctx'}$.
-  \item If $\omatch{\exec{(\call{\patom})}} \trans \ofill{\exec{P}}$ and $\cmp{\omatch{{-}}}{\omatch[']{{-}}}$, then $\patom \lrimp A^- \in \sig$ for some $A^-$ such that $\cmp{A^-}{P}$.
+  \item If $\lctx_1 , \exec{(\call{\patom^+})} , \lctx_2 \strans \lctx_1 , \exec{P} , \lctx_2$ and $\cmp{\octx_1}{\lctx_1}$ and $\cmp{\octx_2}{\lctx_2}$, then $\patom^+ \lrimp A^- \in \sig$ for some $A^-$ such that $\cmp{A^-}{P}$.
   \end{itemize}
 \end{theorem}
 \begin{proof}
   By analyzing the structure of the given transition and translation.
 \end{proof}
 
-Putting these two pieces together, $\cmp{\cdot}$ is a weak bisimulation.
+Putting these two pieces together, $\cmp{{-}}$ is a weak bisimulation and $\cmp{{-}}$ is therefore correctly defined.
 
 
 % As mentioned previously, guiding principle in the translation's design is that if the source specification $\octx$ translates to process chain $\lctx$, then each transition from $\octx$ should be matched by a transition from the process that results from translating the specification.
 % As mentioned previously, guiding principle in the translation's design is that each transition from the source specification should be matched by a transition from the process that results from translating the specification.
 
-% $\cmp{\cdot}{\cdot}$ is a weak bisimulation, when the transition $\omatch{\monad{A^+}} \trans \ofill{A^+}$ is a silent transition.  
+% $\cmp{{-}}{{-}}$ is a weak bisimulation, when the transition $\omatch{\monad{A^+}} \trans \ofill{A^+}$ is a silent transition.  
 
 
 % Just as the $\monad{-}$ modality is silent in the translation, we'll choose to classify the transition on ordered specifications from $\monad{A^+}$ to $A^+$ as silent: $\omatch{\monad{A^+}} \trans[\tau] \ofill{A^+}$.
@@ -376,23 +380,23 @@ Putting these two pieces together, $\cmp{\cdot}$ is a weak bisimulation.
 % \end{theorem}
 
 
-\subsection{Well-typed choreographies translate to well-typed processes}
+\subsection{Well-typed choreographies translate to well-typed processes}\label{sec:chor-types}
 
 At this point, we can translate choreographies to syntactically well-formed processes.
 However, not all choreographies translate to \emph{well-typed} processes.
 For example, $(A^+_1 \fuse \matom[->]_1) \fuse (\matom[<-]_2 \fuse A^+_2)$ translates to the process $\spawn{(\selectR{\matom[->]_1 ; P_1}); (\selectL{\matom[<-]_2 ; P_2})}$, which is not typable in \acs{SISLL} because the messages have no matching recipients and therefore collide.
 
-To identify a class of choreographies that enjoy the same session fidelity and, especially, progress properties as well-typed processes, we need to introduce a typing discipline for choreographies, $\chseq$, that is preserved by the translation.
+To identify a class of choreographies that enjoy the same session fidelity and, especially, deadlock freedom (\ie, progress) properties as well-typed processes, we need to introduce a typing discipline for choreographies, $\smash{\chseq}$, that is preserved by the translation.
 The following theorem is our goal:
 %
 \begin{theorem*}[Translation preserves typing]\leavevmode
   \begin{itemize}
-  \item If $\lctx \chseq A^- :: B$ and $\cmp{A^-}{P}$, then $\lctx \vdash P :: B$.
-  \item If $\lctx \chseq A^+ :: B$ and $\cmp{A^+}{P}$, then $\lctx \vdash P :: B$.
+  \item If $\cmp{A^-}{P}$, then $\lctx \chseq A^- :: B$ if and only if $\lctx \vdash P :: B$.
+  \item If $\cmp{A^+}{P}$, then $\lctx \chseq A^+ :: B$ if and only if $\lctx \vdash P :: B$.
   \end{itemize}
 \end{theorem*}
 
-Because $\cmp{\cdot}$ describes a fairly tight correspondence between choreographies and processes, the rules for $\chseq$ are \enquote{just} the rules for typing processes ($\vdash$): simply replace the process terms with the corresponding ordered logic proposition.
+Because $\cmp{{-}}$ describes a fairly tight correspondence between choreographies and processes, the rules for $\chseq$ are \enquote{just} the rules for typing processes ($\vdash$): simply replace the process terms with the corresponding ordered logic proposition.
 For instance, $\matom[<-]_k \fuse A^+$ translates to $\selectL{\matom[<-]_k ; P}$ and so, from the $\lrule{\with}$ rule that types $\mathsf{selectL}$ processes, we obtain the rule for typing $\matom[<-]_k \fuse A^+$:
 \begin{equation*}
   \lowered{
@@ -408,7 +412,7 @@ For instance, $\matom[<-]_k \fuse A^+$ translates to $\selectL{\matom[<-]_k ; P}
     \text{($\kay \in L$)}}}
 \end{equation*}
 Notice how these new rules use two varieties of proposition in two different ways: polarized ordered propositions are choreographies; unpolarized (singleton) linear propositions serve as their types.
-For this reason, the rules are admittedly rather mind-bending, but in fact rather straightforward to derive if we keep the replacement pattern in mind.
+For this reason, the rules in isolation are admittedly a bit mind-bending, but they are in fact rather straightforward to derive if we keep the replacement pattern in mind.
 As another example of the pattern, $\one$ translates to $\fwd$, the forwarding process, and so, from the $\id{A}$ rule that types $\fwd$ processes, we obtain the rule for typing $\one$ as a choreography:
 \begin{equation*}
   \lowered{
@@ -425,7 +429,7 @@ As another example of the pattern, $\one$ translates to $\fwd$, the forwarding p
 % Following this pattern, most of the remaining rules for typing choreographies are straightforward to derive (though admittedly a bit mind-bending!).
 Of the rules for typing choreographies, only two do not mimic process-typing rules. 
 First is the rule for typing $\monad{A^+}$.
-But here, again, the goal theorem shows the way;
+But, here again, the goal theorem shows the way;
 the $\monad{{-}}$ modality is silent in the translation, so it should also be silent in the typing:
 \begin{equation*}
   \infer{\lctx \chseq \procof{\monad{A^+}}{A}}{
@@ -436,8 +440,8 @@ Second is the rule for typing process-like atoms $\patom$.
 Similarly to process variables, we assume that the programmer has specified the type of each process-like atom.
 With this signature, we just check that each use of a process-like atom adheres to its specified type:
 \begin{equation*}
-  \infer{\lctx \chseq \patom :: A}{
-    \patom : \{\lctx \chseq A\} \in \sig}  
+  \infer{\lctx \chseq \patom^+ :: A}{
+    \patom^+ : \{\lctx \chseq A\} \in \sig}  
 \end{equation*}
 
 The complete set of rules for typing choreographies is shown in \cref{fig:chor-typing}.
@@ -461,8 +465,8 @@ The complete set of rules for typing choreographies is shown in \cref{fig:chor-t
   \infer{\lctx \chseq \monad{A^+} :: A}{
     \lctx \chseq A^+ :: A}
   \and
-  \infer{\lctx \chseq \patom :: A}{
-    \patom : \{\lctx \chseq A\} \in \sig}
+  \infer{\lctx \chseq \patom^+ :: A}{
+    \patom^+ : \{\lctx \chseq A\} \in \sig}
   \\
   \infer[\cut{A}]{\lctx \chseq A^+_1 \fuse A^+_2 :: C}{
     \lctx \chseq A^+_1 :: A &
@@ -471,14 +475,14 @@ The complete set of rules for typing choreographies is shown in \cref{fig:chor-t
   \infer[\id{A}]{A \chseq \one :: A}{
     }
 \end{mathpar}
-\caption{Choreography typing rules\label{fig:chor-typing}}
+\caption{Choreography typing rules. The context $\lctx$ is either empty or a singleton.\label{fig:chor-typing}}
 \end{figure}
 %
 It is easy to check that the goal indeed holds: the translation preserves typing.
 \begin{theorem}[Translation preserves typing]\leavevmode
   \begin{itemize}
-  \item If $\lctx \chseq A^- :: B$ and $\cmp{A^-}{P}$, then $\lctx \vdash P :: B$.
-  \item If $\lctx \chseq A^+ :: B$ and $\cmp{A^+}{P}$, then $\lctx \vdash P :: B$.
+  \item If $\cmp{A^-}{P}$, then $\lctx \chseq A^- :: B$ if and only if $\lctx \vdash P :: B$.
+  \item If $\cmp{A^+}{P}$, then $\lctx \chseq A^+ :: B$ if and only if $\lctx \vdash P :: B$.
   \end{itemize}
 \end{theorem}
 \begin{proof}
@@ -488,7 +492,7 @@ It is easy to check that the goal indeed holds: the translation preserves typing
 
 
 
-Instead of using this theorem to justify the rules for typing choreographies, it's also possible to justify them from first principles.
+Instead of using this theorem to justify the rules for typing choreographies, it's also possible to justify them from first principles if desired.
 % It's also possible to justify the rules for typing choreographies from first principles. 
 Consider the $\cut{A}$ rule, for example:
 \begin{equation*}

@@ -32,7 +32,7 @@ as moving up the counter.
 % First, each $\inc$ process sends a message, $\inc[<-]$, to its left-hand neighbor, thereby notifying that neighbor of its existence, and then the $\inc$ process terminates.
 % If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the $\inc$'s message, that neighbor takes full responsibility for completing the corresponding interaction.
 This hints at a choreography in which $\inc$ atoms act as messages that trigger the increment action:
-Whenever an $\inc$ message arrives at an $\eps$, $\bit{0}$, or $\bit{1}$ process, that process takes responsiblity for completing the increment action.
+Whenever an $\inc$ message arrives at an $\eps$, $\bit{0}$, or $\bit{1}$ process, that process takes responsibility for completing the increment action.
 % First, each $\inc$ process sends a message, $\inc[<-]$, to its left-hand neighbor, thereby notifying that neighbor of its existence, and then the $\inc$ process terminates.
 % If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the $\inc$'s message, that neighbor takes full responsibility for completing the corresponding interaction.
 
@@ -45,25 +45,26 @@ Whenever an $\inc$ message arrives at an $\eps$, $\bit{0}$, or $\bit{1}$ process
 % When the $\eps$, $\bit{0}$, or $\bit{1}$, processes receive the $\inc[<-]$ message,  then, upon receiving the $\inc$'s message, that neighbor takes full responsibility for completing the corresponding interaction.
 
 Expressed as an annotation of the original ordered logical specification, this choreography is:
-\begin{equation}\label[choreography]{chor:oop-counter}
+\begin{equation*}\label[choreography]{chor:oop-counter}
   \!\begin{aligned}
     &\eps \fuse \inc[<-] \lrimp \monad{\eps \fuse \bit{1}} \\
     &\bit{0} \fuse \inc[<-] \lrimp \monad{\bit{1}} \\
     &\bit{1} \fuse \inc[<-] \lrimp \monad{\inc[<-] \fuse \bit{0}}
     \text{\,,}
   \end{aligned}
-\end{equation}
-where the $\eps$, $\bit{0}$, and $\bit{1}$ atoms are viewed as processes, but the $\inc[<-]$ atoms are viewed as messages.
-%
+\end{equation*}
+where the $\eps$, $\bit{0}$, and $\bit{1}$ atoms are viewed as processes, but the $\inc[<-]$ atoms are viewed as messages.%
+\footnote{It's convenient to think of the programmer as supplying this choreography in full, but in practice the programmer might only give the assignment of roles to atoms, \eg\ $\inc[<-]$ for $\inc$.}
+We'll call this choreography our $\inc[<-]$-choreography.
 Two properties are crucial:
 \begin{description}[font=\normalfont\itshape, leftmargin=\parindent, labelindent=\leftmargin, listparindent=\parindent, parsep=0pt]
 \item[Locality.]
   Each clause's premise depends on exactly one process-like atom and (at most) one message-like atom.
   Consequently, each process's decisions are entirely local: the $\eps$, $\bit{0}$, and $\bit{1}$ processes act (independently) only after receiving an $\inc[<-]$ message.%
-  \footnote{In {SSOS} terminology, processes that wait to receive a message, like $\eps$, $\bit{0}$, and $\bit{1}$ here, would be termed \vocab{latent} propositions; and messages, like $\inc[<-]$ here, would be termed \vocab{passive} propositions.}
+  \footnote{In \acs{SSOS} terminology, processes that wait to receive a message, like $\eps$, $\bit{0}$, and $\bit{1}$ here, would be termed \vocab{latent} propositions; and messages, like $\inc[<-]$ here, would be termed \vocab{passive} propositions~\autocite{Pfenning+Simmons:LICS09}.}
 
   Locality serves to ensure that the choreography describes sensible message-passing behaviors.
-  A clause such as $\inc[<-] \lrimp \monad{{\dots}}$, whose premise does not contain a process-like atom, is not message-passing because no process receives the $\inc[<-]$ message.
+  A clause such as $\inc[<-] \lrimp \monad{{\dots}}$, whose premise does not contain a process-like atom, is not message-passing because no process is there to receive the $\inc[<-]$ message.
 %
 \item[Specification-preserving.]
 % % % Second, notice that
@@ -74,7 +75,7 @@ Two properties are crucial:
 % In this sense, there is a very strong equivalence between the two programs.
 % The choreography does not fundamentally alter the specification---it only refines that specification by making the communication patterns explicit.
 %
-The choreography exposes the same behaviors for $\eps$, $\bit{}$, and $\inc$ as in the original specification.
+The choreography exposes the same behaviors for $\eps$, $\bit{0}$, $\bit{1}$, and $\inc$ as in the original specification.
 Its clauses are exactly those of the specification, except that each $\inc$ atom in the specification has been annotated as an $\inc[<-]$ message-like atom in the choreography.
 
 In this sense, there is a very strong, lock-step equivalence between the choreography and its specification.
@@ -89,7 +90,6 @@ The choreography does not fundamentally alter the specification---it only refine
 % In this way, each process's decisions are completely local: the $\inc$ process always sends $\inc[<-]$ regardless of its neighbors, and the $\eps$ and $\bit{}$ processes act only after receiving an $\inc[<-]$ message.%
 % \footnote{In \ac{SSOS} terminology, processes that act regardless of their neighbors, like $\inc$, would be termed \vocab{active} propositions; processes that wait to receive a message, like $\eps$, $\bit{0}$, and $\bit{1}$, would be termed \vocab{latent} propositions; and messages, like $\inc[<-]$, would be termed \vocab{passive} propositions.}
 %
-It's convenient to think of the programmer as supplying this choreography in full, but in practice the programmer might only give the assignment of roles to atoms, \eg\ $\inc[<-]$ for $\inc$.
 
 \subsubsection{Messages can flow in both directions}\label{sec:chor-binary-count}
 
@@ -98,15 +98,15 @@ Once again, this hints at a choreography in which $\dec$, $\fail$, and $\suc$ at
 \begin{itemize}
 \item Whenever a $\dec[<-]$ message arrives at an $\eps$, $\bit{0}$, or $\bit{1}$ process's right-hand side, that process completes the local decrement action:
       the $\eps$ and $\bit{1}$ processes send a $\fail[->]$ or $\suc[->]$ message, respectively, to their right;
-      the $\bit{0}$ process forwards the $\dec[<-]$ message to its left and continues as a $\bit[']{0}$ process.
-\item Whenever a $\fail[->]$ or $\suc[->]$ message arrives at a $\bit[']{0}$ process's left-hand side, that process forwards the message to its right-hand neighbor and continues as a $\bit{0}$ or $\bit{1}$ process, respectively.
+      the $\bit{0}$ process forwards the $\dec[<-]$ message to its left and then continues as a $\bit[']{0}$ process.
+\item Whenever a $\fail[->]$ or $\suc[->]$ message arrives at a $\bit[']{0}$ process's left-hand side, that process forwards the message to its right-hand neighbor and then continues as a $\bit{0}$ or $\bit{1}$ process, respectively.
 % \item Each $\dec$ process sends a message, $\dec[<-]$, to its left-hand neighbor and terminates.
 %       If the neighbor is $\eps$, $\bit{0}$, or $\bit{1}$, then, upon receiving the message, that neighbor completes the corresponding interaction given in the specification.
 % \item Each $\fail$ or $\suc$ process sends a message, $\fail[->]$ or $\suc[->]$, respectively, to its \emph{right-hand} neighbor and terminates.
 %       If the neighbor is $\bit[']{0}$, then, upon receiving the message from $\fail$ or $\suc$, that neighbor completes the corresponding interaction.
 \end{itemize}
 To account for decrements, the binary counter's choreography is therefore extended with the following clauses:
-\begin{equation}
+\begin{equation*}
   \!\begin{aligned}
     &\eps \fuse \dec[<-] \lrimp \monad{\eps \fuse \fail[->]} \\
     &\bit{0} \fuse \dec[<-] \lrimp \monad{\dec[<-] \fuse \bit[']{0}} \\
@@ -116,7 +116,7 @@ To account for decrements, the binary counter's choreography is therefore extend
     &\suc[->] \fuse \bit[']{0} \lrimp \monad{\bit{1} \fuse \suc[->]}
     \,.
   \end{aligned}
-\end{equation}
+\end{equation*}
 Once again, these clauses are just an annotation of the original specification's clauses, with $\dec$, $\suc$, and $\fail$ annotated as $\dec[<-]$, $\suc[->]$, and $\fail[->]$.
 % Once again, the atoms that are decorated with arrows are formally distinct from their undecorated counterparts.
 % (As before, the atoms that are decorated with arrows are formally distinct from their undecorated counterparts.)
@@ -129,7 +129,10 @@ This extended choreography illustrates that message atoms may be either left-dir
 % Because it is traveling left-to-right, a left-directed message must always arrive at the right-hand side of its recipient; dually, a right-directed message must always arrive at the left-hand side of its recipient.
 Because a left-directed message travels from right to left, it must always arrive at the right-hand side of its recipient; dually, a right-directed message must always arrive at the left-hand side of its recipient.
 This directionality is another aspect of locality, and it further constrains the structure of a choreography's premises.
-For example, this choreography's premises are well-formed because each message flows toward its recipient, whereas premises of the forms $\matom[<-] \fuse \patom$ or $\patom \fuse \matom[->]$ are not well-formed because process $\patom$ doesn't receive the $\matom[<-]$ or $\matom[->]$ message.
+For example, this choreography's premises satisfy locality % are well-formed 
+because each message flows toward its recipient, whereas premises of the forms $\matom[<-] \fuse \patom$ or $\patom \fuse \matom[->]$ do not satisfy locality % are not well-formed 
+% because process $\patom$ doesn't receive the $\matom[<-]$ or $\matom[->]$ message.
+because the direction is wrong for process $\patom$ to receive the $\matom[<-]$ or $\matom[->]$ message.
 % For instance, $\bit{1} \fuse \inc[<-]$ and $\fail[->] \fuse \bit[']{0}$ are well-formed premises because each message flows toward its recipient, whereas premises of the forms $\matom[<-] \fuse \p$ or $\p \fuse \matom[->]$ are not well-formed because process $\p$ doesn't receive the $\matom[<-]$ or $\matom[->]$ message.
 
 % As well as retaining locality, notice that this extended choreography continues to be specification-preserving:
@@ -144,28 +147,28 @@ For example, this choreography's premises are well-formed because each message f
 \subsubsection{Choreographies are not always unique}\label{sec:mult-chor-are}
 
 As alluded to previously, multiple choreographies are possible for some specifications.
-
+%
 This is true of our binary counter specification, for instance.
-(To simplify the example, we'll ignore decrements for now.)
+(To simplify the example, we'll ignore decrements.)
 In the $\inc[<-]$-choreography (\cref{sec:chor-example-counter}),
 % the $\inc$ processes initiate the interaction but leave all remaining work to the $\eps$, $\bit{0}$, and $\bit{1}$ processes alone.
 the counter's value is represented by a chain of $\eps$, $\bit{0}$, and $\bit{1}$ processes that are acted upon by $\inc[<-]$ messages.
 %
 % Alternatively, the $\inc$ processes could wait for $\eps$, $\bit{0}$, or $\bit{1}$ to initiate the interaction, but thereafter take full responsibility for its completion.
-Alternatively, the counter's value could be represented by a sequence of $\eps[->]$, $\bit{0}[->]$, and $\bit{1}[->]$ messages; when fed such a message sequence, an $\inc$ process would emit another sequence that represents the result:
+Alternatively, the counter's value could be represented by a sequence of $\eps[->]$, $\bit{0}[->]$, and $\bit{1}[->]$ messages that are fed to an $\inc$ process; the $\inc$ process would then emit a sequence that represents the result:
 %
 % Specifically, each $\eps$, $\bit{0}$, and $\bit{1}$ process sends an identifying message, $\eps[->]$, $\bit{0}[->]$, or $\bit{1}[->]$, to its right-hand neighbor and then terminates.
 % If the neighbor is $\inc$, then, upon receiving the message, that $\inc$ completes the corresponding interaction.
 % % takes responsibility for carrying out the corresponding clause of the specification.
-\begin{equation}
+\begin{equation*}
   \!\begin{aligned}
     &\eps[->] \fuse \inc \lrimp \monad{\eps[->] \fuse \bit{1}[->]} \\
     &\bit{0}[->] \fuse \inc \lrimp \monad{\bit{1}[->]} \\
     &\bit{1}[->] \fuse \inc \lrimp \monad{\inc \fuse \bit{0}[->]}
       \,.
   \end{aligned}
-\end{equation}
-Once again, this choreography possesses the locality and specification-preserving properties.
+\end{equation*}
+As required, this $\bit{}[->]$-choreography possesses the locality and specification-preserving properties.
 
 % Owing to the difference in roles held by, these two choreographies have distinct flavors.
 % These two choreographies
@@ -194,7 +197,7 @@ In contrast, this new $\bit{}[->]$-choreography has a functional character: $\in
 \subsubsection{Two non-choreographies}\label{sec:non-choreographies}
 
 Another, slightly more complex reformulation of the binary counter specification chooses to treat the $\inc$ atom as a simple process, not a message:
-\begin{equation}
+\begin{equation*}
   \!\begin{aligned}
     &\inc \lrimp \monad{\incm[<-]} \\[1.5\jot]
     % 
@@ -203,14 +206,17 @@ Another, slightly more complex reformulation of the binary counter specification
     &\bit{1} \fuse \incm[<-] \lrimp \monad{\inc \fuse \bit{0}}
       \,.
   \end{aligned}
-\end{equation}
-In fact, the $\inc$ process does nothing but send an $\incm[<-]$ message.
+\end{equation*}
+In fact, the $\inc$ process does nothing but send an $\incm[<-]$ message.%
+\footnote{Because it eagerly becomes $\incm[<-]$, the $\inc$ atom here would be termed an \vocab{active} proposition in \ac{SSOS} terminology~\autocite{Pfenning+Simmons:LICS09}.}
 
 This signature is equivalent to the binary counter specification in that it ultimately exposes the same $\eps$, $\bit{}$, and $\inc$ behaviors.
-However, it is \emph{not} specification-preserving under the informal definition that we have used thus far.
+% However, it is \emph{not} specification-preserving under the informal definition that we have used thus far.
+%
 % In contrast with the choreographies, this implementation's main clauses are not a simple decoration of the specification's clauses: each of the specification's clauses is spread across several clauses here.
-In contrast with the choreographies, this formulation does more than simply refine the specification by making the communication explicit: it introduces a new message-like atom, $\incm[<-]$, a new clause, $\inc \lrimp \monad{\incm[<-]}$, and modifies the existing clauses.
-
+However, in contrast with the choreographies, this formulation does more than simply refine the specification by making the communication explicit: instead, it introduces $\incm[<-]$ as a new message-like atom, it introduces the clause $\inc \lrimp \monad{\incm[<-]}$, and it modifies the premises of existing clauses to use $\incm[<-]$.
+%
+So this signature is not specification-preserving---and therefore not a choreography---for the binary counter specification.
 
 
 
@@ -240,11 +246,10 @@ In contrast with the choreographies, this formulation does more than simply refi
 % % In contrast with the choreographies, this implementation's main clauses are not a simple decoration of the specification's clauses: each of the specification's clauses is spread across several clauses here.
 % In contrast with the choreographies, this implementation does more than simply refine the specification by making the communication explicit: using a temporary $\inc[^r]$ process, it spreads each of the specification's clauses across several clauses.
 
-So, this signature is not specification-preserving, and therefore not a choreography, for the binary counter specification.
-But that doesn't mean that the programmer cannot achieve the same behavior anyway: the programmer is free to rewrite the \emph{specification} to incorporate the behavior at the specification level.
+But that doesn't mean that the programmer cannot achieve the same behavior anyway: the programmer is free to rewrite the \emph{specification} to incorporate that behavior at the specification level.
 % Although this implementation is not specification-preserving for the binary counter specification, and therefore not a choreography, the programmer can nevertheless achieve the same behavior by changing the \emph{specification}.
 If the specification is changed to be
-\begin{equation}
+\begin{equation*}
   \!\begin{aligned}
     &\inc \lrimp \monad{\incm} \\[1.5\jot]
     % 
@@ -253,7 +258,7 @@ If the specification is changed to be
     &\bit{1} \fuse \incm \lrimp \monad{\inc \fuse \bit{0}}
       \,,
   \end{aligned}
-\end{equation}
+\end{equation*}
 then the above signature is indeed a choreography for \emph{this} specification.
 
 % Although this implimentation is not specification-preserving, and therefore not a choreography, for the binary counter specification (\cref{??}), the programmer can nevertheless acheive the same behavior by changing the \emph{specification}.
@@ -282,14 +287,14 @@ then the above signature is indeed a choreography for \emph{this} specification.
 
 % Even so\fxnote{\ \st{Even though this choreography introduces and auxiliary process atom}}, we still consider it to be a valid choreography: $\inc[']$ is only temporary, leaving the underlying specification fundamentally unchanged.
 
-Another signature that is equivalent to the binary counter specification, in the sense that the two track the same value, is
-\begin{equation}
+Another signature that is equivalent to the binary counter specification, in the sense that the two track the same value, is the first-order signature 
+\begin{equation*}
   \!\begin{aligned}
     &\num{N} \fuse \inc[<-] \lrimp \monad{\num{(N{+}1)}} \,.
   \end{aligned}
-\end{equation}
+\end{equation*}
 Nevertheless, we wouldn't consider this to be a choreography of the binary counter specification because, by using a single number held by $\num{}$ instead of a string of $\bit{}$s, it fundamentally alters the specification.
-We would, however, consider this signature to be a choreography of a different, simple counter specification, namely $\num{N} \fuse \inc \lrimp \monad{\num{(N{+}1)}}$.
+Once again, however, we would consider this signature to be a choreography of a different, simple counter specification, namely $\num{N} \fuse \inc \lrimp \monad{\num{(N{+}1)}}$.
 
 % % Although it is equivalent to the binary counter in the sense that it tracks the same value, we wouldn't consider the following program to be a choreography of the binary counter specification because it fundamentally alters the implementation by using a single $\num{}$ instead of a string of $\bit{}$s.
 % The following program is also equivalent to the binary counter specification, in the sense that the two track the same value.

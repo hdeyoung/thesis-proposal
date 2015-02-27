@@ -89,8 +89,8 @@ The first of these clauses is
     \,.
   % \end{lpsig}
 \end{equation*}
-From a string rewriting perspective, this implication is a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, an interpretation which is justified logically because implications are transformations.%
-\footnote{See \cref{??} for technical justification.}
+From a string rewriting perspective, this implication is a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$, an interpretation which is justified logically because implications are transformations.
+% \footnote{See \cref{??} for technical justification.}
 % % From a string rewriting perspective, this implication is interpreted as a rule for rewriting the (sub)string $\bit{1} \fuse \inc$ as $\inc \fuse \bit{0}$.%
 %  in the sense that the following bottom-up rule
 % % This clause allows the string $\bit{1} \fuse \inc$ to be rewritten as $\inc \fuse \bit{0}$, in the sense that the rule
@@ -172,17 +172,18 @@ according to the upper path or the lower path in the following diagram.
   \begin{tikzcd}[row sep=1ex, arrow style=math font]
     &
     \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \inc}
-      \drar
+      \drar[start anchor=base east, end anchor={[yshift=1ex]base west}]
     \\
     \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \inc}
-      \urar \drar
+      \urar[start anchor={[yshift=1ex]base east}, end anchor=base west]
+      \drar[start anchor=base east, end anchor={[yshift=1ex]base west}]
     &&
     \eps \fuse \bit{1} \fuse \bit{1}
       \ntrans
     \\
     &
     \mathul{\eps \fuse \inc} \fuse \bit{1}
-      \urar
+      \urar[start anchor={[yshift=1ex]base east}, end anchor=base west]
   \end{tikzcd}
 \end{equation*}
 
@@ -191,7 +192,7 @@ Rather than giving a truly concurrent semantics for string rewriting, we can tre
 \footnote{In the above example, indistinguishability of the two different interleavings is tantamount to commutativity of the diagram.% requiring the diagram to commute.
 }
 Then, because we can't observe which rewriting occurred first, the two rewritings appear to happen concurrently.
-This is the idea of \vocab{concurrent equality} from the \acs{CLF}~\autocite{Watkins+:CMU02} framework for linear logical specification framework, later adapted by \textcite{Simmons:CMU12} for ordered logical specifications.
+This is the idea of \vocab{concurrent equality}~\autocites{Watkins+:CMU02}{Cervesato+:LFMTP12} from the \acs{CLF} framework for linear logical specifications, later adapted by \textcite{Simmons:CMU12} for ordered logical specifications.
 % Concurrent equality justifies adopting true concurrency as an abstraction.
 
 
@@ -247,14 +248,32 @@ For example, the counter $\eps \fuse \bit{1} \fuse \bit{0} \fuse \dec$ can be ma
 \end{align*}
 Once again, there are possibilities for concurrency.
 For example, the following two traces are indistinguishable because they differ only in the order of independent rewritings:
-\begin{align*}
-  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
-  %
-  \shortintertext{and}
-  %
-  &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0}
-\end{align*}
-This justifies treating those two rewritings as concurrent.
+\begin{equation*}
+  \begin{tikzcd}[row sep=1ex, arrow style=math font]
+    &
+    \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec}
+      \drar[start anchor=base east, end anchor={[yshift=1ex]base west}]
+    \\
+    \mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec}
+      \urar[start anchor={[yshift=1ex]base east}, end anchor=base west]
+      \drar[start anchor=base east, end anchor={[yshift=1ex]base west}]
+    &&
+    \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0}
+      \trans \dotsb
+    \\
+    &
+    \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0}
+      \urar[start anchor={[yshift=1ex]base east}, end anchor=base west]
+  \end{tikzcd}
+\end{equation*}
+% \begin{align*}
+%   &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \mathul{\eps \fuse \inc} \fuse \dec \fuse \bit[']{0} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0} \\
+%   %
+%   \shortintertext{and}
+%   %
+%   &\mathul{\eps \fuse \inc} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \bit{1} \fuse \mathul{\bit{0} \fuse \dec} \trans \eps \fuse \mathul{\bit{1} \fuse \dec} \fuse \bit[']{0}
+% \end{align*}
+This justifies treating the two rewritings as concurrent.
 
 
 \begin{figure}[!t]
@@ -338,7 +357,7 @@ Notice that this trace never rewrites the infinitely available $\eps \fuse \inc$
 Because of its scheduling bias against rewriting $\eps \fuse \inc$, we say that the trace is \vocab{(weakly) transition-unfair}.
 
 Transition unfairness is fundamentally at odds with concurrency because it admits the possibility that one event precludes another, independent event---just as the persistent rewriting of $\incs$ precludes the rewriting of the independent $\eps \fuse \inc$ here.
-Therefore, we implicitly assume that all traces are weakly transition-fair.
+Therefore, we will implicitly assume that all traces are weakly transition-fair.
 
 % Transition unfairness is fundamentally at odds with concurrency.
 % Because concurrency allows multiple independent events to occur simultaneously, one event should not preclude another independent event;

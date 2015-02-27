@@ -20,34 +20,45 @@
 
 \section{Choreographies}\label{sec:choreographies}
 
-As the binary counter from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} exemplifies, there is a notion of concurrency, based on indistinguishable interleavings of independent rewritings, that arises naturally in ordered logical specifications.
+As the binary counter from \cref{sec:olp-intuition:binary-counter,sec:olp-intuition:concurrency} exemplifies, a notion of concurrency, based on indistinguishable interleavings of independent rewritings, arises naturally in ordered logical specifications.
 And, under a forward-chaining logic programming interpretation, these specifications can be executed by a central, omniscient \enquote{puppeteer} that rewrites the state globally.
 
-In contrast, concurrency is traditionally phrased as the composition of \vocab{communicating processes}.
-Processes are not omniscient but instead execute locally; asynchronous processes do not communicate directly, but instead communicate by exchanging messages (or through shared memory).
+% In contrast, concurrency is traditionally phrased as the composition of \vocab{communicating processes}.
+% Processes are not omniscient but instead execute locally; asynchronous processes do not communicate directly, but instead communicate by exchanging messages (or through shared memory).
+% % Processes are not omniscient but instead execute locally, with asynchronous processes communicating through messages that can be sent and received \enquote{without ever leaving home}.
+% % processes do not communicate on an arbitrary scale but instead communicate 
+% How are these views related?
+% % It's natural to wonder how these views are related:
+% Are there communicating processes hidden within ordered logical specifications that would allow these two seemingly distinct notions of concurrency to be reconciled?
+
+In contrast, concurrency is traditionally phrased in formal calculi as the composition of \vocab{communicating processes}:
+processes are not omniscient but instead execute independently, with interaction between them limited to the exchange of messages.
+% Processes are not omniscient but instead execute locally, with asynchronous processes communicating through messages that can be sent and received \enquote{without ever leaving home}.
 % processes do not communicate on an arbitrary scale but instead communicate 
-How are these views related?
+How are these two seemingly distinct notions of concurrency related?
 % It's natural to wonder how these views are related:
-Are there communicating processes hidden within ordered logical specifications that would allow these two seemingly distinct notions of concurrency to be reconciled?
+Are there processes hidden within ordered logical specifications---processes that would allow us to reconcile these two views?
 
 Inspired by the process-as-formula view of linear logic~\autocites{Miller:ELP92}{Cervesato+Scedrov:IC09}, we propose that each atomic proposition in an ordered logical specification % serves in
 be assigned one of two roles:
 an atom is either process-like or message-like.
 These role assignments, or \vocab{choreographies}, refine the original specification: 
-Whereas the original specification describes globally \emph{what} are the valid interactions among atoms, a choreography%
+whereas the original specification describes globally \emph{what} are the valid interactions among atoms, a choreography%
 \footnote{We borrow the term \enquote*{choreography} from the literature on session-based concurrency.
 The analogy is intended only as a loose one, however, and should not be taken to imply a precise, technical correspondence.}
-of that specification describes \emph{how} those interactions are achieved locally by message-passing.%
+of that specification%
 \footnote{Notice that a choreography is always relative to a given specification.}
+describes \emph{how} those interactions are achieved locally by asynchronous message passing.
 
 For example, we might choose to choreograph increments in the binary counter specification by treating $\eps$, $\bit{0}$, and $\bit{1}$ as process-like atoms and $\inc$ as a message-like atom.
 Using an arrow decoration to indicate the message-like atoms, the choreography clause
 \begin{equation*}
   \bit{1} \fuse \inc[<-] \lrimp \monad{\inc[<-] \fuse \bit{0}}
 \end{equation*}
-specifies a $\bit{1}$ process that, upon receiving an $\inc$ message at its right side, sends an $\inc$ message to the left and continues as a $\bit{0}$ process.
+specifies a $\bit{1}$ process that, upon receiving an $\inc$ message at its right side, asynchronously sends an $\inc$ message to the left and then continues as a $\bit{0}$ process.
 
-Ideally, choreographies would be mechanically generated from ordered logical specifications.
+Ideally, choreographies would be mechanically generated from % ordered logical 
+specifications.
 But this appears to be quite difficult:
 Different specifications often require different patterns of communication, and therefore different choreographies.
 And some specifications even admit several choreographies, among which the programmer should choose the one that best fits the situation.

@@ -31,7 +31,7 @@ To make the definition precise, we need only formalize the locality and specific
 
 \subsubsection{Locality}\label{sec:locality}
 
-As discussed in \cref{?}, clauses such as $\bit{1} \fuse \inc[<-] \lrimp \monad{\inc[<-] \fuse \bit{0}}$ satisfy locality because the premise consists of a process that receives a message.
+As discussed in \cref{sec:chor-example-counter}, clauses such as $\bit{1} \fuse \inc[<-] \lrimp \monad{\inc[<-] \fuse \bit{0}}$ satisfy locality because the premise consists of a process that receives a message.
 Although it is possible to admit clauses like this one, they come at the expense of complicating the statement of locality slightly.
 Instead, it is more convenient to require that clauses be given in curried form, such as $\bit{1} \lrimp (\inc[<-] \rimp \monad{\inc[<-] \fuse \bit{0}})$.
 % Because currying is easy enough to do in a preprocessing phase, this requirement is not onerous.
@@ -39,23 +39,24 @@ Instead, it is more convenient to require that clauses be given in curried form,
 For curried clauses, locality holds if there is exactly one process-like atom, $\patom^+$, in the premises and if any message-like atoms, $\matom[<-]$ and $\matom[->]$, are used only with right- and left-ordered implications, respectively.
 
 \begin{definition}[Locality]
-  A clause $\patom^+ \lrimp A^-$ satisfies \vocab{locality} if it adheres to the following refined grammar.\footnote{An alternative notation for $\with*[i \in I][\parens]{\matom[<-]^+_i \rimp \monad{A^+_i}}$ is the Lambek-inspired $\with*[i \in I][\parens]{\monad{A_i} \twoheadleftarrow \matom[<-]^+_i}$, which emphasizes that left-directed messages, $\matom[<-]^+_i$, must arrive from the right.}
+  A clause, which must have form $\patom^+ \lrimp A^-$, satisfies \vocab{locality} if it adheres to the following refined grammar.\footnote{An alternative notation for $\with*[i \in I][\parens]{\matom[<-]^+_i \rimp \monad{A^+_i}}$ could be the Lambek-inspired $\with*[i \in I][\parens]{\monad{A_i} \twoheadleftarrow \matom[<-]^+_i}$, which would better emphasize that left-directed messages, $\matom[<-]^+_i$, must arrive from the right.}
   \begin{alignat*}{3}
-    &\text{Negative propositions} &\quad&& A^-,B^- &::= A^- \with B^- \mid \monad{A^+} \mid \with*[i \in I][\parens]{\matom[<-]^+_i \rimp \monad{A^+_i}} \mid \with*[i \in I][\parens]{\matom[->]^+_i \limp \monad{A^+_i}} \\
+    &\text{Negative propositions} &\quad&& A^-,B^- &::= \monad{A^+} \mid \with*[i \in I][\parens]{\matom[<-]^+_i \rimp \monad{A^+_i}} \mid \with*[i \in I][\parens]{\matom[->]^+_i \limp \monad{A^+_i}} \\
     % \matom[<-]^+ \rimp \monad{A^+} \mid \matom[->]^+ \limp \monad{A^+} \\
     &\text{Positive propositions}      &&& A^+,B^+ &::= A^+ \fuse B^+ \mid \one \mid \matom[<-]^+ \fuse A^+ \mid A^+ \fuse \matom[->]^+ \mid \patom^+ \mid A^-
   \end{alignat*}
 \end{definition}
-%
-\noindent
-Notice that, for technical reasons related to the translation to session-typed processes (\cref{?}), this definition also requires that message-like atoms $\matom[<-]$ and $\matom[->]$ never appear in clause heads except as part of a conjunction---either $\matom[<-] \fuse A^+$ or $A^+ \fuse \matom[->]$.
-Because $\one$ is available, this requirement does not restrict expressiveness.
+
+% \noindent
+Notice that, for technical reasons related to the translation to session-typed processes (\cref{sec:translation}), this definition also requires that message-like atoms $\matom[<-]$ and $\matom[->]$ never appear in clause heads except as part of a conjunction---either $\matom[<-] \fuse A^+$ or $A^+ \fuse \matom[->]$.
+Because $\one$ is available, this requirement does not restrict expressiveness however.
 
 As a consequence of this document's focus on \emph{well-typed} processes, also notice the more fundamental omission of propositions like $(\matom[->]^+_1 \limp \monad{A^+_1}) \with (\matom[<-]^+_2 \rimp \monad{A^+_2})$.
-Intuitively, such a proposition corresponds to an input-guarded nondeterministic choice---the process chooses either to receive $\matom[->]^+_1$ from the left and continue as process $A^+_1$, or to receive $\matom[<-]^+_2$ from the right and continue as process $A^+_2$---which is not typable in the current \acs{SILL} typing scheme.
-These propositions are ruled out by requiring all arms of an additive conjunction to be consistantly left- or right- implications.
+Intuitively, such a proposition corresponds to an input-guarded nondeterministic choice---the process chooses either to receive $\matom[->]^+_1$ from the left and continue as process $A^+_1$, or to receive $\matom[<-]^+_2$ from the right and continue as process $A^+_2$.
+Nondeterministic choice is not typable in the current \acs{SILL} typing scheme of \autocite{Caires+:MSCS13}.
+These propositions are ruled out by requiring all arms of an additive conjunction to be consistently left- or right-implications.
 
-With some simple rewriting, the choreographies presented earlier do indeed satisfy locality.
+With some simple transformations, the choreographies presented earlier do indeed satisfy locality.
 For example, the $\inc[<-]$-choreography can be put into the curried form 
 \begin{equation*}
   \!\begin{aligned}
@@ -65,7 +66,7 @@ For example, the $\inc[<-]$-choreography can be put into the curried form
     \text{\,.}
   \end{aligned}
 \end{equation*}
-Likewise, after some transformation, the $\bit{}[->]$-choreography also satisfies locality:
+Likewise, after some transformations, the $\bit{}[->]$-choreography also satisfies locality:
 \begin{equation*}
   \inc \lrimp \parens[auto, align=c@{\,}l]{
                     & (\eps[->] \limp \monad{(\one \fuse \eps[->]) \fuse \bit{1}[->]}) \\[0.5\jot]
@@ -75,7 +76,7 @@ Likewise, after some transformation, the $\bit{}[->]$-choreography also satisfie
 
 \subsubsection{Specification-preserving}\label{sec:spec-pres}
 
-To judge that an ordered logical specification is specification-preserving, we rely on a notion of erasure that removes the assigned roles, translating message- and process-like atoms to ordinary atoms.
+To judge that a signature is specification-preserving, we rely on a notion of erasure that removes the assigned roles, translating message- and process-like atoms to ordinary atoms.
 \begin{definition}[Role erasure]
   For atomic propositions, the \vocab{role erasure} $\erasemsg{-}$ is given by
   \begin{align*}
@@ -91,14 +92,14 @@ For instance, the role erasure of $\inc[<-]$ is $\erasemsg{\inc[<-]} = \inc$, ma
 
 Using role erasure, we can define the specification-preserving property as follows:
 \begin{definition}[Specification-preserving]
-  An ordered logic program $\chor$ is \vocab{specification-preserving} for specification $\spec$ if:
-  $\octx \trans[\chor] \octx'$ in the program $\chor$ if and only if $\erasemsg{\octx} \trans[\spec] \erasemsg{\octx'}$ in the specification $\spec$.
+  A signature $\chor$ is \vocab{specification-preserving} for the specification $\spec$ if:
+  $\octx \trans[\chor] \octx'$ under the signature $\chor$ if and only if $\erasemsg{\octx} \trans[\spec] \erasemsg{\octx'}$ under the specification $\spec$.
   In other words, $\chor$ is specification-preserving for $\spec$ if $\erasemsg{-}$ is a bisimulation.
 \end{definition}
 
 Thus, to be specification-preserving, a choreography must be lock-step equivalent with its specification.
-For example, the $\inc[<-]$-choreography for the binary counter specification is indeed specification-preserving because it is in lock-step equivalence with the specification.
-\Cref{fig:spec-pres-inc} shows how the steps correspond, using bisimulation diagrams.
+For example, the $\inc[<-]$-choreography for the binary counter specification is indeed specification-preserving because the two are lock-step equivalent.
+\Cref{fig:spec-pres-inc} shows how the steps correspond using bisimulation diagrams.
 
 \begin{figure}[!t]
 \begin{gather*}

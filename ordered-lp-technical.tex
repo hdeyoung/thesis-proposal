@@ -45,7 +45,7 @@
 
 The previous \lcnamecrefs{sec:olp-intuition:binary-counter} have hopefully provided an intuition for ordered logical specifications.
 In this \lcnamecref{sec:ordered-lp:technical}, we review the technical details, generally following the lead of \citeauthor{Simmons:CMU12}'s SLS framework~\autocite*{Simmons:CMU12}, but confining ourselves to a propositional fragment and using a weakly focused proof-construction strategy~\autocite{Simmons+Pfenning:CMU11} instead.
-The reader should feel free to skip this \lcnamecref{sec:ordered-lp:technical} (especially if he is familiar with ordered logic), since the technical details are not critical to an understanding of the rest of this proposal.
+The reader should feel free to skim or skip this \lcnamecref{sec:ordered-lp:technical} (especially if he is familiar with ordered logic), since the technical details are not critical to an understanding of the rest of this proposal.
 
 \subsubsection{Propositions, terms, and traces}\label{sec:props-terms-traces}
 
@@ -76,11 +76,22 @@ In addition to ordered contexts, we include \vocab{frames}.
 Frames, $\ofrm$, can be thought of as ordered contexts with one hole; i.e., $\ofrm$ is morally the same as $\octx_L, \Box, \octx_R$, for some $\octx_L$ and $\octx_R$.
 The hole may be filled with an ordered context, so that $\ofill{\octx}$ is the ordered context $\octx_L, \octx, \octx_R$.
 To ease the notational clutter in typing rules, we also allow contexts to be matched against filled frames.
+(We must be careful to distinguish the syntax for the monad, $\monad{A^+}$, from filled frames, $\ofill{\octx}$.)
 
 The reader familiar with substructural logics will note that we have chosen not to include unrestricted contexts or persistent hypotheses.
-Specification clauses, such as $\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}$, should indeed be persistent, but they are handled by signatures
+Specification clauses, such as $\bit{1} \fuse \inc \lrimp \monad{\inc \fuse \bit{0}}$, should indeed be persistent, but they are handled by signatures.
 
 \paragraph{Signatures.}\label{sec:signatures}
+
+Signatures $\sig$ are collections of clauses.
+Each clause is a constant $c$ with type of the form $\patom^+ \lrimp A^-$.
+\begin{alignat*}{2}
+  &\text{Signatures}\quad & \sig &::= \cdot \mid \sig, c{:}\patom^+ \lrimp A^-
+\end{alignat*}
+Although it looks like a proposition, $\patom^+ \lrimp A^-$ is treated as a judgment that represents a persistent implication.
+Because the implication is persistent and therefore can be copied to any point in the context, $\lrimp$ is simultaneously both a left implication and a right implication.
+
+Another way to think of $\patom^+ \lrimp A^-$ is as syntactic sugar for either $\bang (\patom^+ \rimp A^-)$ or $\bang (\patom^+ \limp A^-)$, since both have the same derived rules in ordered logic.
 
 \paragraph{Terms.}\label{sec:terms}
 
@@ -130,7 +141,7 @@ A single step is also typed by the change of state that it effects: $\tof{S :: \
   \caption{Steps\label{fig:steps}}
 \end{figure}
 Each step is either a left-focusing phase, with term $\tstep{x <- R}$, or one of two inversion steps, with terms $\tinv{\pfuse{y_1}{y_2} <- x}$ and $\tinv{\pone <- x}$.
-In a left-focusing phase, if some piece of state $\octx$ within $\omatch{\octx}$ satisfies the requirements imposed by atomic term $R$ of type $\monad{A^+}$, then $\octx$ is replaced with $x{:}A^+$---no inversion is performed because the proof-construction stategy is weakly focused.
+In a left-focusing phase, if some piece of state $\octx$ within $\omatch{\octx}$ satisfies the requirements imposed by atomic term $R$ of type $\monad{A^+}$, then $\octx$ is replaced with $x{:}A^+$---no inversion is performed because the proof-construction strategy is weakly focused.
 The inversion occurs as discrete steps that decompose non-atomic positive propositions.
 
 % \Cref{fig:patterns} gives the typing rules for patterns $p$.
@@ -151,15 +162,15 @@ The inversion occurs as discrete steps that decompose non-atomic positive propos
 % These rules correspond to the left inversion pattern rules of higher-order focusing~\autocite{Zeilberger:POPL08}.
 % Patterns are either variables, $x$, 
 
-The typing rules for atomic terms, $R$, according to the judgement $\octx \seq \aof{R : \susp-{C^-}}$ are shown in \cref{fig:atomic-terms}.
+The typing rules for atomic terms, $R$, according to the judgment $\octx \seq \aof{R : \susp-{C^-}}$ are shown in \cref{fig:atomic-terms}.
 \begin{figure}
   \begin{infers}[$\octx \seq \aof{R : \susp-{C^-}}$]
     \begin{alignedat}{3}
-      &\text{Atomic terms} &\quad&& R &::= \atm{c . \spine} \mid \atm{x . \spine}
+      &\text{Atomic terms} &\quad&& R &::= \atm{c . (\app{x ; \spine})} \mid \atm{x . \spine}
     \end{alignedat}
     \\
-    \infer{\omatch{\octxe} \seq \aof{\atm{c . \spine} : \susp-{C^-}}}{
-      c{:}A^- \in \sig &
+    \infer{\omatch{x{:}\patom^+} \seq \aof{\atm{c . (\app{x ; \spine})} : \susp-{C^-}}}{
+      c{:}\patom^+ \lrimp A^- \in \sig &
       \ofill{\lfoc{A^-}} \seq \sof{\spine : \susp-{C^-}}}    
     \and
     \infer{\omatch{x{:}A^-} \seq \aof{\atm{x . \spine} : \susp-{C^-}}}{
@@ -196,7 +207,7 @@ Spines, as shown in \cref{fig:spines}, are either empty ($\snil$), a value appli
   \end{infers}
   \caption{Spines\label{fig:spines}}
 \end{figure}
-The spine typing judgement $\omatch{\lfoc{A^-}} \seq \sof{\spine : \susp-{C^-}}$ corresponds to the left-focused sequent form.
+The spine typing judgment $\omatch{\lfoc{A^-}} \seq \sof{\spine : \susp-{C^-}}$ corresponds to the left-focused sequent form.
 Notice that spine typing can succeed even at non-atomic propositions, provided that the proposition under focus matches the consequent.
 Also, value applications require that values, $V$, be typed by positive propositions under focus.
 
@@ -268,8 +279,7 @@ The typing judgment for normal terms corresponds to eager inversion on the right
 \NewDocumentCommand{\FV}{m}{\mathop{\mathrm{FV}}#1}
 
 As described in \cref{sec:olp-intuition:concurrency}, \vocab{concurrent equality} formalizes the idea that different interleavings of independent rewritings should be indistinguishable.
-
-As described in \cref{sec:olp-intuition:concurrency}, the different interleavings of independent rewritings should be indistinguishable.
+% As described in \cref{sec:olp-intuition:concurrency}, the different interleavings of independent rewritings should be indistinguishable.
 Traces $T$ thus form a trace monoid in which independent rewriting steps commute.
 Following \textcite{Cervesato+:LFMTP12}, this independence relation is defined on the sets of input and output variables, $\inputs{S}$ and $\outputs{S}$, of a step $S$.
 
@@ -283,7 +293,8 @@ Specifically, $\inputs{S}$ and $\outputs{S}$ are given by:
 Consider the trace $\tseq{S_1; S_2}$.
 These two neighboring steps are independent and commute if $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$.
 In other words, if $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$, then $\tof{\tseq{S_1; S_2} :: \octx \trans* \octx''}$ if and only if $\tof{\tseq{S_2; S_1} :: \octx \trans* \octx''}$.
-Concurrent equality is the congruence relation that is obtained by associativity and unit axioms and this partial commutativity.
+(Notice that bound variables can always be renamed to be distinct from the input and output variables of previous steps in the trace.)
+Concurrent equality is the congruence relation on traces that is obtained by associativity and unit axioms and this partial commutativity.
 
 % Step $S_1$ must precede step $S_2$ if $S_1$ binds as outputs any variables that are used by $S_2$, i.e., if $\outputs{S_1{}} \cap \inputs{S_2} \neq \emptyset$.
 % Conversely, steps $S_1$ and $S_2$ may be permuted if $\outputs{S_1{}} \cap \inputs{S_2} = \emptyset$.
@@ -309,7 +320,7 @@ Concurrent equality is the congruence relation that is obtained by associativity
 
 % Step $S_2$ depends on following step $S_1$ if $S_2$ uses variables that are bound as outputs of $S_1$, i.e., if $\outputs{S_1} \cap \inputs{S_2} \neq \emptyset$.
 
-Bound variables can always be renamed to be distinct from the input and output variables of previous steps in the trace.
+
 
 
 
